@@ -42,6 +42,8 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
   const [promote, setPromote] = useState(true);
   const [graduate, setGraduate] = useState(true);
   const [keepSeats, setKeepSeats] = useState(false);
+  // 新學年：詢問是否沿用上一學期的科目比重與整體佔比（同學年上學期→下學期一律自動沿用，不用問）
+  const [inheritSettings, setInheritSettings] = useState(true);
   const supported = isSupportedRollover(src, tgt);
   const mapRules: ClassMapRule[] = Object.entries(edits)
     .filter(([, v]) => v.to_class.trim() || v.to_grade)
@@ -77,7 +79,19 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
       return;
     }
     const d = data as { moved: number; graduated: number; newClasses: number };
-    setResult(`✅ 完成：${d.moved} 位學生已建立 ${tgt.year} 學年度 ${tgt.term} 的學籍${d.graduated ? `；${d.graduated} 位畢業` : ''}${d.newClasses ? `；新增 ${d.newClasses} 個班` : ''}。`);
+    // 科目比重／整體佔比：同學年自動沿用；新學年依勾選決定（只補目標學期還沒有的，已輸入的不會被蓋掉）
+    let inheritMsg = '';
+    if (sameYear || inheritSettings) {
+      const { data: inh, error: inhErr } = await supabase.rpc('inherit_term_settings', {
+        p_from_year: src.year, p_from_term: src.term, p_to_year: tgt.year, p_to_term: tgt.term,
+      });
+      if (inhErr) inheritMsg = `（科目比重沿用失敗：${inhErr.message}，請確認 sql/119_inherit_term_settings.sql 已執行）`;
+      else {
+        const r = inh as { curriculum: number; grading_rules: number };
+        inheritMsg = `；已沿用${src.term}的科目比重（補上 ${r.curriculum} 筆科目${r.grading_rules ? '、整體佔比' : ''}）`;
+      }
+    }
+    setResult(`✅ 完成：${d.moved} 位學生已建立 ${tgt.year} 學年度 ${tgt.term} 的學籍${d.graduated ? `；${d.graduated} 位畢業` : ''}${d.newClasses ? `；新增 ${d.newClasses} 個班` : ''}${inheritMsg}。`);
     setPreview(null);
     onDone?.();
   }
@@ -171,6 +185,13 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
             {sameYear && (
               <label>
                 <input type="checkbox" checked={keepSeats} onChange={(e) => setKeepSeats(e.target.checked)} /> 沿用原座號（取消勾選＝依學號重新排座號）
+              </label>
+            )}
+            {sameYear ? (
+              <span style={{ fontSize: 12, color: '#888' }}>科目比重與整體佔比（期中／期末／平時）會自動沿用上學期；有變動的科目之後再到「科目比重」自行修改。</span>
+            ) : (
+              <label>
+                <input type="checkbox" checked={inheritSettings} onChange={(e) => setInheritSettings(e.target.checked)} /> 沿用{src.term}的科目比重與整體佔比（有變動的科目之後再自行修改；已輸入的不會被蓋掉）
               </label>
             )}
             <span style={{ fontSize: 12, color: '#888' }}>座號預設：每班依學號由小到大重新排 1、2、3…。舊學期的學籍與成績都會保留，不會被覆蓋。</span>
