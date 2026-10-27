@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { suggestSeatNo } from '@/lib/seatSuggest';
 
 type ClassOption = { id: string; label: string };
 
@@ -13,6 +14,7 @@ export default function TransferPage() {
   const [term, setTerm] = useState<string | null>(null);
   const [targetClassId, setTargetClassId] = useState('');
   const [seatNo, setSeatNo] = useState('');
+  const [seatNote, setSeatNote] = useState('');
   const [classes, setClasses] = useState<ClassOption[]>([]);
 
   useEffect(() => {
@@ -26,6 +28,21 @@ export default function TransferPage() {
       );
     })();
   }, []);
+
+  // 選好新班級後，座號自動帶入該班最後一號（可手動修改）
+  useEffect(() => {
+    let cancelled = false;
+    setSeatNote('');
+    if (!targetClassId || !term) return;
+    suggestSeatNo(targetClassId, term, studentNo).then((s) => {
+      if (cancelled || !s) return;
+      setSeatNo(String(s.seat));
+      setSeatNote(s.note);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [targetClassId, term, studentNo]);
 
   async function handleLookup() {
     const { data: student } = await supabase.from('students').select('name').eq('student_no', studentNo).maybeSingle();
@@ -110,6 +127,7 @@ export default function TransferPage() {
             ))}
           </select>
           <input type="number" placeholder="新座號" value={seatNo} onChange={(e) => setSeatNo(e.target.value)} style={{ padding: 8 }} required />
+          {seatNote && <div style={{ fontSize: 12, color: '#888' }}>{seatNote}</div>}
           <button type="submit" style={{ padding: 12, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 8 }}>
             確認轉班
           </button>

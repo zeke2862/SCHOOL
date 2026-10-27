@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { suggestSeatNo } from '@/lib/seatSuggest';
 
 type ClassOption = { id: string; label: string };
 
@@ -30,6 +31,7 @@ export default function NewStudentRegistrationPage() {
   const [classId, setClassId] = useState('');
   const [term, setTerm] = useState('上學期');
   const [seatNo, setSeatNo] = useState('');
+  const [seatNote, setSeatNote] = useState('');
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [admissionFiles, setAdmissionFiles] = useState<FileList | null>(null);
 
@@ -44,6 +46,21 @@ export default function NewStudentRegistrationPage() {
       );
     })();
   }, []);
+
+  // 選好班級／學期後，座號自動帶入該班最後一號（可手動修改）
+  useEffect(() => {
+    let cancelled = false;
+    setSeatNote('');
+    if (!classId) return;
+    suggestSeatNo(classId, term, student.student_no).then((s) => {
+      if (cancelled || !s) return;
+      setSeatNo(String(s.seat));
+      setSeatNote(s.note);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [classId, term, student.student_no]);
 
   function updateGuardian(index: number, patch: Partial<typeof emptyGuardian>) {
     setGuardians((prev) => prev.map((g, i) => (i === index ? { ...g, ...patch } : g)));
@@ -265,6 +282,7 @@ export default function NewStudentRegistrationPage() {
               <option value="下學期">下學期</option>
             </select>
             <input type="number" placeholder="座號" style={inputStyle} value={seatNo} onChange={(e) => setSeatNo(e.target.value)} required />
+            {seatNote && <div style={{ fontSize: 12, color: '#888' }}>{seatNote}</div>}
           </div>
         </section>
 

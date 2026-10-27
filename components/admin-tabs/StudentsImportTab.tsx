@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { fetchAllPages, chunk } from '@/lib/supabasePaging';
 import { supabase } from '@/lib/supabaseClient';
+import { suggestSeatNo } from '@/lib/seatSuggest';
 import ExcelUploadButton from '@/components/ExcelUploadButton';
 import TemplateDownloadButton from '@/components/TemplateDownloadButton';
 import { downloadStudentsImportTemplate } from '@/lib/excelTemplates';
@@ -30,6 +31,7 @@ export default function ImportStudentPage() {
   const [students, setStudents] = useState<EnrolledStudent[]>([]);
   const [filterClassId, setFilterClassId] = useState('');
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [seatNote, setSeatNote] = useState('');
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [armedAction, setArmedAction] = useState<'delete' | 'fullDelete' | 'edit' | null>(null);
@@ -300,6 +302,21 @@ export default function ImportStudentPage() {
   }
 
 
+  // 選好班級／學期後，座號自動帶入該班最後一號；復學舊生（輸入學號後）沿用原座號。可手動修改
+  useEffect(() => {
+    let cancelled = false;
+    setSeatNote('');
+    if (!form.class_id) return;
+    suggestSeatNo(form.class_id, form.term, form.student_no).then((s) => {
+      if (cancelled || !s) return;
+      setForm((f) => ({ ...f, seat_no: String(s.seat) }));
+      setSeatNote(s.note);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [form.class_id, form.term, form.student_no]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -383,6 +400,7 @@ export default function ImportStudentPage() {
           style={{ padding: 8 }}
           required
         />
+        {seatNote && <div style={{ fontSize: 12, color: '#888' }}>{seatNote}</div>}
         <button type="submit" style={{ padding: 12, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 8 }}>
           建檔並編班
         </button>
