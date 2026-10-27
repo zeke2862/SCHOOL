@@ -150,7 +150,7 @@ export default function PortalRegistrationReview() {
     <div style={{ maxWidth: 980, margin: '0 auto', padding: 24 }}>
       <h1 style={{ marginBottom: 4 }}>家長／學生帳號申請</h1>
       <p style={{ fontSize: 13, color: '#666', marginBottom: 14, lineHeight: 1.7 }}>
-        家長或學生第一次用「HY＋學號」（學生本人 HYS＋學號）加手機號碼申請登入時，申請會送到這裡。
+        家長第一次用「HY＋學號」（學生本人 HYS＋學號）加手機號碼申請登入時，申請會送到這裡。
         請對照<b>手上的資料表</b>確認這支手機真的是自己班學生／家長的，再按「核准」；核准後手機號碼會自動記進學籍資料，申請人之後直接用代碼＋手機登入，不用學校再輸入。
         不確定或不是本班的人，請按「拒絕」。
       </p>

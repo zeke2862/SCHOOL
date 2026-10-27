@@ -257,6 +257,7 @@ export default function TopNav() {
       }}
     >
       <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}>
+        {!isPortal && (
         <button
           onClick={() => router.push(homeHref)}
           style={{ background: 'none', border: 'none', color: '#2C2C2A', cursor: 'pointer', padding: 0, font: 'inherit' }}
@@ -266,6 +267,7 @@ export default function TopNav() {
               （教職員是 /admin，家長/學生入口是 /portal），行為固定、好預期。 */}
           ← 回主選單
         </button>
+        )}
         <span style={{ color: '#666' }}>{me ? `${me.name}｜${ROLE_LABEL[me.role]}` : ''}</span>
         {ident?.acting && (
           <span title={`代理到 ${new Date(ident.acting.endAt).toLocaleString('zh-TW', { hour12: false })}`} style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#FDECEC', color: '#A32D2D', border: '1px solid #F2B8B8' }}>
