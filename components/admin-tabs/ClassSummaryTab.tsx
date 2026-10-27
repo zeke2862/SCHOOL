@@ -653,6 +653,7 @@ export default function ClassSummaryPage() {
         @media print {
           .no-print { display: none !important; }
           @page { size: landscape; margin: 8mm; }
+          .cs-scroll { overflow: visible !important; max-height: none !important; }
           .print-compact table { font-size: 9px !important; table-layout: auto; }
           .print-compact th, .print-compact td { padding: 2px 3px !important; white-space: nowrap; }
         }
@@ -815,7 +816,10 @@ export default function ClassSummaryPage() {
           // 瀏覽器實際算出來的欄寬跟猜的不一樣，才會蓋到旁邊。這裡把兩欄的寬度
           // 明確鎖死（座號48px、姓名92px），sticky 的 left 位移直接對齊這個鎖死
           // 的寬度，兩者一定對得起來，不會再因為姓名字數不同而跑位、互相蓋到。
-          <div className="print-compact">
+          // 【再次調整】左右捲動只動到表格本身：表格放在自己的捲動容器（cs-scroll）裡，
+          // 上方的文字、按鈕、選單留在原地不跟著橫移。容器同時限制高度，所以直向捲動時
+          // 標題列（sticky top）、座號／姓名欄（sticky left）仍然固定在容器的邊緣。列印時不限制。
+          <div className="print-compact cs-scroll" style={{ overflow: 'auto', maxHeight: 'calc(100vh - 120px)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr ref={headRow1Ref}>

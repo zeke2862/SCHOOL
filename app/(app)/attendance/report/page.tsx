@@ -45,6 +45,7 @@ function AttendanceReportPageInner() {
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [viewMode, setViewMode] = useState<'month' | 'term'>('month');
   const [monthValue, setMonthValue] = useState(currentMonthValue());
+  const [viewTerm, setViewTerm] = useState(''); // 學期累計要看哪一個學期；''＝目前學期（與班級選項互不干涉）
   const [summary, setSummary] = useState<Record<string, Record<string, number>>>({});
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -113,6 +114,22 @@ function AttendanceReportPageInner() {
       // 【本輪修正】enrollments 每位學生「上學期」「下學期」各有一列，原本沒有依學期過濾，
       // 同一位學生會被撈兩次（名單重複、React key 重複），改成只取目前學期、並以學號去重。
       const currentTerm = await resolveCurrentTerm();
+      // 要看的學期（歷史資料）：學期累計＝使用者選的學期（預設目前學期）；月報＝這個月份落在哪個學期
+      const { data: termRowsAll } = await supabase.from('academic_terms').select('academic_year, term, term_start_date, term_end_date');
+      let effTermRow: any = null;
+      if (currentTerm) {
+        if (viewMode === 'term') {
+          const t = viewTerm || currentTerm.term;
+          effTermRow = (termRowsAll ?? []).find((r: any) => r.academic_year === currentTerm.academic_year && r.term === t) ?? null;
+        } else {
+          const ref = `${monthValue}-15`;
+          effTermRow =
+            (termRowsAll ?? []).find((r: any) => r.term_start_date && r.term_start_date <= ref && (!r.term_end_date || ref <= r.term_end_date)) ??
+            (termRowsAll ?? []).find((r: any) => r.academic_year === currentTerm.academic_year && r.term === currentTerm.term) ??
+            null;
+        }
+      }
+      const effTerm: string | undefined = effTermRow?.term ?? currentTerm?.term;
       const { data: enrollRawAll, error: enrollErr } = await supabase
         .from('enrollments')
         .select('seat_no, student_no, term')
@@ -123,12 +140,17 @@ function AttendanceReportPageInner() {
         setLoading(false);
         return;
       }
-      const preferTerm = currentTerm?.term;
+      const preferTerm = effTerm;
       const seen = new Set<string>();
-      const enrollRowsRaw = [
-        ...(enrollRawAll ?? []).filter((r: any) => r.term === preferTerm),
-        ...(enrollRawAll ?? []).filter((r: any) => r.term !== preferTerm),
-      ].filter((r: any) => (seen.has(r.student_no) ? false : (seen.add(r.student_no), true)));
+      // 看某個學期時，名單就是那個學期的學籍（含後來休學／轉學的學生、當時的座號）；該學期沒有學籍才退回舊做法
+      const inTerm = (enrollRawAll ?? []).filter((r: any) => r.term === preferTerm);
+      const enrollRowsRaw = (inTerm.length > 0
+        ? inTerm
+        : [
+            ...(enrollRawAll ?? []).filter((r: any) => r.term === preferTerm),
+            ...(enrollRawAll ?? []).filter((r: any) => r.term !== preferTerm),
+          ]
+      ).filter((r: any) => (seen.has(r.student_no) ? false : (seen.add(r.student_no), true)));
       enrollRowsRaw.sort((a: any, b: any) => a.seat_no - b.seat_no);
       const hiddenNos = isAdmin ? new Set<string>() : await getHiddenStudentNos((enrollRowsRaw ?? []).map((r: any) => r.student_no));
       const enrollRows = (enrollRowsRaw ?? []).filter((r: any) => !hiddenNos.has(r.student_no));
@@ -169,14 +191,8 @@ function AttendanceReportPageInner() {
       let termStart: string | null = null;
       let termEnd: string | null = null;
       if (currentTerm) {
-        const { data: termRow } = await supabase
-          .from('academic_terms')
-          .select('term_start_date, term_end_date')
-          .eq('academic_year', currentTerm.academic_year)
-          .eq('term', currentTerm.term)
-          .maybeSingle();
-        termStart = termRow?.term_start_date ?? null;
-        termEnd = termRow?.term_end_date ?? null;
+        termStart = effTermRow?.term_start_date ?? null;
+        termEnd = effTermRow?.term_end_date ?? null;
       }
       const todayStr = toDateStr(new Date());
 
@@ -200,9 +216,9 @@ function AttendanceReportPageInner() {
         // 「主查詢的日期下限本身沒收斂」這個真正的根因。改成不查資料庫，直接
         // 用「學年度＋學期」估出一個合理的開學日下限（見 estimateTermStart），
         // 保證查詢範圍被收斂在「這學期」等級，不會再退化成整張表。
-        rangeStart = estimateTermStart(currentTerm.academic_year, currentTerm.term);
+        rangeStart = estimateTermStart(currentTerm.academic_year, effTerm ?? currentTerm.term);
         setRangeNote(
-          `學年學期設定裡尚未填寫本學期開學日，暫以「${currentTerm.academic_year} ${currentTerm.term}」推算的開學日（約 ${rangeStart}）起算，實際節數可能略有誤差，請開發人員盡快到「學年學期設定」頁補上正確的開學日。`
+          `學年學期設定裡尚未填寫本學期開學日，暫以「${currentTerm.academic_year} ${effTerm ?? currentTerm.term}」推算的開學日（約 ${rangeStart}）起算，實際節數可能略有誤差，請開發人員盡快到「學年學期設定」頁補上正確的開學日。`
         );
       }
 
@@ -278,7 +294,7 @@ function AttendanceReportPageInner() {
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classId, viewMode, monthValue, isAdmin]);
+  }, [classId, viewMode, monthValue, isAdmin, viewTerm]);
 
   if (noClass) {
     return (
@@ -318,8 +334,15 @@ function AttendanceReportPageInner() {
         )}
         <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
           <input type="radio" checked={viewMode === 'term'} onChange={() => setViewMode('term')} />
-          學期（累計目前已登錄的紀錄）
+          學期（累計已登錄的紀錄）
         </label>
+        {viewMode === 'term' && (
+          <select value={viewTerm} onChange={(e) => setViewTerm(e.target.value)} style={{ padding: 6 }} title="要看哪一個學期的累計">
+            <option value="">目前學期</option>
+            <option value="上學期">上學期</option>
+            <option value="下學期">下學期</option>
+          </select>
+        )}
       </div>
 
       {rangeNote && <p style={{ fontSize: 12, color: '#A36A2D', marginBottom: 8 }}>{rangeNote}</p>}

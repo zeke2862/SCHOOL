@@ -526,12 +526,19 @@ function WeeklyAttendancePageInner() {
 
       // 注意：這裡刻意不用 students(...) 這種自動關聯embed查詢——在這個資料庫上這類查詢會不穩定、
       // 整批失敗又不一定會回報明確錯誤，導致學生名單完全出不來。改成分開查、用 Map 手動兜資料。
-      const { data: enrollRows, error: enrollErr } = await supabase
-        .from('enrollments')
-        .select('seat_no, student_no')
-        .eq('class_id', classId)
-        .eq('is_current', true) // 只抓目前仍在班的學生，避免轉班/升級後的舊紀錄殘留在名單裡
-        .order('seat_no');
+      // 【歷史資料】本週如果落在「目前學期以外」的學期（例如上學期），名單改用那個學期的學籍
+      // （含後來休學／轉學的學生、當時的座號），不然看過去的週次只會看到現在還在班的學生。
+      const [curTermForRoster, { data: termRowsW }] = await Promise.all([
+        resolveCurrentTerm(),
+        supabase.from('academic_terms').select('term, term_start_date, term_end_date'),
+      ]);
+      const midWeek = toDateStr(new Date(weekStart.getTime() + 3 * 86400000));
+      const weekTermRow = (termRowsW ?? []).find((r: any) => r.term_start_date && r.term_start_date <= midWeek && (!r.term_end_date || midWeek <= r.term_end_date));
+      const histTerm = weekTermRow && curTermForRoster && weekTermRow.term !== curTermForRoster.term ? (weekTermRow.term as string) : null;
+      let rosterQuery = supabase.from('enrollments').select('seat_no, student_no').eq('class_id', classId);
+      // 目前學期：只抓目前仍在班的學生，避免轉班/升級後的舊紀錄殘留在名單裡
+      rosterQuery = histTerm ? rosterQuery.eq('term', histTerm) : rosterQuery.eq('is_current', true);
+      const { data: enrollRows, error: enrollErr } = await rosterQuery.order('seat_no');
       if (enrollErr) setLoadError('讀取學生名單失敗：' + enrollErr.message);
 
       // 【本輪新增】反映事項「休學/轉學/退學的學生，只能在管理者視角下看到，
