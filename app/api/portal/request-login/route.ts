@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { canonicalPhone, phonesMatch, normalizeLoginCode } from '@/lib/portalPhone';
 
 // ⚠️ 這裡故意「不」直接對 lib/supabaseAdmin.ts 匯出的那個共用 supabaseAdmin 呼叫
 // auth.verifyOtp()：那個 client 是整個伺服器行程共用的單一個 instance（module-level
@@ -51,27 +52,11 @@ function buildPortalShadowEmail(loginCode: string): string {
 // 0812345678 跟 0912345678 這種第二碼不同、其餘全部剛好相同的兩支「不同」號碼
 // 被誤判成同一支——這是會讓不該登入的人核對成功的安全問題，所以改成只拿掉
 // 「國碼」「開頭的0」這兩種明確、有意義的格式差異，其餘數字必須完全一致才算對。
-function normalizeDigits(s: string): string {
-  return (s ?? '').replace(/\D/g, '');
-}
-function canonicalPhone(s: string): string {
-  let d = normalizeDigits(s);
-  if (d.startsWith('66') && d.length > 9) d = d.slice(2); // 去掉泰國國碼 66（+66 的 + 已經被 normalizeDigits 拿掉了）
-  if (d.startsWith('0')) d = d.slice(1); // 去掉開頭的 0（國內慣用打法）
-  return d;
-}
-function phonesMatch(a: string | null | undefined, b: string | null | undefined): boolean {
-  const ca = canonicalPhone(a ?? '');
-  const cb = canonicalPhone(b ?? '');
-  if (ca.length < 8 || cb.length < 8) return false; // 太短的不算數，避免誤判
-  return ca === cb;
-}
-
 export async function POST(req: NextRequest) {
   const { loginCode, phone } = (await req.json()) as { loginCode: string; phone: string };
   if (!loginCode || !phone) return NextResponse.json({ error: '請輸入登入代碼與手機號碼' }, { status: 400 });
 
-  const code = loginCode.trim().toUpperCase();
+  const code = normalizeLoginCode(loginCode);
   let relation: '學生本人' | '家長';
   let rawStudentNo: string;
   if (code.startsWith('HYS')) {
@@ -114,8 +99,28 @@ export async function POST(req: NextRequest) {
   // 一律回覆同一句籠統的訊息，不細分原因——避免有心人士靠著錯誤訊息的差異，反過來
   // 猜出「這個學號存不存在」之類的資訊。
   if (!phoneMatched) {
+    // 絕大多數「不相符」是因為：學籍資料裡本來就沒有這支手機（第一次使用還沒申請、或申請還在等導師核准），
+    // 不是手機格式（泰國 06／08／09 開頭、有無 +66 都可以）。如果這個代碼＋這支手機有申請紀錄，直接告訴申請人
+    // 目前的進度（這是他自己送出的資料，不洩漏任何別人的資訊）；沒有紀錄時給通用的引導，不透露學號是否存在。
+    const { data: reqRow } = await supabaseAdmin
+      .from('portal_registration_requests')
+      .select('status')
+      .eq('login_code', code)
+      .eq('phone_key', canonicalPhone(phone))
+      .order('requested_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (reqRow?.status === '待審核') {
+      return NextResponse.json({ error: '您的帳號申請已經送出，正在等班導師核對手機號碼。導師核准後，就可以用同樣的代碼與手機號碼登入。' }, { status: 403 });
+    }
+    if (reqRow?.status === '已拒絕') {
+      return NextResponse.json({ error: '您的帳號申請沒有通過，請洽班導師確認手機號碼是否正確。' }, { status: 403 });
+    }
     return NextResponse.json(
-      { error: '登入代碼與手機號碼不相符，請確認是否輸入正確；如果手機號碼有變更，請洽學校更新學籍資料後再試' },
+      {
+        error:
+          '查不到這組代碼與手機號碼。第一次使用請先按下方「第一次使用？申請帳號」，等班導師核准後才能登入。學生本人的代碼是 HYS＋學號，家長是 HY＋學號；手機號碼請輸入申請時填的那一支。',
+      },
       { status: 403 }
     );
   }

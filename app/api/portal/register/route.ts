@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { flushOutbox } from '@/lib/outbox';
+import { canonicalPhone, normalizeLoginCode, toAsciiDigits } from '@/lib/portalPhone';
 
 // 家長／學生「第一次申請帳號」：輸入登入代碼（HY＋學號；學生本人 HYS＋學號）與手機號碼，
 // 系統不直接放行，而是建立一筆「待審核」的申請，通知那個班的導師；導師對照手上的資料表，
@@ -8,18 +9,11 @@ import { flushOutbox } from '@/lib/outbox';
 // decide_portal_registration）。核准後手機會自動寫進學籍資料，之後就能用同一組代碼＋手機登入
 // （登入驗證仍然是 app/api/portal/request-login）。
 
-function canonicalPhone(s: string): string {
-  let d = (s ?? '').replace(/\D/g, '');
-  if (d.startsWith('66') && d.length > 9) d = d.slice(2);
-  if (d.startsWith('0')) d = d.slice(1);
-  return d;
-}
-
 export async function POST(req: NextRequest) {
   const { loginCode, phone } = (await req.json().catch(() => ({}))) as { loginCode?: string; phone?: string };
   if (!loginCode || !phone) return NextResponse.json({ error: '請輸入登入代碼與手機號碼' }, { status: 400 });
 
-  const code = loginCode.trim().toUpperCase();
+  const code = normalizeLoginCode(loginCode);
   let relation: '學生本人' | '家長';
   let rawStudentNo: string;
   if (code.startsWith('HYS')) {
@@ -73,7 +67,7 @@ export async function POST(req: NextRequest) {
     student_no: student.student_no,
     login_code: code,
     relation,
-    phone: phone.trim(),
+    phone: toAsciiDigits(phone).trim(), // 全形／泰文數字轉成一般數字再存，之後寫進學籍資料才一致
     student_name: student.name,
     class_id: (enroll as any).class_id,
     class_label: classLabel,
