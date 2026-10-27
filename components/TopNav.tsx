@@ -240,7 +240,8 @@ export default function TopNav() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        gap: 16,
+        flexWrap: 'wrap',
+        gap: 8,
         padding: '10px 16px',
         borderBottom: '1px solid #eee',
         background: '#fff',
@@ -248,7 +249,7 @@ export default function TopNav() {
         position: 'relative',
       }}
     >
-      <span style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}>
         <button
           onClick={() => router.push(homeHref)}
           style={{ background: 'none', border: 'none', color: '#2C2C2A', cursor: 'pointer', padding: 0, font: 'inherit' }}
@@ -281,7 +282,7 @@ export default function TopNav() {
           </span>
         )}
       </span>
-      <span style={{ display: 'flex', gap: 16, alignItems: 'center', position: 'relative' }}>
+      <span style={{ display: 'flex', gap: 10, alignItems: 'center', position: 'relative', flexWrap: 'wrap', minWidth: 0 }}>
         {!isPortal && me && (
           <>
             {/* 字級 大/中/小：中是預設，套用到整個畫面（含按鈕、留白），不只是文字。 */}

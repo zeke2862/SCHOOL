@@ -600,7 +600,7 @@ export default function StudentSearchPage() {
           onClick={closeEdit}
         >
           <div
-            style={{ background: '#fff', borderRadius: 8, padding: 24, width: 480, maxHeight: '85vh', overflowY: 'auto' }}
+            style={{ background: '#fff', borderRadius: 8, padding: 24, width: 480, maxWidth: '92vw', boxSizing: 'border-box', maxHeight: '85vh', overflowY: 'auto' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 style={{ fontSize: 15, marginBottom: 4 }}>修正學生資料（學號：{editingStudentNo}）</h2>

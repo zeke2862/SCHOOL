@@ -39,6 +39,24 @@ button:not(table button):not(.keep-size) {
   }
 }
 
+
+/* 手機／窄螢幕：畫面不可以比螢幕寬，不然要手動縮放才看得到。
+   - 整個頁面不橫向捲動（寬的表格改成「表格自己」左右滑動）
+   - 圖片、輸入框不超出
+   - 手機上外框留白縮小，多給內容一點寬度
+   - 太寬的格線版面改成單欄
+   成績總表（.cs-scroll）、列印不受影響。 */
+@media screen and (max-width: 800px) {
+  html, body { max-width: 100%; overflow-x: hidden; }
+  img, video, canvas, svg { max-width: 100%; height: auto; }
+  input, select, textarea { max-width: 100%; box-sizing: border-box; }
+  pre { max-width: 100%; overflow-x: auto; }
+  table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .cs-scroll table, .keep-table, .keep-table table { display: table; max-width: none; overflow: visible; }
+  main[style*="padding: 24px"], main[style*="padding:24px"] { padding: 14px !important; }
+  [style*="minmax(320px"], [style*="minmax(300px"], [style*="minmax(260px"], [style*="minmax(240px"] { grid-template-columns: 1fr !important; }
+}
+
 @media print {
   h1, h2, h3, button { font-size: revert !important; min-height: 0 !important; }
 }

@@ -1232,7 +1232,7 @@ export default function ScoreEntryPage() {
           onClick={() => setShowEntered(false)}
         >
           <div
-            style={{ background: '#fff', borderRadius: 8, padding: 24, width: 420, maxHeight: '80vh', overflowY: 'auto' }}
+            style={{ background: '#fff', borderRadius: 8, padding: 24, width: 420, maxWidth: '92vw', boxSizing: 'border-box', maxHeight: '80vh', overflowY: 'auto' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 style={{ fontSize: 15, marginBottom: 4 }}>已輸入成績</h2>

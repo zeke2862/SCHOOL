@@ -1934,7 +1934,7 @@ function WeeklyAttendancePageInner() {
             zIndex: 50,
           }}
         >
-          <div style={{ background: '#fff', borderRadius: 8, padding: 24, width: 360 }}>
+          <div style={{ background: '#fff', borderRadius: 8, padding: 24, width: 360, maxWidth: '92vw', boxSizing: 'border-box' }}>
             <h2 style={{ fontSize: 15, marginBottom: 8 }}>出缺席示警</h2>
             <p style={{ fontSize: 13, marginBottom: 16 }}>
               <b>{notifyPrompt.name}</b> 事假＋病假＋曠課累計已達 <b>{notifyPrompt.count}</b> 節（門檻 {alertThreshold} 節），是否寄送通知信給家長？

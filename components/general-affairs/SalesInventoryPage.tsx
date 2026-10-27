@@ -597,7 +597,7 @@ export default function SalesInventoryPage({
       </div>
 
       {sidebarOpen && (
-        <div style={{ width: 340, flexShrink: 0, background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: 16, position: 'sticky', top: 16, maxHeight: 'calc(100vh - 32px)', overflowY: 'auto' }}>
+        <div style={{ width: 340, maxWidth: '100%', flexShrink: 1, background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: 16, position: 'sticky', top: 16, maxHeight: 'calc(100vh - 32px)', overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #eee', paddingBottom: 10, marginBottom: 12 }}>
             <h2 style={{ fontSize: 14, margin: 0 }}>資訊面板</h2>
             <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#7f8c8d' }}>
