@@ -75,6 +75,8 @@ export default function ParentPortalPage() {
   type AttendanceGroup = { key: string; label: string; isCurrent: boolean; counts: Record<string, number>; dates: Record<string, string[]> };
   const [attendanceGroups, setAttendanceGroups] = useState<AttendanceGroup[]>([]);
   const [expandedAttendanceStatus, setExpandedAttendanceStatus] = useState<string | null>(null);
+  // 出缺勤預設只顯示本學期，其他學期用下拉選單自己切換
+  const [attendanceTermKey, setAttendanceTermKey] = useState<string>('');
   const [absencePeriods, setAbsencePeriods] = useState(0);
   const [alertThreshold, setAlertThreshold] = useState<number | null>(null);
   const [profile, setProfile] = useState<Record<string, string>>({});
@@ -296,6 +298,7 @@ export default function ParentPortalPage() {
         }))
         .sort((x, y) => (x.isCurrent === y.isCurrent ? (x.key < y.key ? 1 : -1) : x.isCurrent ? -1 : 1));
       setAttendanceGroups(groups);
+      setAttendanceTermKey((groups.find((g) => g.isCurrent) ?? groups[0])?.key ?? '');
       setExpandedAttendanceStatus(null);
       // 出缺席提醒（事假＋病假＋曠課累計）只算本學期，跟學校的示警統計一致
       const cur = groups.find((g) => g.isCurrent)?.counts ?? {};
@@ -733,9 +736,26 @@ export default function ParentPortalPage() {
 
               <section>
                 <h2 style={{ fontSize: 14, marginBottom: 8 }}>出缺勤彙總（依學期）</h2>
-                <p style={{ fontSize: 11, color: '#999', marginBottom: 8 }}>上學期、下學期分開計算。點選次數可以看到相對應登記的日期。</p>
+                <p style={{ fontSize: 11, color: '#999', marginBottom: 8 }}>預設顯示本學期，其他學期可用上方選單切換；點選次數可以看到相對應登記的日期。</p>
                 {attendanceGroups.length > 0 ? (
-                  attendanceGroups.map((g) => (
+                  <>
+                  {attendanceGroups.length > 1 && (
+                    <select
+                      value={attendanceTermKey}
+                      onChange={(e) => {
+                        setAttendanceTermKey(e.target.value);
+                        setExpandedAttendanceStatus(null);
+                      }}
+                      style={{ padding: 6, marginBottom: 10, fontSize: 13 }}
+                    >
+                      {attendanceGroups.map((g) => (
+                        <option key={g.key} value={g.key}>
+                          {g.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {attendanceGroups.filter((g) => g.key === attendanceTermKey).map((g) => (
                     <div key={g.key} style={{ marginBottom: 14 }}>
                       <h3 style={{ fontSize: 13, margin: '0 0 6px', color: g.isCurrent ? '#2C2C2A' : '#666' }}>{g.label}</h3>
                       {Object.entries(g.counts).length > 0 ? (
@@ -780,7 +800,8 @@ export default function ParentPortalPage() {
                         <p style={{ fontSize: 13, margin: 0 }}>全勤或尚無紀錄</p>
                       )}
                     </div>
-                  ))
+                  ))}
+                  </>
                 ) : (
                   <p style={{ fontSize: 13 }}>全勤或尚無紀錄</p>
                 )}
