@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase, getCurrentAppUser, isAdminInCurrentView } from '@/lib/supabaseClient';
 import { getHiddenStudentNos } from '@/lib/hiddenStudents';
+import { rosterTerms } from '@/lib/academicTerm';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 // 操行成績「禮貌／衣著／服務／紀律」四個分項評分——依你的確認新增的評分介面
@@ -100,6 +101,7 @@ export default function ConductScoresTab() {
         .from('enrollments')
         .select('id, seat_no, student_no')
         .eq('class_id', classId)
+        .in('term', await rosterTerms())
         .order('seat_no');
       // 【本輪新增】理由見 lib/hiddenStudents.ts 的說明（管理員切換教師視角
       // 預覽時，RLS 不會過濾隱藏名單，這裡在前端補一層過濾）。

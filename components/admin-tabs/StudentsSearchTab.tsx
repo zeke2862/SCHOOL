@@ -6,6 +6,7 @@ import { supabase, getCurrentAppUser, isAdminInCurrentView } from '@/lib/supabas
 import ErrorBanner from '@/components/ErrorBanner';
 import { getHiddenStudentNos } from '@/lib/hiddenStudents';
 import { useCaps } from '@/lib/useCaps';
+import { compareStudentNo } from '@/lib/studentNoSort';
 import { resolveCurrentTerm, estimateTermStart } from '@/lib/academicTerm';
 
 type ClassOption = { id: string; label: string; academic_year: number; grade_level: string; class_name: string };
@@ -376,8 +377,8 @@ export default function StudentSearchPage() {
   // 重排某班某學期的座號（依學號由小到大 1、2、3…）；避開同班同學期「非現行」學籍佔用的座號。
   // 先全部改成大數字再改回來，避免中途座號重複撞到「同班同學期座號不可重複」的限制。
   async function renumberClass(cid: string, term: string) {
-    const { data } = await supabase.from('enrollments').select('id, student_no, is_current, seat_no').eq('class_id', cid).eq('term', term).order('student_no').order('id');
-    const all = (data ?? []) as { id: string; student_no: string; is_current: boolean; seat_no: number }[];
+    const { data } = await supabase.from('enrollments').select('id, student_no, is_current, seat_no').eq('class_id', cid).eq('term', term).order('id');
+    const all = ((data ?? []) as { id: string; student_no: string; is_current: boolean; seat_no: number }[]).sort((x, y) => compareStudentNo(x.student_no, y.student_no));
     const current = all.filter((r) => r.is_current);
     const used = new Set(all.filter((r) => !r.is_current).map((r) => r.seat_no));
     for (let i = 0; i < current.length; i++) {
@@ -409,7 +410,7 @@ export default function StudentSearchPage() {
       const { data: existing } = await supabase.from('enrollments').select('seat_no').eq('class_id', moveClassId).eq('term', term);
       let seat = Math.max(0, ...((existing ?? []) as { seat_no: number }[]).map((e) => e.seat_no ?? 0));
       const sources = new Set<string>();
-      for (const r of [...rows].sort((a, b) => a.student_no.localeCompare(b.student_no))) {
+      for (const r of [...rows].sort((a, b) => compareStudentNo(a.student_no, b.student_no))) {
         if (r.classes?.id) sources.add(r.classes.id);
         seat++;
         const { error } = await supabase.from('enrollments').update({ class_id: moveClassId, seat_no: seat }).eq('id', r.id);

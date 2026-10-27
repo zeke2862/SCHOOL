@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { rosterTerms } from '@/lib/academicTerm';
 import { downloadMultiClassScoreExcel, type ClassScoreExcelParams } from '@/lib/excelTemplates';
 import { showPdfInWindow } from '@/lib/pdfPreview';
 
@@ -76,6 +77,7 @@ export default function BatchReportCardTab() {
           .from('enrollments')
           .select('id, seat_no, student_no, term, students(name)')
           .eq('class_id', classId)
+          .in('term', await rosterTerms())
           .order('seat_no');
         if (!enrollRows || enrollRows.length === 0) continue;
         const term = (enrollRows[0] as any).term;

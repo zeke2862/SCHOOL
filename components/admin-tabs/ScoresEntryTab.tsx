@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { supabase, getCurrentAppUser, getCurrentTeacherId, isAdminInCurrentView } from '@/lib/supabaseClient';
 import { getHiddenStudentNos } from '@/lib/hiddenStudents';
+import { rosterTerms } from '@/lib/academicTerm';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { getSiteContentMap } from '@/lib/siteContent';
 import { showPdfInWindow } from '@/lib/pdfPreview';
@@ -336,7 +337,7 @@ export default function ScoreEntryPage() {
         setRemarksDirty({});
         return;
       }
-      const { data: enrollRows } = await supabase.from('enrollments').select('id, seat_no, student_no').eq('class_id', classId).order('seat_no');
+      const { data: enrollRows } = await supabase.from('enrollments').select('id, seat_no, student_no').eq('class_id', classId).in('term', await rosterTerms()).order('seat_no');
       const studentNos = (enrollRows ?? []).map((r: any) => r.student_no);
       const { data: studentRows } = await supabase
         .from('students')
@@ -387,6 +388,7 @@ export default function ScoreEntryPage() {
         .from('enrollments')
         .select('id, seat_no, student_no')
         .eq('class_id', classId)
+        .in('term', await rosterTerms())
         .order('seat_no');
       // 【本輪新增】理由同上方主要名冊查詢，見 lib/hiddenStudents.ts 的說明。
       const hiddenNos = isAdmin ? new Set<string>() : await getHiddenStudentNos((enrollRowsRaw ?? []).map((r: any) => r.student_no));
@@ -467,6 +469,7 @@ export default function ScoreEntryPage() {
         .from('enrollments')
         .select('id, seat_no, student_no, term')
         .eq('class_id', classId)
+        .in('term', await rosterTerms())
         .order('seat_no');
       if (enrollErr) {
         setLoadError('讀取學生名單失敗：' + enrollErr.message);
@@ -736,6 +739,7 @@ export default function ScoreEntryPage() {
       .from('enrollments')
       .select('id, seat_no, student_no, term')
       .eq('class_id', classId)
+      .in('term', await rosterTerms())
       .order('seat_no');
     if (error) {
       alert('讀取班級名冊失敗：' + error.message);
