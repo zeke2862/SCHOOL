@@ -10,6 +10,7 @@ import AcademicTermsPage from '@/app/(app)/admin/academic-terms/page';
 import TeacherDeskPage from '@/app/(app)/admin/teacher-desk/page';
 import BulletinPage from '@/app/(app)/admin/bulletin/page';
 import SiteContentPage from '@/app/(app)/admin/site-content/page';
+import EmailSettingsPage from '@/app/(app)/admin/email-settings/page';
 
 export default function SystemHubPage() {
   return (
@@ -25,6 +26,7 @@ export default function SystemHubPage() {
         'teacher-desk': () => <TeacherDeskPage />,
         bulletin: () => <BulletinPage />,
         'site-content': () => <SiteContentPage />,
+        'email-settings': () => <EmailSettingsPage />,
       }}
     />
   );

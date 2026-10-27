@@ -71,8 +71,9 @@ export default function ParentPortalPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selected, setSelected] = useState<LinkedStudent | null>(null);
   const [records, setRecords] = useState<TermRecord[]>([]);
-  const [attendanceCounts, setAttendanceCounts] = useState<Record<string, number>>({});
-  const [attendanceDates, setAttendanceDates] = useState<Record<string, string[]>>({});
+  // 出缺勤依學期分開顯示：每個學期一組（本學期在最上面）
+  type AttendanceGroup = { key: string; label: string; isCurrent: boolean; counts: Record<string, number>; dates: Record<string, string[]> };
+  const [attendanceGroups, setAttendanceGroups] = useState<AttendanceGroup[]>([]);
   const [expandedAttendanceStatus, setExpandedAttendanceStatus] = useState<string | null>(null);
   const [absencePeriods, setAbsencePeriods] = useState(0);
   const [alertThreshold, setAlertThreshold] = useState<number | null>(null);
@@ -247,7 +248,7 @@ export default function ParentPortalPage() {
       // 【本輪修正】反映事項「出席次數跟時間不用顯示，只要顯示曠課、遲到、事假、病假、
       // 公假」——查詢加上 .neq('status','出席')，「出席」（正常到校，不是缺席/遲到）
       // 這個狀態不算彙總、也不用整批抓過來，只留曠課/遲到/病假/事假/公假這5種。
-      const [{ data: attendanceRows }, { data: studentRow }, { data: guardianRows }] = await Promise.all([
+      const [{ data: attendanceRows }, { data: studentRow }, { data: guardianRows }, { data: termRows }] = await Promise.all([
         supabase.from('attendance').select('status, record_date').eq('student_no', selected.student_no).neq('status', '出席'),
         supabase
           .from('students')
@@ -255,26 +256,50 @@ export default function ParentPortalPage() {
           .eq('student_no', selected.student_no)
           .single(),
         supabase.from('guardians').select('id, relation, name, phone').eq('student_no', selected.student_no),
+        supabase.from('academic_terms').select('academic_year, term, term_start_date, is_current'),
         loadEditRequests(selected.student_no),
       ]);
 
-      const counts: Record<string, number> = {};
-      const dateSets: Record<string, Set<string>> = {};
+      // 依學期分組：每筆紀錄歸到「開學日不晚於該日期」的最近一個學期；
+      // 學期之間的空檔歸前一個學期，比第一個學期更早的歸第一個學期。
+      const terms = ((termRows ?? []) as { academic_year: number; term: string; term_start_date: string | null; is_current: boolean }[])
+        .filter((t) => t.term_start_date)
+        .sort((x, y) => (x.term_start_date! < y.term_start_date! ? -1 : 1));
+      const groupMap = new Map<string, { label: string; isCurrent: boolean; counts: Record<string, number>; dateSets: Record<string, Set<string>> }>();
+      const termOf = (d: string) => {
+        let hit = terms[0];
+        for (const t of terms) if (t.term_start_date! <= d) hit = t;
+        return hit;
+      };
       (attendanceRows ?? []).forEach((r: any) => {
-        counts[r.status] = (counts[r.status] ?? 0) + 1;
-        if (r.record_date) {
-          if (!dateSets[r.status]) dateSets[r.status] = new Set();
-          dateSets[r.status].add(r.record_date);
+        const t = r.record_date && terms.length > 0 ? termOf(r.record_date) : undefined;
+        const key = t ? `${t.academic_year}-${t.term}` : 'all';
+        if (!groupMap.has(key)) {
+          groupMap.set(key, { label: t ? `${t.academic_year} 學年度 ${t.term}${t.is_current ? '（本學期）' : ''}` : '全部', isCurrent: !!t?.is_current, counts: {}, dateSets: {} });
         }
+        const g = groupMap.get(key)!;
+        g.counts[r.status] = (g.counts[r.status] ?? 0) + 1;
+        if (r.record_date) (g.dateSets[r.status] ??= new Set()).add(r.record_date);
       });
-      const dates: Record<string, string[]> = {};
-      Object.entries(dateSets).forEach(([status, set]) => {
-        dates[status] = Array.from(set).sort();
+      // 目前學期就算還沒有任何紀錄，也要列出來（顯示「全勤或尚無紀錄」），不然看起來像在看上學期
+      terms.filter((t) => t.is_current).forEach((t) => {
+        const key = `${t.academic_year}-${t.term}`;
+        if (!groupMap.has(key)) groupMap.set(key, { label: `${t.academic_year} 學年度 ${t.term}（本學期）`, isCurrent: true, counts: {}, dateSets: {} });
       });
-      setAttendanceCounts(counts);
-      setAttendanceDates(dates);
+      const groups: AttendanceGroup[] = Array.from(groupMap.entries())
+        .map(([key, g]) => ({
+          key,
+          label: g.label,
+          isCurrent: g.isCurrent,
+          counts: g.counts,
+          dates: Object.fromEntries(Object.entries(g.dateSets).map(([st, set]) => [st, Array.from(set).sort()])),
+        }))
+        .sort((x, y) => (x.isCurrent === y.isCurrent ? (x.key < y.key ? 1 : -1) : x.isCurrent ? -1 : 1));
+      setAttendanceGroups(groups);
       setExpandedAttendanceStatus(null);
-      setAbsencePeriods((counts['事假'] ?? 0) + (counts['病假'] ?? 0) + (counts['曠課'] ?? 0));
+      // 出缺席提醒（事假＋病假＋曠課累計）只算本學期，跟學校的示警統計一致
+      const cur = groups.find((g) => g.isCurrent)?.counts ?? {};
+      setAbsencePeriods((cur['事假'] ?? 0) + (cur['病假'] ?? 0) + (cur['曠課'] ?? 0));
 
       setProfile((studentRow as any) ?? {});
       setGuardians((guardianRows ?? []) as Guardian[]);
@@ -707,43 +732,55 @@ export default function ParentPortalPage() {
               </section>
 
               <section>
-                <h2 style={{ fontSize: 14, marginBottom: 8 }}>歷年出缺勤彙總</h2>
-                <p style={{ fontSize: 11, color: '#999', marginBottom: 8 }}>點選次數可以看到相對應登記的日期。</p>
-                {Object.entries(attendanceCounts).length > 0 ? (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {Object.entries(attendanceCounts).map(([status, count]) => (
-                      <div key={status}>
-                        <button
-                          type="button"
-                          onClick={() => setExpandedAttendanceStatus(expandedAttendanceStatus === status ? null : status)}
-                          style={{
-                            fontSize: 13,
-                            padding: '4px 10px',
-                            borderRadius: 6,
-                            border: '1px solid #ddd',
-                            background: expandedAttendanceStatus === status ? '#2C2C2A' : '#f5f5f4',
-                            color: expandedAttendanceStatus === status ? '#fff' : '#333',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {status} {count}次
-                        </button>
-                        {expandedAttendanceStatus === status && (
-                          <div style={{ marginTop: 4, padding: '6px 10px', border: '1px solid #eee', borderRadius: 6, background: '#fff' }}>
-                            {(attendanceDates[status] ?? []).length > 0 ? (
-                              <ul style={{ fontSize: 12, color: '#666', paddingLeft: 16, margin: 0 }}>
-                                {(attendanceDates[status] ?? []).map((d) => (
-                                  <li key={d}>{d}</li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <p style={{ fontSize: 12, color: '#999', margin: 0 }}>沒有登記的日期。</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                <h2 style={{ fontSize: 14, marginBottom: 8 }}>出缺勤彙總（依學期）</h2>
+                <p style={{ fontSize: 11, color: '#999', marginBottom: 8 }}>上學期、下學期分開計算。點選次數可以看到相對應登記的日期。</p>
+                {attendanceGroups.length > 0 ? (
+                  attendanceGroups.map((g) => (
+                    <div key={g.key} style={{ marginBottom: 14 }}>
+                      <h3 style={{ fontSize: 13, margin: '0 0 6px', color: g.isCurrent ? '#2C2C2A' : '#666' }}>{g.label}</h3>
+                      {Object.entries(g.counts).length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {Object.entries(g.counts).map(([status, count]) => {
+                            const ek = `${g.key}|${status}`;
+                            return (
+                              <div key={ek}>
+                                <button
+                                  type="button"
+                                  onClick={() => setExpandedAttendanceStatus(expandedAttendanceStatus === ek ? null : ek)}
+                                  style={{
+                                    fontSize: 13,
+                                    padding: '4px 10px',
+                                    borderRadius: 6,
+                                    border: '1px solid #ddd',
+                                    background: expandedAttendanceStatus === ek ? '#2C2C2A' : '#f5f5f4',
+                                    color: expandedAttendanceStatus === ek ? '#fff' : '#333',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  {status} {count}次
+                                </button>
+                                {expandedAttendanceStatus === ek && (
+                                  <div style={{ marginTop: 4, padding: '6px 10px', border: '1px solid #eee', borderRadius: 6, background: '#fff' }}>
+                                    {(g.dates[status] ?? []).length > 0 ? (
+                                      <ul style={{ fontSize: 12, color: '#666', paddingLeft: 16, margin: 0 }}>
+                                        {(g.dates[status] ?? []).map((d) => (
+                                          <li key={d}>{d}</li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p style={{ fontSize: 12, color: '#999', margin: 0 }}>沒有登記的日期。</p>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: 13, margin: 0 }}>全勤或尚無紀錄</p>
+                      )}
+                    </div>
+                  ))
                 ) : (
                   <p style={{ fontSize: 13 }}>全勤或尚無紀錄</p>
                 )}

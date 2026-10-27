@@ -36,6 +36,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         return;
       }
       setStatus('allowed');
+      // 教職員：順便把佇列裡待寄的通知信寄出（伺服器端會再節流；失敗不影響使用）
+      if (profile) {
+        try {
+          const last = Number(sessionStorage.getItem('mailFlushAt') ?? 0);
+          if (Date.now() - last > 5 * 60 * 1000) {
+            sessionStorage.setItem('mailFlushAt', String(Date.now()));
+            fetch('/api/notifications/flush', { method: 'POST', headers: { Authorization: `Bearer ${data.session.access_token}` } }).catch(() => {});
+          }
+        } catch {
+          /* 瀏覽器不給用 sessionStorage 就略過 */
+        }
+      }
     })();
 
     // 使用中如果登出（例如 token 過期、另一個分頁按了登出），也立刻踢回登入頁

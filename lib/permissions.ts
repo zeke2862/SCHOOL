@@ -268,6 +268,7 @@ export const HUBS: HubDef[] = [
       { key: 'teacher-desk', label: '教師代辦專區', show: (c) => c.academic || c.devDept },
       { key: 'bulletin', label: '公佈欄管理', show: (c) => c.devDept || c.sd || c.a || c.b, hint: '發布公告、設定顯示天數' },
       { key: 'site-content', label: '系統文字與背景音樂', show: (c) => c.sd },
+      { key: 'email-settings', label: '寄信設定', show: (c) => c.devDept || c.sd || c.a, hint: '通知信狀態、寄測試信' },
     ],
   },
 ];

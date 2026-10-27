@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { flushOutbox } from '@/lib/outbox';
 
 // 家長／學生「第一次申請帳號」：輸入登入代碼（HY＋學號；學生本人 HYS＋學號）與手機號碼，
 // 系統不直接放行，而是建立一筆「待審核」的申請，通知那個班的導師；導師對照手上的資料表，
@@ -83,6 +84,9 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ error: '送出申請失敗：' + error.message }, { status: 500 });
   }
+
+  // 資料庫已經替班導師排好通知信，這裡立刻寄出（沒設定寄信或失敗都不影響申請送出）
+  await flushOutbox(10).catch(() => {});
 
   return NextResponse.json({
     submitted: true,
