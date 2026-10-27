@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase, getCurrentAppUser, isAdminInCurrentView } from '@/lib/supabaseClient';
 import { getHiddenStudentNos } from '@/lib/hiddenStudents';
 import { rosterTerms } from '@/lib/academicTerm';
+import TermViewSelect from '@/components/TermViewSelect';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 // 操行成績「禮貌／衣著／服務／紀律」四個分項評分——依你的確認新增的評分介面
@@ -30,6 +31,7 @@ export default function ConductScoresTab() {
   const [homeroomClassId, setHomeroomClassId] = useState<string | null>(null);
   const [classOptions, setClassOptions] = useState<ClassOption[]>([]);
   const [classId, setClassId] = useState('');
+  const [viewTerm, setViewTerm] = useState(''); // ''＝本學期；也可以切到上一個學期查看
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -101,7 +103,7 @@ export default function ConductScoresTab() {
         .from('enrollments')
         .select('id, seat_no, student_no')
         .eq('class_id', classId)
-        .in('term', await rosterTerms())
+        .in('term', await rosterTerms(viewTerm || null))
         .order('seat_no');
       // 【本輪新增】理由見 lib/hiddenStudents.ts 的說明（管理員切換教師視角
       // 預覽時，RLS 不會過濾隱藏名單，這裡在前端補一層過濾）。
@@ -137,7 +139,7 @@ export default function ConductScoresTab() {
       );
       setLoading(false);
     })();
-  }, [classId, isAdmin]);
+  }, [classId, isAdmin, viewTerm]);
 
   function updateField(enrollmentId: string, field: 'politeness' | 'dress' | 'service' | 'discipline', value: string) {
     setRows((prev) => prev.map((r) => (r.enrollment_id === enrollmentId ? { ...r, [field]: value } : r)));
@@ -182,6 +184,7 @@ export default function ConductScoresTab() {
       <h2 style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>
         操行成績「禮貌／衣著／服務／紀律」四個分項評分（只有本人與管理員看得到，任課教師不可見）
       </h2>
+      <TermViewSelect value={viewTerm} onChange={setViewTerm} style={{ padding: isMobile ? 10 : 6, fontSize: isMobile ? 15 : 13, marginBottom: 12, marginRight: 8 }} />
       {isAdmin && (
         <select value={classId} onChange={(e) => setClassId(e.target.value)} style={{ padding: isMobile ? 10 : 6, fontSize: isMobile ? 15 : 13, marginBottom: 12 }}>
           <option value="">請選擇班級</option>

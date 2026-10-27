@@ -3,6 +3,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { rosterTerms } from '@/lib/academicTerm';
+import TermViewSelect from '@/components/TermViewSelect';
 import { downloadMultiClassScoreExcel, type ClassScoreExcelParams } from '@/lib/excelTemplates';
 import { showPdfInWindow } from '@/lib/pdfPreview';
 
@@ -12,6 +13,7 @@ type ClassOption = { id: string; label: string; grade_level: string; department:
 // 導師版的「批次列印全班成績單」按鈕放在 ClassSummaryTab.tsx（見該檔案），
 // 這裡是給教務部門一次選多班、或整個年級／全校的畫面。
 export default function BatchReportCardTab() {
+  const [viewTerm, setViewTerm] = useState(''); // ''＝本學期；Excel 匯出可切到上一個學期
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -77,7 +79,7 @@ export default function BatchReportCardTab() {
           .from('enrollments')
           .select('id, seat_no, student_no, term, students(name)')
           .eq('class_id', classId)
-          .in('term', await rosterTerms())
+          .in('term', await rosterTerms(viewTerm || null))
           .order('seat_no');
         if (!enrollRows || enrollRows.length === 0) continue;
         const term = (enrollRows[0] as any).term;
@@ -235,6 +237,10 @@ export default function BatchReportCardTab() {
         選擇要批次列印的班級（可複選），或用下面的快速選取。還沒三項（期中/期末/平時分）都鎖定的學生不會被列入，
         列印前會先提示名單，可選擇先印其餘已完成的。
       </p>
+
+      <div style={{ marginBottom: 12, fontSize: 13 }}>
+        Excel 匯出的學期：<TermViewSelect value={viewTerm} onChange={setViewTerm} style={{ padding: 6, fontSize: 13 }} />
+      </div>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
         <button onClick={selectAll} style={btnStyle}>

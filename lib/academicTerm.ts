@@ -74,9 +74,10 @@ export function estimateTermStart(academicYear: number, term: string): string {
  * 班級名冊（成績登錄、操行、成績單…）要顯示的學期。
  * 同一個班在「上學期」「下學期」各有一列學籍，上一個學期休學／轉學／退學的學生只有上學期那列，
  * 沒有依學期過濾的話，管理者會看到已經不在這學期的學生（也會看到每位學生重複兩次）。
- * 回傳目前學期（查不到目前學期時才不限制）。
+ * 回傳目前學期（查不到目前學期時才不限制）；使用者在畫面上指定了學期（choice）就用指定的，方便查看上一個學期。
  */
-export async function rosterTerms(): Promise<string[]> {
+export async function rosterTerms(choice?: string | null): Promise<string[]> {
+  if (choice) return [choice];
   const cur = await resolveCurrentTerm();
   return cur ? [cur.term] : ['上學期', '下學期'];
 }

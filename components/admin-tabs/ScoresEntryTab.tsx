@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { supabase, getCurrentAppUser, getCurrentTeacherId, isAdminInCurrentView } from '@/lib/supabaseClient';
 import { getHiddenStudentNos } from '@/lib/hiddenStudents';
 import { rosterTerms } from '@/lib/academicTerm';
+import TermViewSelect from '@/components/TermViewSelect';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { getSiteContentMap } from '@/lib/siteContent';
 import { showPdfInWindow } from '@/lib/pdfPreview';
@@ -36,6 +37,7 @@ export default function ScoreEntryPage() {
   const isAcademicLead = isDepartmentLead(perms.myDepartments, 'academic');
 
   const [classId, setClassId] = useState('');
+  const [viewTerm, setViewTerm] = useState(''); // ''＝本學期；也可以切到上一個學期查看
   const [subjectOptions, setSubjectOptions] = useState<string[]>([]);
   const [subject, setSubject] = useState('');
   const [customSubject, setCustomSubject] = useState('');
@@ -337,7 +339,7 @@ export default function ScoreEntryPage() {
         setRemarksDirty({});
         return;
       }
-      const { data: enrollRows } = await supabase.from('enrollments').select('id, seat_no, student_no').eq('class_id', classId).in('term', await rosterTerms()).order('seat_no');
+      const { data: enrollRows } = await supabase.from('enrollments').select('id, seat_no, student_no').eq('class_id', classId).in('term', await rosterTerms(viewTerm || null)).order('seat_no');
       const studentNos = (enrollRows ?? []).map((r: any) => r.student_no);
       const { data: studentRows } = await supabase
         .from('students')
@@ -357,7 +359,7 @@ export default function ScoreEntryPage() {
       setRemarks(map);
       setRemarksDirty({});
     })();
-  }, [classId, examType, canEditRemarks]);
+  }, [classId, examType, canEditRemarks, viewTerm]);
 
   async function handleSaveRemark(enrollmentId: string) {
     setSavingRemark(enrollmentId);
@@ -388,7 +390,7 @@ export default function ScoreEntryPage() {
         .from('enrollments')
         .select('id, seat_no, student_no')
         .eq('class_id', classId)
-        .in('term', await rosterTerms())
+        .in('term', await rosterTerms(viewTerm || null))
         .order('seat_no');
       // 【本輪新增】理由同上方主要名冊查詢，見 lib/hiddenStudents.ts 的說明。
       const hiddenNos = isAdmin ? new Set<string>() : await getHiddenStudentNos((enrollRowsRaw ?? []).map((r: any) => r.student_no));
@@ -408,7 +410,7 @@ export default function ScoreEntryPage() {
       );
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classId, canSeeReportCards, isAdmin]);
+  }, [classId, canSeeReportCards, isAdmin, viewTerm]);
 
   // 個人成績單預覽／列印：跟「班級成績總表」頁共用同一支 API。原本失敗時只會顯示
   // 「產生成績單失敗」，讓人以為這個功能整個壞了；其實最常見的原因是期中/期末/平時分
@@ -469,7 +471,7 @@ export default function ScoreEntryPage() {
         .from('enrollments')
         .select('id, seat_no, student_no, term')
         .eq('class_id', classId)
-        .in('term', await rosterTerms())
+        .in('term', await rosterTerms(viewTerm || null))
         .order('seat_no');
       if (enrollErr) {
         setLoadError('讀取學生名單失敗：' + enrollErr.message);
@@ -537,7 +539,7 @@ export default function ScoreEntryPage() {
         setLocked(false);
       }
     })();
-  }, [classId, effectiveSubject, examType, isAdmin, perms.isSystemAdmin]);
+  }, [classId, effectiveSubject, examType, isAdmin, perms.isSystemAdmin, viewTerm]);
 
   const corrChangedIds = rows.filter((r) => (savedScores[r.enrollment_id] ?? '') !== r.score).map((r) => r.enrollment_id);
 
@@ -739,7 +741,7 @@ export default function ScoreEntryPage() {
       .from('enrollments')
       .select('id, seat_no, student_no, term')
       .eq('class_id', classId)
-      .in('term', await rosterTerms())
+      .in('term', await rosterTerms(viewTerm || null))
       .order('seat_no');
     if (error) {
       alert('讀取班級名冊失敗：' + error.message);
@@ -874,6 +876,7 @@ export default function ScoreEntryPage() {
       )}
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+        <TermViewSelect value={viewTerm} onChange={setViewTerm} style={{ padding: isMobile ? 10 : 6, fontSize: isMobile ? 15 : 13 }} />
         <select value={classId} onChange={(e) => setClassId(e.target.value)} style={{ padding: isMobile ? 10 : 6, fontSize: isMobile ? 15 : 13 }}>
           <option value="">請選擇班級</option>
           {classOptions.map((c) => (
