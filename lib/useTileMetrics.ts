@@ -10,12 +10,13 @@ export type TileMetrics = { cols: number; tileH: number; titleSize: number; desc
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
-export function computeTileMetrics(count: number, vw: number, vh: number, share = 0.66, maxWidth = 1000, padX = 28): TileMetrics {
+// reservePx：指定時，按鈕區高度 = 畫面高度 − reservePx（其他區塊要留的高度），讓整頁剛好放得下、不用捲動
+export function computeTileMetrics(count: number, vw: number, vh: number, share = 0.66, maxWidth = 1000, padX = 28, reservePx?: number): TileMetrics {
   const mobile = vw <= 640;
   const cols = count <= 1 ? 1 : vw < 420 ? (count <= 4 ? 1 : 2) : vw < 700 ? 2 : vw < 1000 ? 3 : 4;
   const gap = mobile ? 10 : 14;
   const rows = Math.max(1, Math.ceil(count / cols));
-  const usable = vh * share - (rows - 1) * gap;
+  const usable = (reservePx != null ? vh - reservePx : vh * share) - (rows - 1) * gap;
   const tileH = Math.round(clamp(usable / rows, mobile ? 84 : 96, mobile ? 200 : 170));
   const tileW = (Math.min(vw, maxWidth) - padX - gap * (cols - 1)) / cols;
   return {
@@ -29,7 +30,7 @@ export function computeTileMetrics(count: number, vw: number, vh: number, share 
   };
 }
 
-export function useTileMetrics(count: number, share = 0.66, maxWidth = 1000, padX = 28): TileMetrics {
+export function useTileMetrics(count: number, share = 0.66, maxWidth = 1000, padX = 28, reservePx?: number): TileMetrics {
   const [vp, setVp] = useState({ w: 390, h: 800 });
   useEffect(() => {
     const read = () => setVp({ w: window.innerWidth, h: window.innerHeight });
@@ -37,7 +38,7 @@ export function useTileMetrics(count: number, share = 0.66, maxWidth = 1000, pad
     window.addEventListener('resize', read);
     return () => window.removeEventListener('resize', read);
   }, []);
-  return computeTileMetrics(count, vp.w, vp.h, share, maxWidth, padX);
+  return computeTileMetrics(count, vp.w, vp.h, share, maxWidth, padX, reservePx);
 }
 
 /** 所有按鈕的標題裡，需要最多行的那一個是幾行（中文一個字約一個字級寬）；

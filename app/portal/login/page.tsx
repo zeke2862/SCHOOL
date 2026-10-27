@@ -123,7 +123,7 @@ function PortalLoginPageInner() {
       </button>
       <h1 style={{ fontSize: 18, marginBottom: 8 }}>家長／學生查詢入口</h1>
       <p style={{ fontSize: 13, color: '#666', marginBottom: 24 }}>
-        帳號是 <b>HY＋學號</b>（學生本人是 <b>HYS＋學號</b>），密碼是<b>你的手機號碼</b>。
+        家長帳號是 <b>HY＋學號</b>，學生帳號是 <b>HYS＋學號</b>，密碼是<b>你的手機號碼</b>。
         <br />
         <b>第一次使用</b>請輸入後按「第一次使用？申請帳號」，申請會送給班導師核對手機號碼，核准後就能登入；之後直接按「登入」即可。查詢。
       </p>

@@ -78,8 +78,9 @@ export default function AdminHomePage() {
   const allHubs = caps ? visibleHubs(caps).filter((h) => h.key !== 'clock') : [];
   const tileTotal =
     allHubs.filter((h) => h.group === 'teach').length +
-    ((manageOpen ?? !(caps && (caps.teacherLike || caps.club))) ? allHubs.filter((h) => h.group === 'manage').length : 0);
-  const tm = useTileMetrics(Math.max(1, tileTotal), 0.62);
+    ((manageOpen ?? true) ? allHubs.filter((h) => h.group === 'manage').length : 0);
+  // 教學作業、行政管理、其他全部一次看到：按鈕區高度 = 畫面高度扣掉導覽列、標題、「其他」列等約 340px
+  const tm = useTileMetrics(Math.max(1, tileTotal), 0.62, 1000, 28, 340);
 
   useEffect(() => {
     loadSiteContentCached().then(setSiteContent).catch(() => {});
@@ -106,7 +107,7 @@ export default function AdminHomePage() {
   const teach = hubs.filter((h) => h.group === 'teach' && h.key !== 'clock');
   const manage = hubs.filter((h) => h.group === 'manage');
   const teaches = caps.teacherLike || caps.club;
-  const open = manageOpen ?? !teaches;
+  const open = manageOpen ?? true;
   const label = (h: HubDef) => siteContent[hubLabelKey(h.key)] || h.label;
   const descOf = (h: HubDef) => siteContent[hubDescKey(h.key)] ?? h.desc;
   const titleLines = maxTitleLines([...teach, ...(open ? manage : [])].map(label), tm);
