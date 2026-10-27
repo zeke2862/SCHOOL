@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import UnreadNotifier from '@/components/UnreadNotifier';
 import TopNav from '@/components/TopNav';
 import ClickSoundListener from '@/components/ClickSoundListener';
 import { supabase } from '@/lib/supabaseClient';
@@ -73,6 +74,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <>
       <ClickSoundListener />
       <TopNav />
+      <UnreadNotifier />
       {children}
     </>
   );

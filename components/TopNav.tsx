@@ -43,6 +43,13 @@ export default function TopNav() {
     setMuted(isSoundMuted());
   }, []);
 
+  // 未讀通知數字：UnreadNotifier 每分鐘更新一次，這裡接收
+  useEffect(() => {
+    const onCount = (e: Event) => setUnreadCount(Number((e as CustomEvent).detail) || 0);
+    window.addEventListener('staff-unread-count', onCount);
+    return () => window.removeEventListener('staff-unread-count', onCount);
+  }, []);
+
   function toggleMuted() {
     const next = !muted;
     setMuted(next);
@@ -316,7 +323,12 @@ export default function TopNav() {
         )}
         {!isPortal && me && (
           <Link href="/notifications" style={{ color: '#2C2C2A' }}>
-            通知{unreadCount > 0 ? `（${unreadCount}）` : ''}
+            通知
+            {unreadCount > 0 && (
+              <span style={{ marginLeft: 4, background: '#D93025', color: '#fff', borderRadius: 999, padding: '1px 7px', fontSize: 12, fontWeight: 700 }}>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </Link>
         )}
         {!isPortal && me && (

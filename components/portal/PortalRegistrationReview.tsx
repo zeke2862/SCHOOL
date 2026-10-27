@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase, getCurrentAppUser, getCurrentTeacherId, isAdminInCurrentView } from '@/lib/supabaseClient';
+import { getMyDepartments, hasDepartment } from '@/lib/departments';
 
 // 家長／學生帳號申請的審核（導師看自己班的，教務／系統管理員看全部）。
 // 申請是家長或學生在登入頁輸入「HY＋學號（學生本人 HYS＋學號）」與手機號碼送出的；
@@ -14,6 +15,7 @@ type Req = {
   relation: '家長' | '學生本人';
   phone: string;
   student_name: string | null;
+  class_id: string | null;
   class_label: string | null;
   status: '待審核' | '已核准' | '已拒絕';
   requested_at: string;
@@ -35,7 +37,7 @@ export default function PortalRegistrationReview() {
     setError('');
     const { data, error } = await supabase
       .from('portal_registration_requests')
-      .select('id, student_no, login_code, relation, phone, student_name, class_label, status, requested_at, decided_at, decision_note')
+      .select('id, student_no, login_code, relation, phone, student_name, class_id, class_label, status, requested_at, decided_at, decision_note')
       .order('requested_at', { ascending: false })
       .limit(300);
     if (error) {
@@ -43,7 +45,25 @@ export default function PortalRegistrationReview() {
       setLoading(false);
       return;
     }
-    const list = (data ?? []) as Req[];
+    let list = (data ?? []) as Req[];
+    // 管理視角（管理員、教務處）看全部；其他人（包含管理員切到「教師視角」預覽）只看自己導的班。
+    // 資料庫對管理員本來就不會擋，所以這裡一定要在畫面上再過濾一次，教師視角才會真的只看到自己班。
+    const me = await getCurrentAppUser();
+    const viewingAsTeacher = typeof window !== 'undefined' && sessionStorage.getItem('viewMode') === 'teacher';
+    let seeAll = false;
+    if (me) {
+      seeAll = isAdminInCurrentView(me.role);
+      if (!seeAll && !viewingAsTeacher) seeAll = hasDepartment(await getMyDepartments(me.id), 'academic');
+    }
+    if (!seeAll) {
+      const tid = await getCurrentTeacherId();
+      let mine = new Set<string>();
+      if (tid) {
+        const { data: cls } = await supabase.from('classes').select('id').eq('homeroom_teacher_id', tid);
+        mine = new Set((cls ?? []).map((c: any) => c.id));
+      }
+      list = list.filter((r) => r.class_id && mine.has(r.class_id));
+    }
     setRows(list);
     // 學籍資料裡目前已經登記的電話，給導師對照（導師能看到自己班學生的資料；看不到就不顯示）
     const nos = Array.from(new Set(list.filter((r) => r.status === '待審核').map((r) => r.student_no)));
