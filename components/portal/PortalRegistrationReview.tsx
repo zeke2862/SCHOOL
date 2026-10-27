@@ -31,6 +31,8 @@ export default function PortalRegistrationReview() {
   const [guardianRelation, setGuardianRelation] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
   const [showDone, setShowDone] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [batchBusy, setBatchBusy] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -65,6 +67,7 @@ export default function PortalRegistrationReview() {
       list = list.filter((r) => r.class_id && mine.has(r.class_id));
     }
     setRows(list);
+    setSelected(new Set());
     // 學籍資料裡目前已經登記的電話，給導師對照（導師能看到自己班學生的資料；看不到就不顯示）
     const nos = Array.from(new Set(list.filter((r) => r.status === '待審核').map((r) => r.student_no)));
     const map: Record<string, string[]> = {};
@@ -106,6 +109,40 @@ export default function PortalRegistrationReview() {
   }
 
   const pending = rows.filter((r) => r.status === '待審核');
+  const allChecked = pending.length > 0 && pending.every((r) => selected.has(r.id));
+  function toggleAll() {
+    setSelected(allChecked ? new Set() : new Set(pending.map((r) => r.id)));
+  }
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  }
+
+  // 批次核准：把勾選的申請依序送出；失敗的會留在清單裡並列出原因
+  async function approveSelected() {
+    const targets = pending.filter((r) => selected.has(r.id));
+    if (!targets.length) return;
+    if (!confirm(`確認核准勾選的 ${targets.length} 筆申請？
+請確定已對照資料表，這些手機確實是本班學生／家長的。
+核准後手機號碼會寫進學籍資料，申請人就能登入。`)) return;
+    setBatchBusy(true);
+    const failed: string[] = [];
+    for (const r of targets) {
+      const { error } = await supabase.rpc('decide_portal_registration', {
+        p_id: r.id,
+        p_approve: true,
+        p_relation: guardianRelation[r.id] || '監護人',
+        p_note: null,
+      });
+      if (error) failed.push(`${r.student_name ?? r.student_no}：${error.message}`);
+    }
+    setBatchBusy(false);
+    await load();
+    if (failed.length) alert(`已核准 ${targets.length - failed.length} 筆，以下 ${failed.length} 筆失敗：\n` + failed.join('\n'));
+  }
   const done = rows.filter((r) => r.status !== '待審核');
   const th: React.CSSProperties = { textAlign: 'left', padding: 8, fontSize: 13 };
 
@@ -123,10 +160,29 @@ export default function PortalRegistrationReview() {
       {!loading && pending.length === 0 && !error && <p style={{ fontSize: 14, color: '#3B6D11' }}>✅ 目前沒有待審核的申請。</p>}
 
       {pending.length > 0 && (
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 8 }}>
+          <label style={{ fontSize: 14, display: 'flex', gap: 6, alignItems: 'center', cursor: 'pointer' }}>
+            <input type="checkbox" checked={allChecked} onChange={toggleAll} /> 全部勾選（{pending.length}）
+          </label>
+          <button
+            disabled={batchBusy || selected.size === 0}
+            onClick={approveSelected}
+            style={{ padding: '6px 14px', background: selected.size ? '#2C2C2A' : '#bbb', color: '#fff', border: 'none', borderRadius: 6 }}
+          >
+            {batchBusy ? '處理中…' : `批次核准（${selected.size}）`}
+          </button>
+          <span style={{ fontSize: 12, color: '#888' }}>家長身分會依各列「記為」的選項寫入；批次只有核准，拒絕請逐筆處理。</span>
+        </div>
+      )}
+
+      {pending.length > 0 && (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#f5f5f3' }}>
+                <th style={th}>
+                  <input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="全部勾選" />
+                </th>
                 <th style={th}>學生</th>
                 <th style={th}>班級</th>
                 <th style={th}>申請身分</th>
@@ -138,7 +194,10 @@ export default function PortalRegistrationReview() {
             </thead>
             <tbody>
               {pending.map((r) => (
-                <tr key={r.id} style={{ borderTop: '1px solid #eee', verticalAlign: 'top' }}>
+                <tr key={r.id} style={{ borderTop: '1px solid #eee', verticalAlign: 'top', background: selected.has(r.id) ? '#FFF8E1' : undefined }}>
+                  <td style={{ padding: 8 }}>
+                    <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleOne(r.id)} aria-label={`勾選 ${r.student_name ?? r.student_no}`} />
+                  </td>
                   <td style={{ padding: 8, fontSize: 14 }}>
                     <b>{r.student_name}</b>
                     <div style={{ fontSize: 12, color: '#888' }}>學號 {r.student_no}</div>
