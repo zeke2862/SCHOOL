@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-backup",
+      "schedule": "0 18 * * *"
+    },
+    {
+      "path": "/api/cron/daily-backup?pass=2",
+      "schedule": "30 18 * * *"
+    },
+    {
+      "path": "/api/cron/expire-temp-accounts",
+      "schedule": "0 19 * * *"
+    }
+  ]
+}

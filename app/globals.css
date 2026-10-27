@@ -1,0 +1,44 @@
+/* 字型：粉圓體（jf open 粉圓 2.1，OFL 開源授權，已放在 public/fonts 自己提供，不依賴外部網站）。
+   字型檔載入前、或電腦上沒有時，依序退回標楷體（Windows 標楷體／DFKai-SB、Mac BiauKai）。 */
+@font-face {
+  font-family: 'jf-openhuninn';
+  src: url('/fonts/jf-openhuninn-2.1.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+body, button, input, select, textarea {
+  font-family: 'jf-openhuninn', '標楷體', 'DFKai-SB', 'BiauKai', 'Noto Serif TC', serif;
+}
+button, input, select, textarea { font-family: inherit; }
+/* 粉圓體只有一種粗細，粗體靠瀏覽器加粗；h1 h2 h3 不要再額外加粗過頭 */
+h1, h2, h3 { font-weight: 700; }
+
+/* 全站：標題與按鈕字級放大（手機更大）。
+   使用者還可以再用上方「字級 小／中／大」自己微調。
+   表格裡的小按鈕（成績、出缺席格子等）不放大，避免把密集的版面撐壞。 */
+h1 { font-size: 24px !important; line-height: 1.35; }
+h2 { font-size: 19px !important; line-height: 1.4; }
+h3 { font-size: 16px !important; line-height: 1.4; }
+
+button:not(table button):not(.keep-size) {
+  font-size: 15px !important;
+  min-height: 34px;
+}
+
+@media (max-width: 640px) {
+  h1 { font-size: 27px !important; }
+  h2 { font-size: 21px !important; }
+  h3 { font-size: 18px !important; }
+  button:not(table button):not(.keep-size) {
+    font-size: 17px !important;
+    min-height: 44px;
+  }
+  select, input[type='text'], input[type='number'], input[type='date'], input:not([type]), textarea {
+    font-size: 16px;
+  }
+}
+
+@media print {
+  h1, h2, h3, button { font-size: revert !important; min-height: 0 !important; }
+}

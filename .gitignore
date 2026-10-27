@@ -1,0 +1,17 @@
+# 相依套件與建置產物
+node_modules/
+.next/
+*.tsbuildinfo
+next-env.d.ts
+
+# 金鑰：絕對不能上傳（含 Supabase service role key）
+.env
+.env.local
+.env.*.local
+
+# 本機工作檔與舊版更新包（不是系統本身）
+files/
+_backup_before_hwfix3/
+.claude/
+*.zip
+test_report_round3.docx

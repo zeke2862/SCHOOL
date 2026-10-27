@@ -1,0 +1,1929 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+@font-face{font-family:'jf-openhuninn';src:url('/fonts/jf-openhuninn-2.1.woff2') format('woff2');font-display:swap}
+body{font-family:'jf-openhuninn','標楷體','DFKai-SB','BiauKai',sans-serif;font-size:14px;color:#222;line-height:1.5}
+.top-tabs{display:flex;flex-wrap:wrap;align-items:center;gap:0;border-bottom:0.5px solid #ddd;margin-bottom:1rem}
+.top-tab{padding:9px 16px;border:none;background:none;cursor:pointer;font-size:12px;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.top-tab.active{color:#222;border-bottom-color:#222;font-weight:500}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:8px;padding:1rem 1.1rem;margin-bottom:.75rem}
+label{font-size:11px;color:#888;display:block;margin-bottom:3px}
+input[type=text],input[type=number],select,textarea{padding:4px 7px;border:0.5px solid #ccc;border-radius:5px;background:#fff;color:#222;font-size:12px;font-family:inherit}
+input[type=text]{width:100%}input[type=number]{width:48px}
+textarea{width:100%;resize:vertical;font-family:monospace;font-size:11px}
+.btn{padding:6px 12px;border-radius:5px;border:0.5px solid #ccc;background:none;cursor:pointer;font-size:12px;color:#222;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:#f5f5f5}
+.btn-p{background:#222;color:#fff;border:none;padding:7px 16px;font-size:12px;font-weight:500;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.btn-p:hover{opacity:.85}
+.btn-sm{padding:3px 8px;font-size:11px;border-radius:5px;border:0.5px solid #ccc;background:none;cursor:pointer;display:inline-flex;align-items:center;gap:3px}
+.btn-sm:hover{background:#f5f5f5}
+.btn-excel{background:#1D6F42;color:#fff;border:none;padding:8px 18px;font-size:13px;font-weight:500;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-excel:hover{opacity:.85}
+.btn-danger{color:#c0392b;border-color:#f5c6c6}
+.btn-danger:hover{background:#fde8e8}
+.section{display:none}.section.active{display:block}
+.grade-tab{padding:5px 12px;border-radius:16px;border:0.5px solid #ccc;background:none;cursor:pointer;font-size:11px;color:#888;margin:0 3px 5px 0}
+.grade-tab.active{background:#222;color:#fff;border-color:transparent}
+.grade-tab.ready{border-color:#2d7a2d;color:#2d7a2d}
+.grade-tab.active.ready{background:#2d7a2d;color:#fff}
+.sub-row{display:grid;grid-template-columns:1fr 60px 28px;gap:5px;align-items:center;margin-bottom:4px}
+.cls-btn{padding:4px 9px;border-radius:5px;border:0.5px solid #ccc;background:none;cursor:pointer;font-size:11px;color:#888}
+.cls-btn:hover{background:#f5f5f5}
+.cls-btn.active{background:#222;color:#fff;border-color:transparent}
+.cls-btn.done{border-color:#2d7a2d;color:#2d7a2d}
+.cls-btn.active.done{background:#2d7a2d;color:#fff}
+.progress-bar{height:4px;background:#eee;border-radius:2px;margin-top:4px}
+.progress-fill{height:4px;border-radius:2px;transition:width .3s}
+.lock-item{background:#f8f8f8;border-radius:5px;padding:.5rem;margin-bottom:5px}
+.rule-toggle{display:flex;align-items:start;gap:10px;padding:.7rem .9rem;border:0.5px solid #ddd;border-radius:5px;margin-bottom:8px;cursor:pointer}
+.rule-toggle:hover{background:#f8f8f8}
+.rule-toggle.on{border-color:#2d7a2d;background:#f0faf0}
+.rule-toggle input[type=checkbox]{width:15px;height:15px;cursor:pointer;flex-shrink:0;margin-top:2px}
+.rule-toggle .rule-title{font-size:12px;font-weight:500;margin-bottom:2px}
+.rule-toggle .rule-desc{font-size:11px;color:#888}
+.rule-toggle.on .rule-desc{color:#2d7a2d}
+/* 規則五專屬樣式 */
+.rule5-body{margin-top:8px;padding-top:8px;border-top:0.5px solid #ddd}
+.teacher-no3-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;background:#f5f5f5;border-radius:5px;padding:4px 8px}
+.teacher-no3-row input[type=text]{flex:1;background:#fff}
+.teacher-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#fff3e0;border:0.5px solid #f0a500;border-radius:12px;font-size:11px;color:#7a4a00}
+.teacher-chip button{border:none;background:none;color:#c0392b;cursor:pointer;padding:0 2px;font-size:12px;line-height:1}
+.tt{width:100%;border-collapse:collapse;font-size:10px}
+.tt th,.tt td{border:0.5px solid #ddd;padding:3px 4px;text-align:center;min-width:44px}
+.tt th{background:#f5f5f5;font-size:10px;font-weight:500}
+.tt td.has{background:#e8f4ff;color:#1a5fa8;line-height:1.3}
+.tt td.locked{background:#d4f0d4;color:#1a6b1a;font-weight:500}
+.tt td.homeroom{background:#ddeeff;color:#1a5fa8;font-weight:500;line-height:1.3}
+.tt td.cf{background:#fde8e8;color:#c0392b;font-weight:500}
+.tt td.na{background:#f5f5f5}
+.tt td.dismiss{background:#fff8ee;color:#b05a00;font-size:10px;font-style:italic}
+.alert-ok{background:#f0faf0;color:#2d7a2d;border-radius:5px;padding:.6rem .9rem;font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.alert-err{background:#fde8e8;color:#c0392b;border-radius:5px;padding:.6rem .9rem;font-size:12px;margin-bottom:4px;display:flex;gap:6px;align-items:start}
+.alert-warn{background:#fff8e1;color:#b7770d;border-radius:5px;padding:.6rem .9rem;font-size:12px;margin-bottom:4px}
+.conflict-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:.5rem}
+.conflict-table th,.conflict-table td{border:0.5px solid #ddd;padding:5px 8px;text-align:left}
+.conflict-table th{background:#f5f5f5;font-weight:500}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.three-col{display:grid;grid-template-columns:190px 1fr;gap:1rem}
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-box{background:#fff;border-radius:8px;padding:1.25rem;max-width:520px;width:92%;max-height:88vh;overflow-y:auto;box-shadow:0 4px 24px rgba(0,0,0,.2)}
+.import-preview-row{display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-bottom:0.5px solid #eee}
+.import-preview-row:last-child{border-bottom:none}
+/* 規則六：教師不排課時段 */
+.blk-grid{border-collapse:collapse;font-size:11px;margin:6px 0}
+.blk-grid th,.blk-grid td{border:0.5px solid #ddd;padding:4px 8px;text-align:center;min-width:48px}
+.blk-grid th{background:#f5f5f5;font-weight:500}
+.blk-grid th.day{cursor:pointer}
+.blk-grid th.day:hover{background:#e8e8e8}
+.blk-grid td.cell{cursor:pointer;color:#bbb;user-select:none}
+.blk-grid td.cell:hover{background:#f0f0f0}
+.blk-grid td.cell.off{background:#fde8e8;color:#c0392b;font-weight:500}
+.blk-grid td.none{background:#f5f5f5}
+/* 手動調整課程 */
+.tt td.swapable{cursor:pointer}
+.tt td.swapable:hover{outline:2px solid #f0a500;outline-offset:-2px}
+.tt td.sel{background:#fff3b0 !important;outline:2px solid #f0a500;outline-offset:-2px}
+.tt td.blocked{background:#fbe9e7;color:#c0392b;font-size:10px}
+.tt td.pinned{box-shadow:inset 0 0 0 2px #6a1b9a}
+.manual-mark{color:#d35400;font-size:9px}
+.dirty-flag{font-size:11px;color:#c0392b;font-weight:500}
+.tag-ok{background:#f0faf0;color:#2d7a2d;padding:1px 6px;border-radius:8px;font-size:10px}
+.tag-warn{background:#fff8e1;color:#b7770d;padding:1px 6px;border-radius:8px;font-size:10px}
+.tag-err{background:#fde8e8;color:#c0392b;padding:1px 6px;border-radius:8px;font-size:10px}
+</style>
+</head>
+<body>
+
+<div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 0 .2rem;flex-wrap:wrap;gap:8px">
+  <div></div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <span id="term-badge" style="font-size:12px;color:#2C6E9E;font-weight:500"></span>
+    <button class="btn-sm" onclick="requestImportFromSystem()" title="重新從校務系統讀取教師、科目節數與已存的課表">📥 從校務系統重新匯入</button>
+    <span id="import-from-system-status" style="font-size:11px;color:#888"></span>
+    <span id="dirty-flag" class="dirty-flag"></span>
+  </div>
+</div>
+
+<div class="top-tabs">
+  <button class="top-tab active" onclick="showMain('import')">📥 匯入教師</button>
+  <button class="top-tab" onclick="showMain('setup')">⚙️ 年級設定</button>
+  <button class="top-tab" onclick="showMain('lock')">🔒 共同科目</button>
+  <button class="top-tab" onclick="showMain('generate')">🪄 排課</button>
+  <button class="top-tab" onclick="showMain('export')">📊 匯出Excel</button>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 4px 16px">
+    <button class="btn-sm" onclick="saveToSystem()" style="background:#2C6E9E;color:#fff;border-color:#2C6E9E">💾 存檔到校務系統</button>
+    <button class="btn-sm" onclick="saveDraftToSystem()" title="把目前排的課表（含手動調整、規則、不排課時段）暫存進系統，不檢查衝堂；下次打開工具會自動讀回來">📝 暫存草稿</button>
+    <span id="save-to-system-status" style="font-size:11px;color:#888"></span>
+    <button class="btn-sm" onclick="backupProject()">📦 備份專案（下載JSON）</button>
+    <button class="btn-sm" onclick="document.getElementById('project-file-input').click()">📤 上傳專案</button>
+    <input type="file" id="project-file-input" accept="application/json" style="display:none" onchange="uploadProject(event)">
+  </div>
+</div>
+
+<!-- 匯入教師 -->
+<div id="main-import" class="section active">
+  <div class="card">
+    <div style="font-size:13px;font-weight:500;margin-bottom:.5rem">📥 匯入教師 &amp; 導師資料</div>
+    <div style="font-size:11px;color:#888;margin-bottom:.75rem">每兩行一組：第一行「班級+科目」，第二行「<b>導師</b>+各科老師」（第二行第一格為導師）</div>
+    <label>Excel內容</label>
+    <textarea id="excel-input" rows="5" placeholder="初一忠	國文	數學	英文&#10;蔡素華	蔡素華	黃崧桓	samantha"></textarea>
+    <div style="display:flex;gap:8px;margin-top:.75rem;align-items:center;flex-wrap:wrap">
+      <button class="btn-p" onclick="parseExcel();saveTeachersToSystem()">✓ 解析並匯入，直接存進校務系統</button>
+      <button class="btn" onclick="document.getElementById('excel-input').value='';document.getElementById('import-result').innerHTML=''">✕ 清空</button>
+      <span id="save-teachers-status" style="font-size:11px;color:#888"></span>
+    </div>
+    <div id="import-result" style="margin-top:.75rem"></div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:500;margin-bottom:.5rem">🏠 各班導師一覽</div>
+    <div id="homeroom-overview" style="font-size:11px;color:#888">尚未匯入資料</div>
+  </div>
+</div>
+
+<!-- 年級設定 -->
+<div id="main-setup" class="section">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <div style="font-size:13px;font-weight:500">📋 全校科目節數匯入</div>
+      <button class="btn-sm" onclick="openBulkModal()">📂 一鍵匯入全校</button>
+    </div>
+    <p style="font-size:11px;color:#888">格式：年級名稱單獨一行，下方每行「科目 節數」</p>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:.75rem" id="grade-tabs"></div>
+  <div id="setup-body"></div>
+</div>
+
+<!-- 共同科目 -->
+<div id="main-lock" class="section">
+  <div class="card">
+    <div style="font-size:13px;font-weight:500;margin-bottom:.5rem">🔒 共同科目時間鎖定</div>
+    <p style="font-size:11px;color:#888;margin-bottom:.75rem">設定特定科目固定在某時段上課</p>
+    <div id="lock-list"></div>
+    <button class="btn" style="margin-top:4px" onclick="addLock()">+ 新增鎖定</button>
+  </div>
+</div>
+
+<!-- 排課 -->
+<div id="main-generate" class="section">
+  <div class="card">
+    <div style="font-size:13px;font-weight:500;margin-bottom:.75rem">📐 排課規則設定</div>
+
+    <label onclick="toggleRule('r1')" style="cursor:pointer"><div class="rule-toggle on" id="rt-r1"><input type="checkbox" id="cb-r1" checked onchange="toggleRule('r1')" onclick="event.stopPropagation()"><div><div class="rule-title">規則一：同天不重複（少於6節）</div><div class="rule-desc">節數 &lt; 6 的科目，同一天不排兩次</div></div></div></label>
+
+    <label onclick="toggleRule('r2')" style="cursor:pointer"><div class="rule-toggle on" id="rt-r2"><input type="checkbox" id="cb-r2" checked onchange="toggleRule('r2')" onclick="event.stopPropagation()"><div><div class="rule-title">規則二：每天必排且週六限1節（6節以上）</div><div class="rule-desc">節數 ≥ 6 的科目，每天必須出現，週六只能1節</div></div></div></label>
+
+    <label onclick="toggleRule('r3')" style="cursor:pointer"><div class="rule-toggle on" id="rt-r3"><input type="checkbox" id="cb-r3" checked onchange="toggleRule('r3')" onclick="event.stopPropagation()"><div><div class="rule-title">規則三：不連排三天（3～5節）</div><div class="rule-desc">節數 3～5 的科目，不能連續三天都出現</div></div></div></label>
+
+    <label onclick="toggleRule('r4')" style="cursor:pointer"><div class="rule-toggle on" id="rt-r4"><input type="checkbox" id="cb-r4" checked onchange="toggleRule('r4')" onclick="event.stopPropagation()"><div><div class="rule-title">規則四：週六第2節安排導師課</div><div class="rule-desc">每班週六第2節固定排該班導師的科目</div></div></div></label>
+
+    <!-- 規則五 -->
+    <div class="rule-toggle on" id="rt-r5">
+      <input type="checkbox" id="cb-r5" checked onchange="toggleRule('r5')" style="width:15px;height:15px;cursor:pointer;flex-shrink:0;margin-top:2px">
+      <div style="flex:1">
+        <div class="rule-title">規則五：指定教師不排第三節課</div>
+        <div class="rule-desc">勾選後，名單內的教師不會被安排在週一到週五的第三節</div>
+        <div class="rule5-body" id="rule5-body">
+          <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center">
+            <input type="text" id="no3-input" placeholder="輸入教師姓名後按 Enter 或點新增" style="flex:1">
+            <button class="btn-sm" onclick="addNo3Teacher()">+ 新增</button>
+          </div>
+          <div id="no3-list" style="display:flex;flex-wrap:wrap;gap:5px;min-height:24px">
+            <span style="font-size:11px;color:#ccc" id="no3-empty">尚未新增任何教師</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 規則六 -->
+  <div class="card">
+    <div class="rule-toggle on" id="rt-r6" style="margin-bottom:0">
+      <input type="checkbox" id="cb-r6" checked onchange="toggleRule('r6')">
+      <div style="flex:1">
+        <div class="rule-title">規則六：指定教師的「不排課時段」</div>
+        <div class="rule-desc">勾選後，名單內的教師在他標記為「不排課」的時段，不會被安排任何課（例如：週三第2節要開會、週五整天不在校）</div>
+        <div class="rule5-body" id="rule6-body">
+          <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center">
+            <input type="text" id="blk-input" list="blk-teacher-list" placeholder="輸入或選擇教師姓名後按 Enter 或點新增" style="flex:1">
+            <datalist id="blk-teacher-list"></datalist>
+            <button class="btn-sm" onclick="addBlkTeacher()">+ 新增教師</button>
+          </div>
+          <div id="blk-teachers" style="display:flex;flex-wrap:wrap;gap:5px;min-height:24px;margin-bottom:6px"></div>
+          <div id="blk-editor"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:.75rem;align-items:center;flex-wrap:wrap">
+    <button class="btn-p" onclick="scheduleAll()">🪄 全校一鍵排課</button>
+    <button class="btn" onclick="runConflictCheck()">🔍 重新驗證</button>
+    <label style="font-size:11px;color:#666">搜尋時間
+      <select onchange="setSearchBudget(this.value)">
+        <option value="9">9 秒（快）</option>
+        <option value="30">30 秒</option>
+        <option value="60">60 秒（找最多組）</option>
+      </select></label>
+    <label style="font-size:11px;color:#666" title="重排時，要多積極避開原本的排法。越大變化越多，但可能放寬排課規則一～四（不會放寬衝堂與不排課時段）">重排變化強度
+      <select onchange="setVariety(this.value)">
+        <option value="1">標準（只在規則允許時換）</option>
+        <option value="6" selected>較大（可略放寬規則三、四）</option>
+        <option value="15">最大（也可放寬規則一、二）</option>
+      </select></label>
+  </div>
+  <div id="load-analysis"></div>
+  <div id="locked-periods-panel"></div>
+  <div class="card" style="padding:.75rem;margin-bottom:.75rem"><div style="font-size:12px;font-weight:500;margin-bottom:.5rem">班級列表</div><div id="gen-cls-list"></div></div>
+  <!-- 狀態列：固定高度、只放一行（進度或「零衝堂／衝堂N節」＋重排按鈕），所以課表不會因為訊息變長變短而上下跳動 -->
+  <div id="schedule-msg" style="min-height:42px;margin-bottom:.5rem"></div>
+  <div id="schedule-candidates"></div>
+  <div id="gen-tt-panel"><div class="card" style="color:#888;font-size:12px">請先排課後點選班級查看</div></div>
+  <!-- 明細區在課表「下面」：衝堂清單、不排課時段違規、規則違反、重排結果說明，長度會變動，放這裡不會把課表推走 -->
+  <div id="schedule-status" style="margin-top:.75rem"></div>
+</div>
+
+<div id="main-export" class="section">
+  <div class="card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:.5rem">📊 匯出全校總課表 Excel</div>
+    <p style="font-size:12px;color:#888;margin-bottom:1rem">直接產生「全校總課表（輸入）」格式的 .xlsx 檔案</p>
+    <div style="background:#f8f8f8;border-radius:6px;padding:.75rem;margin-bottom:1rem;font-size:11px;line-height:2">
+      <div>✅ 每班兩列：科目列 + 老師列</div>
+      <div>✅ 幼小第3節欄位填入「放學」，與國中高中課表對齊</div>
+      <div>✅ 欄位對應原始 Excel（週一~五 + 週六5節）</div>
+      <div>✅ 顏色標記：班級（綠）、科目（藍）、放學（橙）、導師課（深藍）</div>
+    </div>
+    <button class="btn-excel" onclick="exportExcel()">⬇ 下載 全校總課表.xlsx</button>
+    <div id="export-status" style="margin-top:.75rem"></div>
+  </div>
+</div>
+
+<!-- 彈窗 -->
+<div id="modal-bulk" class="modal"><div class="modal-box">
+  <div style="font-size:14px;font-weight:500;margin-bottom:.4rem">📋 全校科目節數一鍵匯入</div>
+  <p style="font-size:11px;color:#888;margin-bottom:.75rem">年級名稱單獨一行，下方逐行「科目 節數」，年級間空行隔開</p>
+  <textarea id="bulk-input" rows="12" placeholder="幼乙&#10;華文 3&#10;數學 2&#10;&#10;一年級&#10;國文 4&#10;數學 3"></textarea>
+  <div style="display:flex;gap:8px;margin-top:.75rem;align-items:center;flex-wrap:wrap">
+    <button class="btn-p" onclick="previewBulk()">👁 預覽</button>
+    <button class="btn-p" id="btn-confirm-bulk" style="display:none" onclick="confirmBulk();saveCurriculumToSystem()">✓ 確認匯入，直接存進校務系統</button>
+    <button class="btn" onclick="closeModal('modal-bulk')">取消</button>
+    <span id="save-curriculum-status" style="font-size:11px;color:#888"></span>
+  </div>
+  <div id="bulk-preview" style="margin-top:.5rem"></div>
+</div></div>
+
+<div id="modal-subs" class="modal"><div class="modal-box">
+  <div style="font-size:14px;font-weight:500;margin-bottom:.5rem">匯入科目節數 — <span id="modal-grade-name"></span></div>
+  <p style="font-size:11px;color:#888;margin-bottom:.5rem">每行格式：<code>科目 節數</code></p>
+  <textarea id="sub-import-input" rows="8" placeholder="國文 4&#10;數學 3&#10;英文 2"></textarea>
+  <div style="display:flex;gap:8px;margin-top:.75rem">
+    <button class="btn-p" onclick="doImportSubs()">✓ 匯入</button>
+    <button class="btn" onclick="closeModal('modal-subs')">取消</button>
+  </div>
+  <div id="sub-import-msg" style="margin-top:.5rem"></div>
+</div></div>
+
+<script>
+var GRADES=[
+  {id:'k2',name:'幼乙', slots:15,weekday:2,sat:5,classes:['幼乙忠','幼乙孝','幼乙仁','幼乙愛'],subs:[]},
+  {id:'k1',name:'幼甲', slots:15,weekday:2,sat:5,classes:['幼甲忠','幼甲孝','幼甲仁','幼甲愛'],subs:[]},
+  {id:'g1',name:'一年級', slots:15,weekday:2,sat:5,classes:['一年忠','一年孝','一年仁','一年愛'],subs:[]},
+  {id:'g2',name:'二年級', slots:15,weekday:2,sat:5,classes:['二年忠','二年孝','二年仁'],subs:[]},
+  {id:'g3',name:'三年級', slots:15,weekday:2,sat:5,classes:['三年忠','三年孝','三年仁','三年愛'],subs:[]},
+  {id:'g4',name:'四年級', slots:15,weekday:2,sat:5,classes:['四年忠','四年孝','四年仁'],subs:[]},
+  {id:'g5',name:'五年級', slots:15,weekday:2,sat:5,classes:['五年忠','五年孝'],subs:[]},
+  {id:'g6',name:'六年級', slots:15,weekday:2,sat:5,classes:['六年忠','六年孝'],subs:[]},
+  {id:'j1',name:'初一',   slots:20,weekday:3,sat:5,classes:['初一忠','初一孝'],subs:[]},
+  {id:'j2',name:'初二',   slots:20,weekday:3,sat:5,classes:['初二忠','初二孝'],subs:[]},
+  {id:'j3',name:'初三',   slots:20,weekday:3,sat:5,classes:['初三忠'],subs:[]},
+  // 【2026-08 修正】高一/高二/高三原本 classes 寫的是年級名稱本身（'高一'/'高二'/'高三'），
+  // 跟校務系統「年級=高一、班級名稱=忠」實際存的班級「高一忠」對不起來，貼上「匯入教師」
+  // 分頁時會出現「高一忠: 找不到對應年級」的錯誤。已改成跟校務系統一致的「高一忠」等班級名稱，
+  // 日後如果學校幫高中部增開第二個班，直接在下面陣列裡多加一個班級名稱即可。
+  {id:'h1',name:'高一',   slots:20,weekday:3,sat:5,classes:['高一忠'],subs:[]},
+  {id:'h2',name:'高二',   slots:20,weekday:3,sat:5,classes:['高二忠'],subs:[]},
+  {id:'h3',name:'高三',   slots:20,weekday:3,sat:5,classes:['高三忠'],subs:[]}
+];
+var RULES={r1:true,r2:true,r3:true,r4:true,r5:true,r6:true};
+// 規則五：不排第三節的教師名單
+var NO3_TEACHERS=[];
+// 規則六：教師不排課時段 { 教師姓名: ['週三-2','週五-1',...] }
+var TEACHER_BLOCKS={};
+var BLK_EDIT='';          // 目前正在編輯哪位教師的不排課時段
+// 手動調整課程
+var CELL_MODE='';         // 格子點擊模式：''／'swap'（對調）／'pin'（固定）
+var SWAP_SEL=null;        // 已選取的第一格 {cls, slot}
+var UNDO_STACK=[];        // 復原用：[{cls, sched(JSON字串)}]
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function markDirty(on){var el=document.getElementById('dirty-flag');if(el)el.textContent=on?'● 有尚未存檔的修改':'';}
+
+var S={teachers:{},homerooms:{},schedules:{},locks:[],activeGrade:'k2',activeCls:null,importGradeId:null,bulkParsed:[],academicYear:2026,term:'上學期'};
+// （原本這裡有一個「🧑‍💼 帳號管理」分頁按鈕，會整個離開排課工具跳到校務系統的帳號管理頁，
+// 排課排到一半突然被帶離開很不方便，已依需求移除。教師帳號綁定/建立請直接到
+// 校務系統「帳號管理」頁操作，不需要從排課工具跳轉。）
+var DAYS=['一','二','三','四','五','六'];
+
+function getGrade(id){return GRADES.find(function(g){return g.id===id;});}
+// 幼兒園的班級／年級名稱統一不加「班」字（幼乙忠、幼甲、…）。舊的備份檔、貼上的文字、Excel 裡還寫著
+// 「幼乙忠班」「幼乙班」的，一律在進來的時候轉成新寫法，這樣舊資料也能正常讀取。
+function canonName(n){n=(n==null?'':String(n)).trim();return /^幼/.test(n)&&/班$/.test(n)?n.replace(/班$/,''):n;}
+function canonProjectData(d){
+  if(!d)return d;
+  if(d.GRADES)d.GRADES.forEach(function(g){g.name=canonName(g.name);g.classes=(g.classes||[]).map(canonName);});
+  function renameKeys(o){if(!o)return o;var r={};Object.keys(o).forEach(function(k){r[canonName(k)]=o[k];});return r;}
+  if(d.S){
+    d.S.schedules=renameKeys(d.S.schedules);
+    d.S.homerooms=renameKeys(d.S.homerooms);
+    if(d.S.teachers){Object.keys(d.S.teachers).forEach(function(gid){d.S.teachers[gid]=renameKeys(d.S.teachers[gid]);});}
+    if(d.S.activeCls)d.S.activeCls=canonName(d.S.activeCls);
+  }
+  return d;
+}
+function gradeOfClass(cls){cls=canonName(cls);return GRADES.find(function(g){return g.classes.indexOf(cls)>=0;});}
+function gradeByName(n){n=canonName(n);return GRADES.find(function(g){return g.name===n;});}
+function getSlots(g){var a=[];for(var i=0;i<5;i++) for(var p=1;p<=g.weekday;p++) a.push('週'+DAYS[i]+'-'+p);for(var p=1;p<=g.sat;p++) a.push('週六-'+p);return a;}
+function slotDayIdx(sl){return DAYS.indexOf(sl.split('-')[0].replace('週',''));}
+
+// ── 全校教師相關輔助函式（查詢／代課／Excel匯出 共用）
+// 全校所有出現過的教師姓名（來自科目老師 + 導師）
+function allTeacherNames(){
+  var set={};
+  Object.keys(S.teachers).forEach(function(gid){
+    var clsMap=S.teachers[gid];
+    Object.keys(clsMap).forEach(function(cls){
+      var subMap=clsMap[cls];
+      Object.keys(subMap).forEach(function(sub){var t=subMap[sub];if(t)set[t]=true;});
+    });
+  });
+  Object.keys(S.homerooms).forEach(function(cls){var t=S.homerooms[cls];if(t)set[t]=true;});
+  return Object.keys(set).sort();
+}
+// {老師姓名:{時段:{cls,sub}}}：這個老師在每個時段教哪一班的什麼科目
+function buildTeacherScheduleMap(){
+  var map={};
+  Object.keys(S.schedules).forEach(function(cls){
+    S.schedules[cls].entries.forEach(function(e){
+      if(!e.teacher||!e.sub) return;
+      if(!map[e.teacher]) map[e.teacher]={};
+      map[e.teacher][e.slot]={cls:cls,sub:e.sub};
+    });
+  });
+  return map;
+}
+// 全校固定的20個時段（週一~五各3節 + 週六5節），查詢/代課/Excel共用同一份順序
+function allSchoolSlots(){
+  var a=[];
+  for(var d=0;d<5;d++) for(var p=1;p<=3;p++) a.push('週'+DAYS[d]+'-'+p);
+  for(var p=1;p<=5;p++) a.push('週六-'+p);
+  return a;
+}
+// 某個時段，全校哪些老師是空堂（沒有課）
+function freeTeachersAt(slot,teacherMap,teachers){
+  // 已排課的、或該時段被設定為「不排課」（例如開會）的教師，都不列為空堂可代課
+  return teachers.filter(function(t){return !(teacherMap[t]&&teacherMap[t][slot]) && !violatesBlock(t,slot);});
+}
+function slotPeriod(sl){return parseInt(sl.split('-')[1]);}
+function totalSubs(g){return g.subs.reduce(function(s,x){return s+x.c;},0);}
+function isReady(g){return totalSubs(g)===g.slots;}
+function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+// 工具嵌在校務系統頁裡時，不要自己再出一條捲動軸：把內容高度告訴外層，由外層把 iframe 撐到剛好。
+function postHeight(){
+  if(!window.parent||window.parent===window)return;
+  var cs=getComputedStyle(document.body);
+  var h=Math.ceil(document.body.getBoundingClientRect().height+(parseFloat(cs.marginTop)||0)+(parseFloat(cs.marginBottom)||0));
+  window.parent.postMessage({source:'scheduler-tool',type:'resize',height:h},window.location.origin);
+}
+if(window.parent&&window.parent!==window){
+  document.documentElement.style.overflow='hidden';
+  window.addEventListener('load',postHeight);
+  if(window.ResizeObserver)new ResizeObserver(postHeight).observe(document.body);
+}
+// iframe 被撐得很高時，固定置中的對話框會跑到很遠的地方；向外層問「目前看得到的範圍」，把對話框放進去。
+function placeModal(id){
+  var m=document.getElementById(id);if(!m||!window.parent||window.parent===window)return;
+  var h=function(evt){
+    if(!evt.data||evt.data.source!=='school-system'||evt.data.type!=='viewport')return;
+    window.removeEventListener('message',h);
+    m.style.position='absolute';m.style.top=Math.max(0,evt.data.top)+'px';m.style.bottom='auto';m.style.height=Math.max(300,evt.data.height)+'px';
+  };
+  window.addEventListener('message',h);
+  window.parent.postMessage({source:'scheduler-tool',type:'viewport-request'},window.location.origin);
+}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+
+// ── 規則開關
+function toggleRule(r){
+  var cb=document.getElementById('cb-'+r);
+  RULES[r]=cb.checked;
+  var rt=document.getElementById('rt-'+r);
+  rt.classList.toggle('on',RULES[r]);
+  // 規則五：顯示/隱藏名單區
+  if(r==='r5'){
+    document.getElementById('rule5-body').style.opacity=RULES.r5?'1':'0.4';
+    document.getElementById('rule5-body').style.pointerEvents=RULES.r5?'auto':'none';
+  }
+  if(r==='r6'){
+    document.getElementById('rule6-body').style.opacity=RULES.r6?'1':'0.4';
+    document.getElementById('rule6-body').style.pointerEvents=RULES.r6?'auto':'none';
+  }
+}
+
+// ── 規則六：教師不排課時段
+function blkSlotsOfDay(di){var a=[];var n=di===5?5:3;for(var p=1;p<=n;p++)a.push('週'+DAYS[di]+'-'+p);return a;}
+function violatesBlock(teacher,sl){
+  if(!RULES.r6||!teacher) return false;
+  var a=TEACHER_BLOCKS[teacher];
+  return !!(a&&a.indexOf(sl)>=0);
+}
+function addBlkTeacher(){
+  var inp=document.getElementById('blk-input');var name=inp.value.trim();
+  if(!name) return;
+  if(!TEACHER_BLOCKS[name]) TEACHER_BLOCKS[name]=[];
+  BLK_EDIT=name;inp.value='';renderBlockUI();
+}
+function blkSelect(name){BLK_EDIT=name;renderBlockUI();}
+function blkRemove(name){
+  if(!confirm('確定要移除「'+name+'」的所有不排課設定嗎？')) return;
+  delete TEACHER_BLOCKS[name];
+  if(BLK_EDIT===name) BLK_EDIT='';
+  renderBlockUI();
+}
+function toggleBlkSlot(sl){
+  if(!BLK_EDIT) return;
+  var a=TEACHER_BLOCKS[BLK_EDIT]||(TEACHER_BLOCKS[BLK_EDIT]=[]);
+  var i=a.indexOf(sl);
+  if(i>=0) a.splice(i,1);else a.push(sl);
+  renderBlockUI();
+}
+function toggleBlkDay(di){
+  if(!BLK_EDIT) return;
+  var a=TEACHER_BLOCKS[BLK_EDIT]||(TEACHER_BLOCKS[BLK_EDIT]=[]);
+  var ds=blkSlotsOfDay(di);
+  var allOff=ds.every(function(s){return a.indexOf(s)>=0;});
+  ds.forEach(function(s){var i=a.indexOf(s);if(allOff){if(i>=0)a.splice(i,1);}else if(i<0)a.push(s);});
+  renderBlockUI();
+}
+function clearBlkAll(){if(!BLK_EDIT) return;TEACHER_BLOCKS[BLK_EDIT]=[];renderBlockUI();}
+function renderBlockUI(){
+  var dl=document.getElementById('blk-teacher-list');
+  if(!dl) return;
+  dl.innerHTML=allTeacherNames().map(function(t){return '<option value="'+esc(t)+'">';}).join('');
+  var names=Object.keys(TEACHER_BLOCKS);
+  var chips='';
+  if(!names.length) chips='<span style="font-size:11px;color:#ccc">尚未新增任何教師</span>';
+  names.forEach(function(n){
+    var cnt=(TEACHER_BLOCKS[n]||[]).length;
+    var enc=encodeURIComponent(n);
+    chips+='<span class="teacher-chip" style="cursor:pointer;'+(n===BLK_EDIT?'background:#ffe0b2;border-color:#e65100':'')+'" onclick="blkSelect(decodeURIComponent(\''+enc+'\'))">'+esc(n)+'（'+cnt+'節）'
+      +'<button onclick="event.stopPropagation();blkRemove(decodeURIComponent(\''+enc+'\'))">×</button></span>';
+  });
+  document.getElementById('blk-teachers').innerHTML=chips;
+  var ed=document.getElementById('blk-editor');
+  if(!BLK_EDIT||!TEACHER_BLOCKS[BLK_EDIT]){
+    ed.innerHTML=names.length?'<div style="font-size:11px;color:#888">點上方教師名字，就可以勾選他的不排課時段</div>':'';
+    return;
+  }
+  var a=TEACHER_BLOCKS[BLK_EDIT];
+  var h='<div style="font-size:12px;font-weight:500;margin-top:4px">'+esc(BLK_EDIT)+' 的不排課時段 <span style="font-size:11px;color:#888;font-weight:normal">（點格子切換；點「週X」整天切換；紅色＝不排課）</span></div>';
+  h+='<table class="blk-grid"><tr><th>節</th>';
+  for(var di=0;di<6;di++) h+='<th class="day" onclick="toggleBlkDay('+di+')" title="整天切換">週'+DAYS[di]+'</th>';
+  h+='</tr>';
+  for(var p=1;p<=5;p++){
+    h+='<tr><th>第'+p+'節</th>';
+    for(var di2=0;di2<6;di2++){
+      if(di2<5&&p>3){h+='<td class="none"></td>';continue;}
+      var sl='週'+DAYS[di2]+'-'+p;
+      var off=a.indexOf(sl)>=0;
+      h+='<td class="cell'+(off?' off':'')+'" onclick="toggleBlkSlot(\''+sl+'\')">'+(off?'✕ 不排':'可排')+'</td>';
+    }
+    h+='</tr>';
+  }
+  h+='</table><button class="btn-sm" onclick="clearBlkAll()">清除此教師全部設定</button>';
+  ed.innerHTML=h;
+}
+// 目前課表中，有哪些課違反「教師不排課時段」
+function findBlockViolations(){
+  var v=[];
+  Object.keys(S.schedules).forEach(function(cls){
+    S.schedules[cls].entries.forEach(function(e){
+      if(e.sub&&e.teacher&&violatesBlock(e.teacher,e.slot)) v.push({cls:cls,slot:e.slot,teacher:e.teacher,sub:e.sub});
+    });
+  });
+  return v;
+}
+function blockViolationHtml(){
+  var v=findBlockViolations();
+  if(!v.length) return '';
+  return '<div class="alert-warn" style="margin-top:4px">⚠ 有 '+v.length+' 堂課排在教師「不排課時段」：'+v.map(function(x){return esc(x.cls)+' '+x.slot+'（'+esc(x.teacher)+'）';}).join('、')+'</div>';
+}
+
+// ── 規則五：教師名單管理
+function addNo3Teacher(){
+  var inp=document.getElementById('no3-input');
+  var name=inp.value.trim();
+  if(!name) return;
+  if(NO3_TEACHERS.indexOf(name)>=0){inp.value='';return;}
+  NO3_TEACHERS.push(name);
+  inp.value='';
+  renderNo3List();
+}
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('no3-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addNo3Teacher();}});
+});
+function removeNo3Teacher(name){
+  var idx=NO3_TEACHERS.indexOf(name);
+  if(idx>=0) NO3_TEACHERS.splice(idx,1);
+  renderNo3List();
+}
+function renderNo3List(){
+  var container=document.getElementById('no3-list');
+  var empty=document.getElementById('no3-empty');
+  if(!NO3_TEACHERS.length){
+    container.innerHTML='<span style="font-size:11px;color:#ccc" id="no3-empty">尚未新增任何教師</span>';
+    return;
+  }
+  var html='';
+  NO3_TEACHERS.forEach(function(name){
+    html+='<span class="teacher-chip">'+name
+      +'<button onclick="removeNo3Teacher(\''+name+'\')">×</button></span>';
+  });
+  container.innerHTML=html;
+}
+
+// ── 規則五判斷：這個老師在這個時槽是否違反不排第三節規則
+function violatesNo3Rule(teacher, sl){
+  if(!RULES.r5) return false;
+  if(!teacher) return false;
+  if(NO3_TEACHERS.indexOf(teacher)<0) return false;
+  // 週一~五 第三節 才限制（週六不限）
+  var dayIdx=slotDayIdx(sl);
+  var period=slotPeriod(sl);
+  return dayIdx<5 && period===3;
+}
+
+// ── 排課規則
+function dayHasSubAlready(sub,di,slots,sr){for(var i=0;i<slots.length;i++) if(slotDayIdx(slots[i])===di&&sr[slots[i]]&&sr[slots[i]].sub===sub) return true;return false;}
+function satCountForSub(sub,slots,sr){var n=0;for(var i=0;i<slots.length;i++) if(slotDayIdx(slots[i])===5&&sr[slots[i]]&&sr[slots[i]].sub===sub) n++;return n;}
+function daysWithSub(sub,slots,sr){var set={};for(var i=0;i<slots.length;i++) if(sr[slots[i]]&&sr[slots[i]].sub===sub) set[slotDayIdx(slots[i])]=true;return Object.keys(set).map(Number);}
+function wouldMake3Consec(sub,nd,slots,sr){var days=daysWithSub(sub,slots,sr);days.push(nd);days=days.filter(function(d,i,a){return a.indexOf(d)===i;}).sort(function(a,b){return a-b;});for(var i=0;i+2<days.length;i++) if(days[i+1]===days[i]+1&&days[i+2]===days[i]+2) return true;return false;}
+
+function checkSlotRules(item,sl,slots,sr,sc){
+  var di=slotDayIdx(sl);
+  // 規則一三
+  if(sc<6){
+    if(RULES.r1&&dayHasSubAlready(item.sub,di,slots,sr)) return false;
+    if(RULES.r3&&sc>=3&&wouldMake3Consec(item.sub,di,slots,sr)) return false;
+  } else {
+    // 規則二
+    if(RULES.r2&&di===5&&satCountForSub(item.sub,slots,sr)>=1) return false;
+  }
+  // 規則五：指定教師不排第三節
+  if(violatesNo3Rule(item.teacher, sl)) return false;
+  // 規則六：教師不排課時段
+  if(violatesBlock(item.teacher, sl)) return false;
+  return true;
+}
+
+// ── 排課引擎
+function doScheduleClass(cls,g,tb){
+  var slots=getSlots(g);
+  var ta=(S.teachers[g.id]&&S.teachers[g.id][cls])||{};
+  var hr=S.homerooms[cls]||'';
+  var sc={};g.subs.forEach(function(s){sc[s.n]=s.c;});
+
+  function isFree(t,sl){return !t||!tb[t]||!tb[t][sl];}
+  function occupy(t,sl){if(!t)return;if(!tb[t])tb[t]={};tb[t][sl]=cls;}
+
+  var pool=[];
+  g.subs.forEach(function(s){for(var i=0;i<s.c;i++) pool.push({sub:s.n,teacher:ta[s.n]||''});});
+  pool=shuffle(pool);
+  var sr={};slots.forEach(function(sl){sr[sl]=null;});var placed={};
+
+  // Step 1：鎖定
+  S.locks.forEach(function(lock){
+    var sl='週'+lock.day+'-'+lock.period;
+    if(slots.indexOf(sl)<0||sr[sl]) return;
+    for(var pi=0;pi<pool.length;pi++){
+      if(placed[pi]||pool[pi].sub!==lock.sub) continue;
+      if(!isFree(pool[pi].teacher,sl)) continue;
+      if(!checkSlotRules(pool[pi],sl,slots,sr,sc[pool[pi].sub])) continue;
+      sr[sl]=pool[pi];placed[pi]=true;occupy(pool[pi].teacher,sl);break;
+    }
+  });
+
+  // Step 2：規則四 - 週六第2節導師課
+  var sat2='週六-2';
+  if(RULES.r4&&slots.indexOf(sat2)>=0&&!sr[sat2]&&hr){
+    for(var pi=0;pi<pool.length;pi++){
+      if(placed[pi]||pool[pi].teacher!==hr) continue;
+      if(!isFree(hr,sat2)) break;
+      if(violatesBlock(hr,sat2)) break; // 導師週六第2節不排課，就不套用規則四
+      // 週六第2節不受規則五限制（規則五只限週一~五）
+      sr[sat2]=pool[pi];placed[pi]=true;occupy(hr,sat2);break;
+    }
+  }
+
+  // Step 3：規則二 - ≥6節每天一節
+  if(RULES.r2){
+    g.subs.filter(function(s){return s.c>=6;}).forEach(function(s){
+      var teacher=ta[s.n]||'';
+      for(var di=0;di<6;di++){
+        if(di===5&&g.sat===0) continue;
+        if(dayHasSubAlready(s.n,di,slots,sr)) continue;
+        var ds=shuffle(slots.filter(function(sl){return slotDayIdx(sl)===di&&!sr[sl];}));
+        for(var k=0;k<ds.length;k++){
+          var sl=ds[k];
+          if(!isFree(teacher,sl)) continue;
+          if(!checkSlotRules({sub:s.n,teacher:teacher},sl,slots,sr,s.c)) continue;
+          for(var pi=0;pi<pool.length;pi++){
+            if(placed[pi]||pool[pi].sub!==s.n) continue;
+            sr[sl]=pool[pi];placed[pi]=true;occupy(teacher,sl);break;
+          }
+          break;
+        }
+      }
+    });
+  }
+
+  // Step 4：剩餘課程
+  var empty=slots.filter(function(sl){return!sr[sl];});
+  var rem=pool.filter(function(_,pi){return!placed[pi];});
+  var tc={};rem.forEach(function(x){tc[x.teacher]=(tc[x.teacher]||0)+1;});
+  rem.sort(function(a,b){return (tc[b.teacher]||0)-(tc[a.teacher]||0);});
+
+  rem.forEach(function(item){
+    var order=shuffle(empty.slice()),ok=false;
+    // 嘗試1：全規則
+    for(var k=0;k<order.length&&!ok;k++){
+      var sl=order[k];if(sr[sl]||!isFree(item.teacher,sl)) continue;
+      if(!checkSlotRules(item,sl,slots,sr,sc[item.sub])) continue;
+      sr[sl]=item;occupy(item.teacher,sl);empty.splice(empty.indexOf(sl),1);ok=true;
+    }
+    // 嘗試2：放寬規則三（保留規則五）
+    if(!ok){
+      for(var k=0;k<order.length&&!ok;k++){
+        var sl=order[k];if(sr[sl]||!isFree(item.teacher,sl)) continue;
+        if(violatesNo3Rule(item.teacher,sl)) continue; // 規則五嚴格保留
+        if(violatesBlock(item.teacher,sl)) continue;   // 規則六嚴格保留
+        var cnt=sc[item.sub];
+        if(RULES.r1&&cnt<6&&dayHasSubAlready(item.sub,slotDayIdx(sl),slots,sr)) continue;
+        if(RULES.r2&&cnt>=6&&slotDayIdx(sl)===5&&satCountForSub(item.sub,slots,sr)>=1) continue;
+        sr[sl]=item;occupy(item.teacher,sl);empty.splice(empty.indexOf(sl),1);ok=true;
+      }
+    }
+    // 嘗試3：只保老師不衝堂 + 規則五
+    if(!ok){
+      for(var k=0;k<empty.length&&!ok;k++){
+        var sl=empty[k];if(sr[sl]||!isFree(item.teacher,sl)) continue;
+        if(violatesNo3Rule(item.teacher,sl)) continue;
+        if(violatesBlock(item.teacher,sl)) continue;
+        sr[sl]=item;occupy(item.teacher,sl);empty.splice(k,1);ok=true;
+      }
+    }
+    // 嘗試4：放寬規則五（保留規則六：教師不排課時段）
+    if(!ok){
+      for(var k=0;k<empty.length&&!ok;k++){
+        var sl=empty[k];if(sr[sl]||!isFree(item.teacher,sl)) continue;
+        if(violatesBlock(item.teacher,sl)) continue;
+        sr[sl]=item;occupy(item.teacher,sl);empty.splice(k,1);ok=true;
+      }
+    }
+    // 嘗試5：連規則六也放寬（最後手段，讓偵測器標出）
+    if(!ok){
+      for(var k=0;k<empty.length&&!ok;k++){
+        var sl=empty[k];if(sr[sl]||!isFree(item.teacher,sl)) continue;
+        sr[sl]=item;occupy(item.teacher,sl);empty.splice(k,1);ok=true;
+      }
+    }
+    // 強制
+    if(!ok){
+      for(var k=0;k<empty.length;k++){var sl=empty[k];if(!sr[sl]){sr[sl]=item;empty.splice(k,1);break;}}
+    }
+  });
+
+  var entries=[],lockMark={},hrSlots={};
+  slots.forEach(function(sl){var x=sr[sl];entries.push({slot:sl,sub:x?x.sub:'',teacher:x?x.teacher:''});});
+  S.locks.forEach(function(lock){var sl='週'+lock.day+'-'+lock.period;var e=entries.find(function(x){return x.slot===sl;});if(e&&e.sub===lock.sub)lockMark[sl]=true;});
+  if(RULES.r4&&hr){var e=entries.find(function(x){return x.slot===sat2;});if(e&&e.teacher===hr)hrSlots[sat2]=true;}
+  return {entries:entries,slots:slots,locks:lockMark,homeroomSlots:hrSlots};
+}
+
+// ── 自動重排引擎：在畫面顯示結果之前，先在背後偷偷排好幾次，
+//    每次都檢查「有沒有衝堂」，挑一個最好的結果出來給使用者看。
+//    這樣使用者第一次按「排課」，看到的就已經是最好的答案，
+//    不用自己一直按「重新整理」去賭運氣。
+var MAX_AUTO_TRY=60;      // 最多在背後嘗試幾次
+var MAX_AUTO_MS=4000;     // 最多願意花幾毫秒去嘗試（避免瀏覽器卡住）
+
+function runOneFullAttempt(all){
+  var tb={};var schedules={};
+  all.forEach(function(item){
+    var r=doScheduleClass(item.cls,item.grade,tb);
+    schedules[item.cls]=r;
+    r.entries.forEach(function(e){if(!e.teacher||!e.sub)return;if(!tb[e.teacher])tb[e.teacher]={};tb[e.teacher][e.slot]=item.cls;});
+  });
+  return schedules;
+}
+
+// ── 排課引擎 2.0（2026-10 改版）
+// 舊做法是「一班一班往下塞」：前面的班先把老師時間占走，後面的班只能撿剩下的，
+// 老師課很滿時（例如低年級很多老師 15 個時段要上 14～15 節），常常塞不進去而產生衝堂，
+// 重排單一班時其他班又全部固定，往往只剩一種排法，看起來就像被「鎖死」。
+// 新做法是「全校一起調」：先隨便排滿，再不斷把同一班的兩格對調，
+// 只要對調後「衝堂＋違反規則」變少就保留（偶爾也接受稍差的結果，避免卡在死胡同），
+// 這樣每次從不同的起點出發，就能找出好幾種不同的零衝堂方案讓您挑選。
+var W={conf:100,block:100,no3:40,r1:10,r2:10,r3:4,r4:6,lock:30,diff:1};
+var SOLVER_RUN_MS=1500;        // 每一回合搜尋最多幾毫秒
+var SOLVER_TOTAL_MS=9000;      // 全校一鍵排課最多搜尋幾毫秒
+var SOLVER_WANT=5;             // 想找幾個不同的零衝堂方案
+var CANDIDATES=[];             // 全校排課找到的方案清單
+var VARIETY=6;                 // 重排時「跟原本一樣」的懲罰分數（W.diff）；越大越積極換排法
+var CAND_KEEP=8;               // 最多保留幾個方案給使用者比較
+function setVariety(v){VARIETY=Number(v)||1;}
+function setSearchBudget(sec){
+  var s=Number(sec)||9;
+  SOLVER_TOTAL_MS=s*1000;
+  SOLVER_WANT=s>=60?20:s>=30?10:5;
+  CAND_KEEP=s>=60?20:s>=30?12:8;
+}
+
+function occAdd(occ,t,sl,n){if(!t)return;var m=occ[t]||(occ[t]={});m[sl]=(m[sl]||0)+n;}
+function occGet(occ,t,sl){var m=occ[t];return m&&m[sl]||0;}
+function cellHard(x,sl){if(!x||!x.teacher)return 0;return (violatesBlock(x.teacher,sl)?W.block:0)+(violatesNo3Rule(x.teacher,sl)?W.no3:0);}
+
+// 一個班級的「規則分數」（越低越好）；msgs 有傳進來時，順便把違反的原因寫進去
+function classSoft(C,msgs){
+  var cost=0,byDay={};
+  for(var i=0;i<C.slots.length;i++){var x=C.cells[i];if(!x||!x.sub)continue;var d=slotDayIdx(C.slots[i]);(byDay[x.sub]||(byDay[x.sub]=[0,0,0,0,0,0]))[d]++;}
+  Object.keys(byDay).forEach(function(sub){
+    var a=byDay[sub],c=C.sc[sub]||0;
+    if(c<6){
+      if(RULES.r1) for(var d=0;d<6;d++) if(a[d]>1){cost+=(a[d]-1)*W.r1;if(msgs)msgs.push(C.cls+'：'+sub+' 週'+DAYS[d]+'排了'+a[d]+'節（規則一）');}
+      if(RULES.r3&&c>=3) for(var d2=0;d2+2<6;d2++) if(a[d2]&&a[d2+1]&&a[d2+2]){cost+=W.r3;if(msgs)msgs.push(C.cls+'：'+sub+' 連續三天（週'+DAYS[d2]+'～週'+DAYS[d2+2]+'）（規則三）');}
+    } else if(RULES.r2){
+      for(var d3=0;d3<5;d3++) if(!a[d3]){cost+=W.r2;if(msgs)msgs.push(C.cls+'：'+sub+' 週'+DAYS[d3]+'沒有排（規則二）');}
+      if(a[5]>1){cost+=(a[5]-1)*W.r2;if(msgs)msgs.push(C.cls+'：'+sub+' 週六排了'+a[5]+'節（規則二）');}
+    }
+  });
+  if(RULES.r4&&C.hr&&C.hasHr){
+    var k=C.slots.indexOf('週六-2');
+    if(k>=0){var x2=C.cells[k];if(!x2||x2.teacher!==C.hr){cost+=W.r4;if(msgs)msgs.push(C.cls+'：週六第2節不是導師的課（規則四）');}}
+  }
+  S.locks.forEach(function(l){
+    var sl='週'+l.day+'-'+l.period;var k2=C.slots.indexOf(sl);
+    if(k2<0||!C.subSet[l.sub])return;
+    var x3=C.cells[k2];if(!x3||x3.sub!==l.sub){cost+=W.lock;if(msgs)msgs.push(C.cls+'：'+l.sub+' 沒有排在鎖定的'+sl+'（共同科目）');}
+  });
+  if(C.avoid&&!msgs) for(var j=0;j<C.free.length;j++){var ii=C.free[j],x4=C.cells[ii];if(x4&&x4.sub&&C.avoid[C.slots[ii]]===x4.sub)cost+=W.diff;}
+  return cost;
+}
+
+// 把要重新安排的班級整理成搜尋用的資料；不在 movable 名單內的班級視為固定不動
+function buildSolverProblem(movable,opts){
+  opts=opts||{};
+  var mov={};movable.forEach(function(c){mov[c]=true;});
+  var P={classes:[],occ:{}};
+  Object.keys(S.schedules).forEach(function(oc){
+    if(mov[oc])return;
+    S.schedules[oc].entries.forEach(function(e){if(e.teacher&&e.sub)occAdd(P.occ,e.teacher,e.slot,1);});
+  });
+  movable.forEach(function(cls){
+    var g=gradeOfClass(cls);if(!g)return;
+    var slots=getSlots(g);
+    var ta=(S.teachers[g.id]&&S.teachers[g.id][cls])||{};
+    var sc={},subSet={};g.subs.forEach(function(s){sc[s.n]=s.c;if(s.c>0)subSet[s.n]=true;});
+    var pool=[];g.subs.forEach(function(s){for(var i=0;i<s.c;i++)pool.push({sub:s.n,teacher:ta[s.n]||''});});
+    var cells=new Array(slots.length).fill(null),fixed=new Array(slots.length).fill(false);
+    var old=S.schedules[cls];
+    if(opts.keepPins&&old&&old.pinned){
+      slots.forEach(function(sl,i){
+        if(!old.pinned[sl])return;
+        var e=old.entries.find(function(x){return x.slot===sl;});
+        fixed[i]=true;
+        if(e&&e.sub){
+          var k=-1;for(var q=0;q<pool.length;q++)if(pool[q].sub===e.sub&&pool[q].teacher===e.teacher){k=q;break;}
+          if(k<0)for(var q2=0;q2<pool.length;q2++)if(pool[q2].sub===e.sub){k=q2;break;}
+          if(k>=0)pool.splice(k,1);
+          cells[i]={sub:e.sub,teacher:e.teacher};
+        }
+      });
+    }
+    var free=[];slots.forEach(function(sl,i){if(!fixed[i])free.push(i);});
+    var hr=S.homerooms[cls]||'';
+    var hasHr=!!hr&&(pool.some(function(p){return p.teacher===hr;})||cells.some(function(c){return c&&c.teacher===hr;}));
+    P.classes.push({cls:cls,g:g,slots:slots,cells:cells,fixed:fixed,free:free,pool:pool.slice(0,free.length),sc:sc,subSet:subSet,hr:hr,hasHr:hasHr,
+      avoid:opts.avoid?opts.avoid[cls]:null,pinned:(old&&old.pinned&&opts.keepPins)?JSON.parse(JSON.stringify(old.pinned)):null});
+  });
+  return P;
+}
+
+// 模擬退火搜尋：回傳找到的最佳結果（各班格子）以及分數
+function solveProblem(P,maxMs){
+  var CL=P.classes.filter(function(C){return C.free.length>=2;});
+  // 隨機起點
+  P.classes.forEach(function(C){
+    var order=shuffle(C.free);var pool=shuffle(C.pool);
+    order.forEach(function(i,k){C.cells[i]=pool[k]?{sub:pool[k].sub,teacher:pool[k].teacher}:null;});
+    C.slots.forEach(function(sl,i){var x=C.cells[i];if(x&&x.sub&&x.teacher)occAdd(P.occ,x.teacher,sl,1);});
+  });
+  var hard=0;
+  Object.keys(P.occ).forEach(function(t){Object.keys(P.occ[t]).forEach(function(sl){var n=P.occ[t][sl];if(n>1)hard+=(n-1)*W.conf;});});
+  P.classes.forEach(function(C){C.slots.forEach(function(sl,i){hard+=cellHard(C.cells[i],sl);});});
+  var soft=P.classes.map(function(C){return classSoft(C);});
+  var total=hard+soft.reduce(function(a,b){return a+b;},0);
+  var best=total,bestCells=P.classes.map(function(C){return C.cells.slice();});
+  if(!CL.length) return {cells:bestCells,total:best};
+  var idxOf=new Map();P.classes.forEach(function(C,i){idxOf.set(C,i);});
+  var start=Date.now(),deadline=start+maxMs,T0=40,T1=0.3,T=T0,hot=[];
+  function pc(t,sl){var n=occGet(P.occ,t,sl);return n>1?(n-1)*W.conf:0;}
+  function rebuildHot(){
+    hot=[];
+    CL.forEach(function(C){C.free.forEach(function(i){var x=C.cells[i];if(!x||!x.teacher)return;var sl=C.slots[i];if(occGet(P.occ,x.teacher,sl)>1||cellHard(x,sl)>0)hot.push([C,i]);});});
+  }
+  for(var it=0;;it++){
+    if((it&511)===0){
+      var now=Date.now();if(now>deadline)break;
+      T=T0*Math.pow(T1/T0,(now-start)/maxMs);
+      rebuildHot();
+      if(best===0)break;
+    }
+    var C,i;
+    if(hot.length&&Math.random()<0.6){var h=hot[(Math.random()*hot.length)|0];C=h[0];i=h[1];}
+    else{C=CL[(Math.random()*CL.length)|0];i=C.free[(Math.random()*C.free.length)|0];}
+    var j=C.free[(Math.random()*C.free.length)|0];if(i===j)continue;
+    var a=C.cells[i],b=C.cells[j];
+    if(!a&&!b)continue;
+    if(a&&b&&a.sub===b.sub&&a.teacher===b.teacher)continue;
+    var si=C.slots[i],sj=C.slots[j];
+    var keys={},pairs=[];
+    function addPair(t,sl){if(!t)return;var k=t+'|'+sl;if(!keys[k]){keys[k]=1;pairs.push([t,sl]);}}
+    if(a){addPair(a.teacher,si);addPair(a.teacher,sj);}
+    if(b){addPair(b.teacher,si);addPair(b.teacher,sj);}
+    var before=0;pairs.forEach(function(p){before+=pc(p[0],p[1]);});
+    before+=cellHard(a,si)+cellHard(b,sj);
+    if(a&&a.teacher){occAdd(P.occ,a.teacher,si,-1);occAdd(P.occ,a.teacher,sj,1);}
+    if(b&&b.teacher){occAdd(P.occ,b.teacher,sj,-1);occAdd(P.occ,b.teacher,si,1);}
+    C.cells[i]=b;C.cells[j]=a;
+    var after=0;pairs.forEach(function(p){after+=pc(p[0],p[1]);});
+    after+=cellHard(a,sj)+cellHard(b,si);
+    var ci=idxOf.get(C),ns=classSoft(C);
+    var delta=after-before+ns-soft[ci];
+    if(delta<=0||Math.random()<Math.exp(-delta/T)){
+      soft[ci]=ns;total+=delta;
+      if(total<best){best=total;bestCells=P.classes.map(function(X){return X.cells.slice();});}
+    } else {
+      C.cells[i]=a;C.cells[j]=b;
+      if(a&&a.teacher){occAdd(P.occ,a.teacher,sj,-1);occAdd(P.occ,a.teacher,si,1);}
+      if(b&&b.teacher){occAdd(P.occ,b.teacher,si,-1);occAdd(P.occ,b.teacher,sj,1);}
+    }
+  }
+  return {cells:bestCells,total:best};
+}
+
+// 把搜尋結果轉回工具原本的課表格式 {班級:{entries,slots,locks,homeroomSlots,pinned,manual}}
+function solverResultToSchedules(P,res){
+  var out={};
+  P.classes.forEach(function(C,ci){
+    var cells=res.cells[ci];
+    var entries=C.slots.map(function(sl,i){var x=cells[i];return {slot:sl,sub:x?x.sub:'',teacher:x?x.teacher:''};});
+    var lockMark={},hrSlots={},manual={};
+    S.locks.forEach(function(l){var sl='週'+l.day+'-'+l.period;var e=entries.find(function(x){return x.slot===sl;});if(e&&e.sub===l.sub)lockMark[sl]=true;});
+    if(RULES.r4&&C.hr){var e2=entries.find(function(x){return x.slot==='週六-2';});if(e2&&e2.teacher===C.hr)hrSlots['週六-2']=true;}
+    if(C.pinned) Object.keys(C.pinned).forEach(function(sl){manual[sl]=true;});
+    out[C.cls]={entries:entries,slots:C.slots,locks:lockMark,homeroomSlots:hrSlots,pinned:C.pinned||{},manual:manual};
+  });
+  return out;
+}
+function schedulesSignature(sch){return Object.keys(sch).sort().map(function(c){return sch[c].entries.map(function(e){return e.sub+'/'+e.teacher;}).join(',');}).join(';');}
+function hasAnyPins(){return Object.keys(S.schedules).some(function(c){var p=S.schedules[c].pinned;return p&&Object.keys(p).length;});}
+
+// 目前課表違反哪些排課規則（給畫面顯示用）
+function ruleViolationList(){
+  var msgs=[];
+  Object.keys(S.schedules).forEach(function(cls){
+    var g=gradeOfClass(cls);if(!g)return;
+    var sc={},subSet={};g.subs.forEach(function(s){sc[s.n]=s.c;if(s.c>0)subSet[s.n]=true;});
+    var hr=S.homerooms[cls]||'';var sch=S.schedules[cls];
+    var em={};sch.entries.forEach(function(e){em[e.slot]=e;});
+    var slots=getSlots(g);
+    var cells=slots.map(function(sl){var e=em[sl];return e&&e.sub?{sub:e.sub,teacher:e.teacher}:null;});
+    var hasHr=!!hr&&cells.some(function(c){return c&&c.teacher===hr;});
+    classSoft({cls:cls,slots:slots,cells:cells,sc:sc,subSet:subSet,hr:hr,hasHr:hasHr,free:[],avoid:null},msgs);
+  });
+  return msgs;
+}
+function ruleViolationHtml(){
+  var m=ruleViolationList();
+  if(!m.length) return '<div style="font-size:11px;color:#2d7a2d;margin-top:4px">✓ 排課規則一～四、共同科目鎖定全部符合</div>';
+  return '<details style="margin-top:4px;font-size:11px"><summary style="cursor:pointer;color:#b7770d">ℹ 有 '+m.length+' 處規則沒有完全符合（不影響存檔，點開看）</summary><ul style="padding-left:18px;margin-top:4px;color:#7a5a00">'+m.slice(0,80).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+(m.length>80?'<li>…還有 '+(m.length-80)+' 處</li>':'')+'</ul></details>';
+}
+
+function readyClassList(){var a=[];GRADES.forEach(function(g){if(isReady(g))g.classes.forEach(function(c){a.push(c);});});return a;}
+
+function scheduleAll(){
+  var pins=hasAnyPins();
+  if(Object.keys(S.schedules).length&&!confirm('「全校一鍵排課」會重新搜尋整份課表，目前畫面上的課表（包含手動對調過的課）會被取代'+(pins?'；📌 已固定的格子會保留不動':'')+'。\n\n如果想保留目前版本，請先按「📝 暫存草稿」或「📦 備份專案」。\n\n確定要重新排課嗎？')) return;
+  var status=document.getElementById('schedule-msg');
+  var all=readyClassList();
+  if(!all.length){status.innerHTML='<div class="alert-err">⚠ 沒有年級完成科目設定</div>';return;}
+  var keep={};Object.keys(S.schedules).forEach(function(c){if(all.indexOf(c)<0)keep[c]=S.schedules[c];});
+  var start=Date.now(),runs=0,sigs={};CANDIDATES=[];
+  document.getElementById('schedule-candidates').innerHTML='';
+  function step(){
+    runs++;
+    var P=buildSolverProblem(all,{keepPins:true});
+    var r=solveProblem(P,SOLVER_RUN_MS);
+    var sch=solverResultToSchedules(P,r);
+    var sig=schedulesSignature(sch);
+    if(!sigs[sig]){
+      sigs[sig]=1;
+      var merged=Object.assign({},keep,sch);
+      var saved=S.schedules;S.schedules=merged;
+      var cf=findAllConflicts().length,bv=findBlockViolations().length,rv=ruleViolationList().length;
+      S.schedules=saved;
+      CANDIDATES.push({schedules:merged,conflicts:cf,blocks:bv,rules:rv});
+    }
+    var good=CANDIDATES.filter(function(c){return c.conflicts===0&&c.blocks===0;}).length;
+    status.innerHTML='<div style="font-size:12px;color:#888">⏳ 搜尋中…已跑 '+runs+' 回合，找到 '+good+' 個零衝堂方案（'+Math.round((Date.now()-start)/1000)+' 秒）</div>';
+    if(good>=SOLVER_WANT||Date.now()-start>SOLVER_TOTAL_MS){finish();return;}
+    setTimeout(step,0);
+  }
+  function finish(){
+    CANDIDATES.sort(function(a,b){return (a.conflicts+a.blocks)-(b.conflicts+b.blocks)||a.rules-b.rules;});
+    CANDIDATES=CANDIDATES.slice(0,CAND_KEEP);
+    applyCandidate(0,true);
+    var good=CANDIDATES.filter(function(c){return c.conflicts===0&&c.blocks===0;}).length;
+    document.getElementById('schedule-status').innerHTML+='<div style="font-size:11px;color:#888;margin-top:4px">🔄 共搜尋 '+runs+' 回合（'+Math.round((Date.now()-start)/1000)+' 秒）'+(good?'，找到 '+good+' 個零衝堂方案，可在下方切換比較':'，目前列出的是衝堂最少的版本')+'</div>';
+  }
+  setTimeout(step,30);
+}
+
+function applyCandidate(k,first){
+  var c=CANDIDATES[k];if(!c)return;
+  S.schedules=JSON.parse(JSON.stringify(c.schedules));
+  UNDO_STACK=[];SWAP_SEL=null;markDirty(true);
+  renderCandidates(k);
+  var all=readyClassList();
+  if(!S.activeCls||!S.schedules[S.activeCls]) S.activeCls=all[0];
+  showConflictResult(findAllConflicts());
+  renderGenPage();
+  if(S.activeCls&&S.schedules[S.activeCls]) renderTT(S.activeCls,gradeOfClass(S.activeCls));
+  if(!first) document.getElementById('schedule-status').innerHTML+='<div style="font-size:11px;color:#888;margin-top:4px">已切換到方案 '+(k+1)+'</div>';
+}
+function renderCandidates(active){
+  var el=document.getElementById('schedule-candidates');if(!el)return;
+  if(CANDIDATES.length<2){el.innerHTML='';return;}
+  var h='<div class="card" style="padding:.6rem .75rem"><div style="font-size:12px;font-weight:500;margin-bottom:6px">🧩 找到 '+CANDIDATES.length+' 種不同排法，點選比較（切換會取代畫面上的課表）</div><div style="display:flex;gap:6px;flex-wrap:wrap">';
+  CANDIDATES.forEach(function(c,i){
+    var ok=c.conflicts===0&&c.blocks===0;
+    h+='<button class="btn-sm" onclick="applyCandidate('+i+')" style="'+(i===active?'background:#222;color:#fff;border-color:#222':'')+'">方案'+(i+1)+'：'+(ok?'✅ 零衝堂':'⚠ 衝堂'+(c.conflicts+c.blocks))+'．規則差異 '+c.rules+' 處</button>';
+  });
+  h+='</div></div>';
+  el.innerHTML=h;
+}
+
+// 跟某班「共用老師」的其他班級（含本班）
+function relatedClasses(cls){
+  var g=gradeOfClass(cls);var ta=(S.teachers[g.id]&&S.teachers[g.id][cls])||{};
+  var ts={};Object.keys(ta).forEach(function(s){if(ta[s])ts[ta[s]]=true;});
+  var out=[];
+  readyClassList().forEach(function(c){
+    if(!S.schedules[c]&&c!==cls)return;
+    if(c===cls){out.push(c);return;}
+    var sch=S.schedules[c];
+    if(sch.entries.some(function(e){return e.teacher&&ts[e.teacher];}))out.push(c);
+  });
+  return out;
+}
+// 重排：本班（related=false）或連同共用老師的班級一起（related=true）；會刻意避開原本的排法，讓結果有變化
+function reshuffleCls(cls,related){
+  var g=gradeOfClass(cls);if(!g||!isReady(g)){alert(cls+' 的年級科目節數還沒設定完成');return;}
+  var movable=related?relatedClasses(cls):[cls];
+  var manualCnt=0;movable.forEach(function(c){var s=S.schedules[c];if(s&&s.manual)manualCnt+=Object.keys(s.manual).filter(function(k){return !(s.pinned&&s.pinned[k]);}).length;});
+  if(related&&!confirm('會連同跟 '+cls+' 共用老師的 '+movable.length+' 個班一起重排：\n'+movable.join('、')+'\n\n📌 已固定的格子會保留；其他格子（包含手動對調過的）會重新安排。確定嗎？'))return;
+  if(!related&&manualCnt&&!confirm(cls+' 有手動調整過的課，重排會把它們洗掉（📌 已固定的格子會保留），確定要重排嗎？'))return;
+  var snap={};movable.forEach(function(c){if(S.schedules[c])snap[c]=JSON.stringify(S.schedules[c]);});
+  var avoid={};movable.forEach(function(c){var m={};if(S.schedules[c])S.schedules[c].entries.forEach(function(e){if(e.sub)m[e.slot]=e.sub;});avoid[c]=m;});
+  var status=document.getElementById('schedule-msg');
+  status.innerHTML='<div class="alert-warn" style="margin:0;min-height:38px">⏳ 重排中…（約 1～2 秒）</div>';
+  document.getElementById('schedule-status').innerHTML='';
+  setTimeout(function(){
+    var bestSch=null,bestKey=null,start=Date.now();
+    var budget=related?2200:1300, perRun=related?450:260, wantChanged=related?10:6;
+    // 「跟原本一樣」的懲罰分數調高（VARIETY），搜尋才會願意離開原本的排法；
+    // 衝堂（W.conf）與不排課時段（W.block）仍是 100，永遠比變化優先，不會為了變化而衝堂。
+    var oldDiff=W.diff;W.diff=VARIETY;
+    try{
+      for(var r=0;r<6&&Date.now()-start<budget;r++){
+        var P=buildSolverProblem(movable,{keepPins:true,avoid:avoid});
+        var res=solveProblem(P,perRun);
+        var cand=solverResultToSchedules(P,res);
+        // 評估這個結果：衝堂＋不排課時段違規（越少越好），再看跟原本有幾格不同
+        var savedS=S.schedules;S.schedules=Object.assign({},savedS,cand);
+        var hard=findAllConflicts().length+findBlockViolations().length;
+        S.schedules=savedS;
+        var diffCnt=0;Object.keys(cand).forEach(function(c){var old=avoid[c]||{};cand[c].entries.forEach(function(e){if(e.sub&&old[e.slot]!==e.sub)diffCnt++;});});
+        var key=[hard,res.total];
+        if(!bestKey||key[0]<bestKey[0]||(key[0]===bestKey[0]&&key[1]<bestKey[1])){bestKey=key;bestSch=cand;}
+        if(hard===0&&diffCnt>=wantChanged)break; // 夠好了，不用再花時間
+      }
+    }finally{W.diff=oldDiff;}
+    if(!bestSch)return;
+    UNDO_STACK.push({multi:snap});if(UNDO_STACK.length>50)UNDO_STACK.shift();
+    var changed=0;
+    Object.keys(bestSch).forEach(function(c){
+      var old=avoid[c]||{};
+      bestSch[c].entries.forEach(function(e){if(e.sub&&old[e.slot]!==e.sub)changed++;});
+      S.schedules[c]=bestSch[c];
+    });
+    SWAP_SEL=null;markDirty(true);
+    renderGenPage();renderTT(cls,g);showConflictResult(findAllConflicts());
+    var tip='<div class="alert-ok" style="margin-top:4px">🔄 已重排'+(related?' '+movable.length+' 個班':' '+esc(cls))+'，共有 '+changed+' 格跟原本不同。</div>';
+    if(!related&&changed<=2) tip+='<div class="alert-warn" style="margin-top:4px">💡 '+esc(cls)+' 幾乎沒有變化，代表這班老師在其他班的課已經把時間占滿，本班只剩這種排法。請改按「🔄 連同共用老師的班級一起重排」，或先把其他班的格子調開。</div>';
+    document.getElementById('schedule-status').innerHTML+=tip;
+  },30);
+}
+
+// 📊 老師節數吃緊程度：老師的課數 ÷ 他能上課的時段數，越接近 100% 越沒有調動空間
+function teacherLoadRows(){
+  var load={},cap={},cls={};
+  GRADES.forEach(function(g){
+    if(!isReady(g))return;
+    var gs=getSlots(g);
+    g.classes.forEach(function(c){
+      var ta=(S.teachers[g.id]&&S.teachers[g.id][c])||{};
+      g.subs.forEach(function(s){
+        var t=ta[s.n];if(!t||!s.c)return;
+        load[t]=(load[t]||0)+s.c;
+        var m=cap[t]||(cap[t]={});gs.forEach(function(sl){m[sl]=true;});
+        (cls[t]||(cls[t]={}))[c]=true;
+      });
+    });
+  });
+  return Object.keys(load).map(function(t){
+    var n=Object.keys(cap[t]).filter(function(sl){return !violatesBlock(t,sl)&&!violatesNo3Rule(t,sl);}).length;
+    return {t:t,load:load[t],cap:n,ratio:n?load[t]/n:9,classes:Object.keys(cls[t]).length};
+  }).sort(function(a,b){return b.ratio-a.ratio;});
+}
+function renderLoadAnalysis(){
+  var el=document.getElementById('load-analysis');if(!el)return;
+  var rows=teacherLoadRows();
+  if(!rows.length){el.innerHTML='';return;}
+  var tight=rows.filter(function(r){return r.ratio>=0.85;});
+  var over=rows.filter(function(r){return r.ratio>1;});
+  var h='<details class="card" style="padding:.6rem .75rem"'+(over.length?' open':'')+'><summary style="cursor:pointer;font-size:12px;font-weight:500">📊 為什麼有些課每次都排在同一格？（老師時間吃緊分析：'+tight.length+' 位老師 ≥85%'+(over.length?'，<span style="color:#c0392b">'+over.length+' 位超過 100%，一定會衝堂</span>':'')+'）</summary>'
+   +'<p style="font-size:11px;color:#888;margin:6px 0">「吃緊度」＝老師要上的節數 ÷ 他可以上課的時段數（已扣掉不排課時段、第三節限制）。接近 100% 的老師幾乎每個時段都有課，他教的班級就只剩極少數排法，所以看起來「排不動」。想要更多組合，可以：減少這些老師的節數／換人教其中一科、取消部分不排課時段，或關掉部分排課規則。</p>'
+   +'<table class="conflict-table"><tr><th>老師</th><th>節數</th><th>可上時段</th><th>吃緊度</th><th>任教班數</th></tr>';
+  rows.slice(0,25).forEach(function(r){
+    var pct=Math.round(r.ratio*100);
+    var color=r.ratio>1?'#c0392b':r.ratio>=0.95?'#e65100':r.ratio>=0.85?'#b7770d':'#2d7a2d';
+    h+='<tr><td>'+esc(r.t)+'</td><td>'+r.load+'</td><td>'+r.cap+'</td><td style="color:'+color+';font-weight:500">'+pct+'%</td><td>'+r.classes+'</td></tr>';
+  });
+  h+='</table>'+(rows.length>25?'<div style="font-size:10px;color:#888;margin-top:4px">只列出最吃緊的 25 位</div>':'')+'</details>';
+  el.innerHTML=h;
+}
+
+function findAllConflicts(){
+  var map={};
+  Object.keys(S.schedules).forEach(function(cls){S.schedules[cls].entries.forEach(function(e){if(!e.teacher||!e.sub)return;if(!map[e.teacher])map[e.teacher]={};if(!map[e.teacher][e.slot])map[e.teacher][e.slot]=[];map[e.teacher][e.slot].push(cls);});});
+  var cf=[];Object.keys(map).forEach(function(t){Object.keys(map[t]).forEach(function(sl){if(map[t][sl].length>1)cf.push({teacher:t,slot:sl,classes:map[t][sl].slice()});});});
+  cf.sort(function(a,b){return a.slot.localeCompare(b.slot,'zh');});return cf;
+}
+function runConflictCheck(){showConflictResult(findAllConflicts());}
+function renderLockedPeriods(list){
+  var el=document.getElementById('locked-periods-panel');
+  if(!el) return;
+  if(!list || !list.length){ el.innerHTML=''; return; }
+  var html='<div class="card" style="padding:.6rem .75rem;margin-bottom:.75rem;border:1px solid #f0d98a;background:#FFF8E1"><div style="font-size:12px;font-weight:500;margin-bottom:4px">🔒 教務已登記的共同科目鎖定時段（請人工確認排課沒有排進這些時段）</div><ul style="font-size:11px;margin:0;padding-left:18px">';
+  list.forEach(function(l){html+='<li>週'+DAYS[l.weekday-1]+' 第'+l.period_no+'節　'+(l.scope==='全校'?'全校':l.scope+'：'+(l.scope_ref||''))+'　→ '+l.subject+(l.note?'（'+l.note+'）':'')+'</li>';});
+  html+='</ul></div>';
+  el.innerHTML=html;
+}
+function showConflictResult(cf){
+  var msg=document.getElementById('schedule-msg'),det=document.getElementById('schedule-status');
+  var n=Object.keys(S.schedules).length;
+  var canReshuffle=S.activeCls&&S.schedules[S.activeCls];
+  var reshuffleBtn=canReshuffle?'<button class="btn-sm" onclick="reshuffleCls(\''+S.activeCls+'\')">🔄 重排 '+S.activeCls+'</button>':'';
+  if(!n){msg.innerHTML='<div class="alert-warn" style="margin:0">尚未排課</div>';det.innerHTML='';return;}
+  var bn=findBlockViolations().length;
+  var line=cf.length
+    ?'⚠ 還有 <b>'+cf.length+'</b> 節衝堂'+(bn?'、'+bn+' 堂排在老師不排課時段':'')+'（明細在課表下方）'
+    :'✅ 全校 '+n+' 個班級，零衝堂'+(bn?'；但有 '+bn+' 堂排在老師不排課時段（明細在課表下方）':'');
+  msg.innerHTML='<div class="'+(cf.length?'alert-err':'alert-ok')+'" style="margin:0;justify-content:space-between;align-items:center;min-height:38px">'+line+reshuffleBtn+'</div>';
+  var html='';
+  if(cf.length){
+    html='<div class="alert-err" style="flex-direction:column;gap:4px"><div style="font-weight:500">⚠ 衝堂明細（'+cf.length+' 節）</div><table class="conflict-table"><tr><th>時間</th><th>老師</th><th>衝突班級</th></tr>';
+    cf.forEach(function(c){html+='<tr><td>'+c.slot+'</td><td>'+c.teacher+'</td><td>'+c.classes.join('、')+'</td></tr>';});
+    html+='</table></div>';
+  }
+  det.innerHTML=html+blockViolationHtml()+ruleViolationHtml();
+}
+
+function renderGenPage(){
+  var maxRows=0;
+  GRADES.forEach(function(g){if(g.classes.length>maxRows) maxRows=g.classes.length;});
+  var html='<div style="overflow-x:auto"><table class="tt"><tr>';
+  GRADES.forEach(function(g){html+='<th>'+g.name+(isReady(g)?'':' <span style="color:#c0392b">(未設定)</span>')+'</th>';});
+  html+='</tr>';
+  for(var r=0;r<maxRows;r++){
+    html+='<tr>';
+    GRADES.forEach(function(g){
+      var c=g.classes[r];
+      if(!c){html+='<td></td>';return;}
+      var done=!!S.schedules[c],active=S.activeCls===c;
+      html+='<td><button class="cls-btn'+(done?' done':'')+(active?' active':'')+'" onclick="clickCls(\''+c+'\')">'+(done?'✓ ':'')+c+'</button></td>';
+    });
+    html+='</tr>';
+  }
+  html+='</table></div>';
+  document.getElementById('gen-cls-list').innerHTML=html;
+}
+function clickCls(cls){S.activeCls=cls;renderGenPage();var g=gradeOfClass(cls);if(S.schedules[cls])renderTT(cls,g);else document.getElementById('gen-tt-panel').innerHTML='<div class="card" style="font-size:12px;color:#888">'+cls+' 尚未排課</div>';showConflictResult(findAllConflicts());}
+
+function renderTT(cls,g){
+  var sched=S.schedules[cls];if(!sched)return;
+  var mc={};findAllConflicts().forEach(function(c){c.classes.forEach(function(rc){if(rc===cls)mc[c.slot]=true;});});
+  var em={};sched.entries.forEach(function(e){em[e.slot]=e;});
+  var manual=sched.manual||{},pinned=sched.pinned||{};
+  var maxRows=Math.max(g.weekday,g.sat);
+  var selSlot=(SWAP_SEL&&SWAP_SEL.cls===cls)?SWAP_SEL.slot:null;
+  var nRel=relatedClasses(cls).length;
+  function modeBtn(m,label,on){return '<button class="btn-sm" onclick="setCellMode(\''+m+'\')" style="'+(CELL_MODE===m?'background:#e65100;color:#fff;border-color:#e65100':'')+'">'+(CELL_MODE===m?on:label)+'</button>';}
+  var html='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px">'
+    +'<div><strong>'+esc(cls)+'</strong>'+(S.homerooms[cls]?' <span style="font-size:10px;color:#888">導師：'+esc(S.homerooms[cls])+'</span>':'')+'</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+    +modeBtn('swap','✋ 調整課程','✋ 調整中（點此結束）')
+    +modeBtn('pin','📌 固定格子','📌 固定中（點此結束）')
+    +(UNDO_STACK.length?'<button class="btn-sm" onclick="undoSwap()">↩ 復原上一步（'+UNDO_STACK.length+'）</button>':'')
+    +'<button class="btn-sm" onclick="reshuffleCls(\''+cls+'\',false)">🔄 重排本班</button>'
+    +(nRel>1?'<button class="btn-sm" onclick="reshuffleCls(\''+cls+'\',true)" title="跟本班共用老師的班級一起重排，變化會比較大">🔄 連同共用老師的班級一起重排（'+nRel+'班）</button>':'')
+    +'</div></div>'
+    +(CELL_MODE==='swap'?'<div class="alert-warn" style="margin-bottom:6px">✋ 調整模式：先點一格有課的格子（變黃色），再點要對調的另一格（可以是有課或空堂）。系統會先檢查老師衝堂、不排課時段，有問題會先問您。調整完請按上方「💾 存檔到校務系統」或「📝 暫存草稿」。</div>':'')
+    +(CELL_MODE==='pin'?'<div class="alert-warn" style="margin-bottom:6px">📌 固定模式：點格子就會固定／取消固定。固定的格子在「全校一鍵排課」「重排」時都不會被移動——先把滿意的課固定，再重排其他格子，就能得到不同組合。</div>':'')
+    +'<div style="overflow-x:auto"><table class="tt"><tr><th>節</th>';
+  DAYS.forEach(function(d){html+='<th>週'+d+'</th>';});html+='</tr>';
+  for(var p=1;p<=maxRows;p++){
+    html+='<tr><td style="font-weight:500;background:#f5f5f5">'+p+'</td>';
+    for(var di=0;di<6;di++){
+      if(di===5&&p>g.sat){html+='<td class="na"></td>';continue;}
+      var sl='週'+DAYS[di]+'-'+p;
+      if(di<5&&p===3&&g.weekday<3){html+='<td class="dismiss">放學</td>';continue;}
+      if(di<5&&p>g.weekday){html+='<td class="na"></td>';continue;}
+      var e=em[sl];
+      var isCf=mc[sl],isLocked=sched.locks&&sched.locks[sl],isHr=sched.homeroomSlots&&sched.homeroomSlots[sl],isMan=manual[sl]&&!pinned[sl],isPin=pinned[sl];
+      var isBlk=e&&e.sub&&violatesBlock(e.teacher,sl);
+      var click=CELL_MODE?' onclick="cellClick(\''+cls+'\',\''+sl+'\')"':'';
+      var swCls=CELL_MODE?' swapable':'';
+      var selCls=(selSlot===sl)?' sel':'';
+      var pinCls=isPin?' pinned':'';
+      if(e&&e.sub){
+        html+='<td class="'+(isCf?'cf':isBlk?'blocked':isHr?'homeroom':isLocked?'locked':'has')+swCls+selCls+pinCls+'"'+click+'>'
+          +esc(e.sub)+(isPin?' 📌':'')+(isLocked?' 🔒':'')+(isHr?' 🏠':'')+(isCf?' ⚠':'')+(isBlk?' ⛔':'')+(isMan?' <span class="manual-mark">✎</span>':'')
+          +'<br><span style="font-size:8px;opacity:.75">'+esc(e.teacher||'—')+'</span></td>';
+      } else {
+        html+='<td class="'+(swCls+selCls+pinCls).trim()+'" style="color:#ccc"'+click+'>—'+(isPin?' 📌':'')+'</td>';
+      }
+    }
+    html+='</tr>';
+  }
+  html+='</table></div><div style="font-size:10px;color:#888;margin-top:4px">📌 = 固定（重排不會動）　<span class="manual-mark">✎</span> = 手動調整過　⛔ = 排在教師不排課時段　⚠ = 衝堂</div></div>';
+  document.getElementById('gen-tt-panel').innerHTML=html;
+}
+
+function setCellMode(m){
+  CELL_MODE=(CELL_MODE===m)?'':m;SWAP_SEL=null;
+  if(S.activeCls&&S.schedules[S.activeCls]) renderTT(S.activeCls,gradeOfClass(S.activeCls));
+}
+// 舊名稱保留相容
+function toggleSwapMode(){setCellMode('swap');}
+function cellClick(cls,sl){
+  if(CELL_MODE==='pin') return pinClick(cls,sl);
+  if(CELL_MODE==='swap') return swapClick(cls,sl);
+}
+function pinClick(cls,sl){
+  var sched=S.schedules[cls];if(!sched)return;
+  if(!sched.pinned) sched.pinned={};
+  if(sched.pinned[sl]) delete sched.pinned[sl];else sched.pinned[sl]=true;
+  markDirty(true);
+  renderTT(cls,gradeOfClass(cls));
+}
+
+// 對調兩格課程：同一班內，把 A 格與 B 格的「科目＋老師」互換（B 格是空堂就等於把課移過去）
+function swapClick(cls,sl){
+  var sched=S.schedules[cls];if(!sched) return;
+  var pinned=sched.pinned||{};
+  var e=sched.entries.find(function(x){return x.slot===sl;});
+  if(pinned[sl]){alert('這一格已經 📌 固定，要調整請先到「📌 固定格子」模式取消固定。');return;}
+  if(!SWAP_SEL||SWAP_SEL.cls!==cls){
+    if(!e||!e.sub){return;} // 第一格必須有課
+    SWAP_SEL={cls:cls,slot:sl};
+    renderTT(cls,gradeOfClass(cls));return;
+  }
+  if(SWAP_SEL.slot===sl){SWAP_SEL=null;renderTT(cls,gradeOfClass(cls));return;} // 再點同一格＝取消選取
+  var s1=SWAP_SEL.slot,s2=sl;
+  var e1=sched.entries.find(function(x){return x.slot===s1;});
+  var e2=sched.entries.find(function(x){return x.slot===s2;});
+  if(!e1||!e2){SWAP_SEL=null;return;}
+  var issues=checkSwapIssues(cls,e1,e2);
+  if(issues.length&&!confirm('對調「'+describeEntry(e1)+'」（'+s1+'）與「'+describeEntry(e2)+'」（'+s2+'）後，會有以下問題：\n\n・'+issues.join('\n・')+'\n\n仍要對調嗎？')){
+    return; // 保持選取狀態，讓使用者改點別格
+  }
+  UNDO_STACK.push({cls:cls,sched:JSON.stringify(sched)});
+  if(UNDO_STACK.length>50) UNDO_STACK.shift();
+  var tmpSub=e1.sub,tmpT=e1.teacher;
+  e1.sub=e2.sub;e1.teacher=e2.teacher;
+  e2.sub=tmpSub;e2.teacher=tmpT;
+  // 共同科目鎖定／導師課的標記跟「格子」綁定，內容換了標記就不準了，直接清掉並改記為手動調整
+  if(!sched.manual) sched.manual={};
+  [s1,s2].forEach(function(x){
+    if(sched.locks) delete sched.locks[x];
+    if(sched.homeroomSlots) delete sched.homeroomSlots[x];
+    sched.manual[x]=true;
+  });
+  SWAP_SEL=null;markDirty(true);
+  renderGenPage();renderTT(cls,gradeOfClass(cls));showConflictResult(findAllConflicts());
+}
+function describeEntry(e){return e&&e.sub?(e.sub+(e.teacher?'／'+e.teacher:'')):'空堂';}
+// 預先檢查：對調後會不會造成老師衝堂、排進不排課時段、第三節限制
+function checkSwapIssues(cls,e1,e2){
+  var issues=[];
+  var tmap=buildTeacherScheduleMap();
+  function check(entry,newSlot){
+    if(!entry.sub||!entry.teacher) return;
+    var t=entry.teacher;
+    var other=tmap[t]&&tmap[t][newSlot];
+    if(other&&other.cls!==cls) issues.push(t+' 老師在 '+newSlot+' 已經在教「'+other.cls+'」（衝堂）');
+    if(violatesBlock(t,newSlot)) issues.push(t+' 老師的 '+newSlot+' 設定為「不排課」');
+    if(violatesNo3Rule(t,newSlot)) issues.push(t+' 老師在規則五名單內，不該排在 '+newSlot+'（第三節）');
+  }
+  check(e1,e2.slot);
+  check(e2,e1.slot);
+  return issues;
+}
+function undoSwap(){
+  var u=UNDO_STACK.pop();if(!u) return;
+  var focus=u.cls;
+  if(u.multi){Object.keys(u.multi).forEach(function(c){S.schedules[c]=JSON.parse(u.multi[c]);});focus=S.activeCls&&u.multi[S.activeCls]?S.activeCls:Object.keys(u.multi)[0];}
+  else S.schedules[u.cls]=JSON.parse(u.sched);
+  SWAP_SEL=null;markDirty(true);
+  renderGenPage();if(focus&&S.schedules[focus])renderTT(focus,gradeOfClass(focus));showConflictResult(findAllConflicts());
+}
+
+// ── 專案備份／還原：把目前系統上所有設定（年級科目、教師、課表、規則、鎖定等）
+//    整包存成一個 JSON 檔案，之後可以在任何一台電腦重新打開這個系統時，
+//    把備份檔「上傳」回來，馬上恢復成備份當下的樣子。
+function buildProjectData(){
+  return {
+    version:1,
+    savedAt:new Date().toISOString(),
+    GRADES:GRADES,
+    RULES:RULES,
+    NO3_TEACHERS:NO3_TEACHERS,
+    TEACHER_BLOCKS:TEACHER_BLOCKS,
+    S:{
+      teachers:S.teachers,
+      homerooms:S.homerooms,
+      schedules:S.schedules,
+      locks:S.locks,
+      activeGrade:S.activeGrade,
+      activeCls:S.activeCls,
+      academicYear:S.academicYear,
+      term:S.term
+    }
+  };
+}
+
+function backupProject(){
+  var data=buildProjectData();
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var ts=new Date();
+  var pad=function(n){return (n<10?'0':'')+n;};
+  var fname='排課系統備份_'+ts.getFullYear()+pad(ts.getMonth()+1)+pad(ts.getDate())+'_'+pad(ts.getHours())+pad(ts.getMinutes())+'.json';
+  var a=document.createElement('a');
+  a.href=url;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// 「📥 從校務系統匯入教師/科目資料」：跟 saveToSystem() 相反方向，跟校務系統要目前
+// 已經有的「科目與比重設定」「班級與導師」「任課教師」資料，抓回來後直接呼叫既有的
+// parseExcel()／previewBulk()+confirmBulk() 自動匯入（效果等同手動貼上「匯入教師」
+// 「一鍵匯入全校」兩個分頁），不用再自己複製貼上文字。
+function requestImportFromSystem(){
+  var statusEl=document.getElementById('import-from-system-status');
+  if(!window.parent || window.parent===window){
+    alert('這個工具目前是用「新分頁開啟」打開的，沒辦法跟校務系統要資料。\n請回到校務系統「排課系統」頁使用這個功能。');
+    return;
+  }
+  if(statusEl) statusEl.textContent='匯入中…';
+  window.parent.postMessage({source:'scheduler-tool', type:'request-import-data', academicYear:S.academicYear, term:S.term, toolVersion:(typeof TOOL_VERSION!=='undefined'?TOOL_VERSION:'old')}, window.location.origin);
+
+  waitForSystem('request-import-data','import-data',statusEl,function(evt){
+    if(evt.data.academicYear){S.academicYear=+evt.data.academicYear;}
+    if(evt.data.term){S.term=evt.data.term;}
+    var tb=document.getElementById('term-badge');if(tb)tb.textContent='🗓️ '+S.academicYear+' 學年度 '+S.term+'（由「學年學期管理」帶入）';
+    var curriculumText=evt.data.curriculumText||'';
+    var teacherText=evt.data.teacherText||'';
+    var warnings=evt.data.warnings||[];
+
+    var importedGrades=0, importedClasses=0;
+    if(curriculumText){
+      document.getElementById('bulk-input').value=curriculumText;
+      var parsed=parseBulkText(curriculumText);
+      parsed.forEach(function(item){var g=gradeByName(item.gradeName);if(g){g.subs=item.subs.slice();importedGrades++;}});
+      renderSetupPage(S.activeGrade);renderGradeTabs();
+    }
+    if(teacherText){
+      document.getElementById('excel-input').value=teacherText;
+      parseExcel();
+    }
+    if(statusEl){
+      statusEl.textContent='✅ 已匯入 '+importedGrades+' 個年級的科目節數、教師資料已套用（'+new Date().toLocaleTimeString()+'）'+(warnings.length?'，但有'+warnings.length+'則提醒':'');
+    }
+    if(warnings.length){
+      alert('匯入時有些提醒，請確認：\n\n'+warnings.slice(0,20).join('\n')+(warnings.length>20?'\n…還有'+(warnings.length-20)+'則':''));
+    }
+    if(!curriculumText && !teacherText){
+      if(statusEl) statusEl.textContent='校務系統目前這個學年度/學期還沒有資料，請用下面「匯入教師」「一鍵匯入全校」手動輸入第一批資料';
+    }
+    renderLockedPeriods(evt.data.lockedPeriods||[]);
+    var saved=evt.data.savedProject;
+    var fromDb=false;
+    if((!saved||!saved.S||!saved.S.schedules||!Object.keys(saved.S.schedules).length)&&evt.data.dbSchedule&&evt.data.dbSchedule.length){
+      saved=scheduleFromDbRows(evt.data.dbSchedule);fromDb=true;
+    }
+    var restored=restoreSavedProject(saved);
+    if(restored&&fromDb&&statusEl) statusEl.textContent+='；沒有歷史存檔，已改從校務系統已存的班級課表還原';
+    if(restored&&statusEl) statusEl.textContent+='；已讀回系統內已存的課表（'+restored+' 班）';
+  },'沒有收到校務系統的回應，請確認校務系統頁面還開著');
+}
+
+// 工具一開啟（且是被校務系統「排課系統」頁嵌入，不是用「在新分頁開啟」）就自動跟校務系統要一次
+// 目前資料庫裡已經有的資料，不用再手動按「📥 從校務系統匯入教師/科目資料」——不管資料是透過
+// 「一鍵上傳」、排課系統存檔、還是這裡手動匯入寫進去的，一打開都會自動顯示最新狀態。
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.parent && window.parent !== window) {
+    setTimeout(requestImportFromSystem, 300);
+  }
+});
+
+// 「💾 直接存進校務系統」（匯入教師 & 導師資料 / 全校科目節數匯入 專用，各自單獨存檔）：
+// 跟 saveToSystem() 的差別是——這兩個不用等整份課表排完、不用先通過衝堂檢查，
+// 匯入教師/導師或科目節數之後就可以馬上分別單獨存進資料庫，不用被綁在「排完課才能存檔」
+// 這個時間點上（任課教師/導師分配、科目節數通常一學期只設定一次，比實際課表更新得少）。
+function saveTeachersToSystem(){
+  var statusEl=document.getElementById('save-teachers-status');
+  if(!window.parent || window.parent===window){
+    if(statusEl) statusEl.textContent='（目前是新分頁開啟，僅暫存在這個分頁，尚未寫入校務系統）';
+    return;
+  }
+  if(statusEl) statusEl.textContent='存檔中…';
+  window.parent.postMessage({source:'scheduler-tool', type:'save-teachers', data:buildProjectData()}, window.location.origin);
+  waitForSystem('save-teachers','save-teachers-result',statusEl,function(evt){
+    if(statusEl) statusEl.textContent = evt.data.ok ? ('✅ 已存進校務系統（'+new Date().toLocaleTimeString()+'）') : '❌ 存檔失敗，請看校務系統頁面上的錯誤訊息';
+  },'沒有收到校務系統的回應，請確認校務系統頁面還開著');
+}
+
+function saveCurriculumToSystem(){
+  var statusEl=document.getElementById('save-curriculum-status');
+  if(!window.parent || window.parent===window){
+    if(statusEl) statusEl.textContent='（目前是新分頁開啟，僅暫存在這個分頁，尚未寫入校務系統）';
+    return;
+  }
+  if(statusEl) statusEl.textContent='存檔中…';
+  window.parent.postMessage({source:'scheduler-tool', type:'save-curriculum', data:buildProjectData()}, window.location.origin);
+  waitForSystem('save-curriculum','save-curriculum-result',statusEl,function(evt){
+    if(statusEl) statusEl.textContent = evt.data.ok ? ('✅ 已存進校務系統（'+new Date().toLocaleTimeString()+'）') : '❌ 存檔失敗，請看校務系統頁面上的錯誤訊息';
+  },'沒有收到校務系統的回應，請確認校務系統頁面還開著');
+}
+
+// 「💾 存檔到校務系統」：把目前資料透過 postMessage 送給嵌入這個工具的校務系統頁面，
+// 由校務系統頁面負責寫進資料庫（本工具本身完全不知道資料庫在哪裡、也沒有登入資訊）。
+// 只有透過 iframe 嵌入（window.parent !== window）才能用；如果是獨立分頁打開，parent就是自己，無法送出。
+var SAVE_TO_SYSTEM_RESPONSE_TIMEOUT_MS = 15000;
+// 工具版本：校務系統那邊會檢查，瀏覽器如果還在用舊的快取版本（例如幼兒園班級名稱還是舊寫法），會自動重新載入。
+var TOOL_VERSION='2026-10-28-layout';
+// 【2026-10 修正】跟校務系統來回溝通的共用等待器：
+// 以前不管資料多少都只等 15 秒，全校資料寫進資料庫要比較久時，就會誤顯示「沒有收到校務系統的回應」。
+// 現在校務系統一收到請求會先回一聲「收到了」(ack)；15 秒內連「收到了」都沒有才判定頁面沒開，
+// 收到後最多再等 5 分鐘讓資料庫寫完，等待期間狀態列會顯示「正在寫入資料庫…」。
+var SYSTEM_WORK_TIMEOUT_MS = 300000;
+function waitForSystem(requestType,resultType,statusEl,onResult,noReplyText){
+  var done=false,acked=false,timer=null;
+  function arm(ms,text){clearTimeout(timer);timer=setTimeout(function(){if(done)return;done=true;window.removeEventListener('message',h);if(statusEl)statusEl.textContent=text+(acked?'':'（若剛更新過檔案，請在校務系統頁按 Ctrl+F5 強制重新整理後再試）');},ms);}
+  function h(evt){
+    if(!evt.data||evt.data.source!=='school-system')return;
+    if(evt.data.type==='ack'&&evt.data.requestType===requestType){
+      if(!acked){acked=true;if(statusEl)statusEl.textContent='校務系統已收到，正在處理資料…（資料多時需要一點時間，請勿關閉頁面）';arm(SYSTEM_WORK_TIMEOUT_MS,'等候超過 5 分鐘仍沒有完成的通知，請到校務系統頁面上方查看存檔結果');}
+      return;
+    }
+    if(evt.data.type!==resultType)return;
+    done=true;clearTimeout(timer);window.removeEventListener('message',h);
+    onResult(evt);
+  }
+  window.addEventListener('message',h);
+  arm(SAVE_TO_SYSTEM_RESPONSE_TIMEOUT_MS,noReplyText||'沒有收到校務系統的回應，請確認是從校務系統「排課系統」頁打開這個工具，且頁面還開著');
+}
+function saveToSystem(){
+  var statusEl=document.getElementById('save-to-system-status');
+  if(!window.parent || window.parent===window){
+    alert('這個工具目前是用「新分頁開啟」打開的，沒辦法直接存進校務系統。\n請回到校務系統「排課系統」頁重新打開這個工具，或先「備份專案」下載JSON後在校務系統「排課系統」頁手動上傳。');
+    return;
+  }
+  var conflicts=findAllConflicts();
+  if(conflicts.length){
+    alert('目前還有 '+conflicts.length+' 個教師衝堂（同一位老師同一節被排到兩個不同班），必須排到零衝堂才能存檔到校務系統。\n請到「排課」分頁按「衝堂檢查」查看並處理後再存檔。');
+    return;
+  }
+  var bv=findBlockViolations();
+  if(bv.length&&!confirm('目前有 '+bv.length+' 堂課排在教師「不排課時段」（例如 '+bv[0].cls+' '+bv[0].slot+' '+bv[0].teacher+'）。\n\n仍要存檔到校務系統嗎？（也可以先按「📝 暫存草稿」之後再調整）')) return;
+  var data=buildProjectData();
+  if(statusEl) statusEl.textContent='存檔中…';
+  window.parent.postMessage({source:'scheduler-tool', type:'save', data:data}, window.location.origin);
+
+  waitForSystem('save','save-result',statusEl,function(evt){
+    if(statusEl) {statusEl.textContent = evt.data.ok ? ('✅ 已存檔（'+new Date().toLocaleTimeString()+'）') : '❌ 存檔失敗，請看校務系統頁面上的錯誤訊息';if(evt.data.ok)markDirty(false);}
+  },'沒有收到校務系統的回應，請確認校務系統頁面還開著，或改用「備份專案」下載後手動上傳');
+}
+
+// 「📝 暫存草稿」：把目前整份專案（課表、手動調整、規則、教師不排課時段…）存進校務系統的歷史存檔，
+// 不檢查衝堂、也不動「班級課表」資料表，排到一半想先存起來、或手動調整到一半都可以用。
+// 下次打開排課工具時，會自動把最新一筆存檔的課表讀回來。
+function saveDraftToSystem(){
+  var statusEl=document.getElementById('save-to-system-status');
+  if(!window.parent || window.parent===window){
+    alert('這個工具目前是用「新分頁開啟」打開的，沒辦法存進校務系統。\n請改用「📦 備份專案」下載JSON。');
+    return;
+  }
+  if(!Object.keys(S.schedules).length){alert('目前還沒有排好的課表可以暫存。');return;}
+  if(statusEl) statusEl.textContent='暫存中…';
+  window.parent.postMessage({source:'scheduler-tool', type:'save-draft', data:buildProjectData()}, window.location.origin);
+  waitForSystem('save-draft','save-draft-result',statusEl,function(evt){
+    if(evt.data.ok){markDirty(false);}
+    if(statusEl) statusEl.textContent = evt.data.ok ? ('✅ 草稿已暫存（'+new Date().toLocaleTimeString()+'）') : ('❌ 暫存失敗：'+(evt.data.error||'請看校務系統頁面上的錯誤訊息'));
+  },'沒有收到校務系統的回應，請確認校務系統頁面還開著，或改用「備份專案」下載');
+}
+
+// 把校務系統回傳的「最新一筆存檔」裡的課表、規則、教師不排課時段讀回來。
+// 年級科目／教師分配仍以資料庫目前的資料為準（上面已經匯入），這裡只還原「已排好的課」與排課設定。
+// 把校務系統 class_schedule 的列（班級、星期、節次、科目、老師）轉成工具的課表格式；
+// 沒有排的格子留空，其餘跟工具自己排出來的課表一樣可以調整、固定、重排、存檔。
+function scheduleFromDbRows(rows){
+  var byCls={};
+  rows.forEach(function(r){
+    if(!gradeOfClass(r.label))return;
+    (byCls[r.label]||(byCls[r.label]={}))['週'+DAYS[r.weekday-1]+'-'+r.periodNo]={sub:r.subject,teacher:r.teacherName};
+  });
+  var schedules={};
+  Object.keys(byCls).forEach(function(cls){
+    var g=gradeOfClass(cls),slots=getSlots(g),m=byCls[cls];
+    schedules[cls]={entries:slots.map(function(sl){var x=m[sl];return {slot:sl,sub:x?x.sub:'',teacher:x?x.teacher:''};}),slots:slots,locks:{},homeroomSlots:{},pinned:{},manual:{}};
+  });
+  return {S:{schedules:schedules}};
+}
+function restoreSavedProject(p){
+  if(!p||!p.S||!p.S.schedules) return 0;
+  p=canonProjectData(p);
+  var names=Object.keys(p.S.schedules);
+  if(!names.length) return 0;
+  if(Object.keys(S.schedules).length && !confirm('校務系統裡有一份先前存好的課表（'+names.length+' 個班級）。\n要用它取代畫面上目前的課表嗎？\n（按「取消」會保留畫面上現在的課表）')) return 0;
+  S.schedules=p.S.schedules;
+  if(p.S.locks&&p.S.locks.length) S.locks=p.S.locks;
+  RULES=Object.assign({},RULES,p.RULES||{});
+  NO3_TEACHERS=p.NO3_TEACHERS||NO3_TEACHERS;
+  TEACHER_BLOCKS=p.TEACHER_BLOCKS||{};
+  BLK_EDIT='';UNDO_STACK=[];SWAP_SEL=null;CELL_MODE='';CANDIDATES=[];
+  S.activeCls=(p.S.activeCls&&S.schedules[p.S.activeCls])?p.S.activeCls:names[0];
+  refreshAllViewsAfterProjectLoad();
+  markDirty(false);
+  return names.length;
+}
+
+function uploadProject(evt){
+  var file=evt.target.files&&evt.target.files[0];
+  if(!file)return;
+  if(!confirm('上傳專案會把畫面上目前所有資料（科目、教師、課表等）整個換掉，確定要繼續嗎？建議先「備份專案」保留目前版本再繼續。')){
+    evt.target.value='';return;
+  }
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=canonProjectData(JSON.parse(e.target.result));
+      if(!data||!data.GRADES||!data.S){
+        alert('這個檔案看起來不是本系統匯出的備份檔，請確認後再試一次。');
+        evt.target.value='';return;
+      }
+      GRADES=data.GRADES;
+      RULES=Object.assign({},RULES,data.RULES||{});
+      NO3_TEACHERS=data.NO3_TEACHERS||[];
+      TEACHER_BLOCKS=data.TEACHER_BLOCKS||{};BLK_EDIT='';UNDO_STACK=[];SWAP_SEL=null;CELL_MODE='';CANDIDATES=[];
+      S.teachers=data.S.teachers||{};
+      S.homerooms=data.S.homerooms||{};
+      S.schedules=data.S.schedules||{};
+      S.locks=data.S.locks||[];
+      S.activeGrade=data.S.activeGrade||GRADES[0].id;
+      S.activeCls=data.S.activeCls||null;
+      S.academicYear=data.S.academicYear||S.academicYear;
+      S.term=data.S.term||S.term;
+      var yi=document.getElementById('year-input'),ti=document.getElementById('term-input');
+      if(yi) yi.value=S.academicYear;
+      if(ti) ti.value=S.term;
+      refreshAllViewsAfterProjectLoad();
+      alert('✅ 專案還原成功！');
+    }catch(err){
+      alert('讀取失敗，請確認這是一個由本系統「備份專案」匯出的 JSON 檔案。');
+    }
+    evt.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// 上傳完備份檔後，把畫面上每一頁都重新畫一次，確保跟剛匯入的資料同步
+function refreshAllViewsAfterProjectLoad(){
+  ['r1','r2','r3','r4','r5','r6'].forEach(function(r){
+    var cb=document.getElementById('cb-'+r),rt=document.getElementById('rt-'+r);
+    if(cb) cb.checked=!!RULES[r];
+    if(rt) rt.classList.toggle('on',!!RULES[r]);
+  });
+  document.getElementById('rule5-body').style.opacity=RULES.r5?'1':'0.4';
+  document.getElementById('rule5-body').style.pointerEvents=RULES.r5?'auto':'none';
+  document.getElementById('rule6-body').style.opacity=RULES.r6?'1':'0.4';
+  document.getElementById('rule6-body').style.pointerEvents=RULES.r6?'auto':'none';
+  renderBlockUI();
+  renderLoadAnalysis();
+  var cd=document.getElementById('schedule-candidates');if(cd)cd.innerHTML='';
+  renderNo3List();
+  renderGradeTabs();
+  renderSetupPage(S.activeGrade);
+  renderLockPage();
+  renderHomeroomOverview();
+  renderGenPage();
+  if(S.activeCls&&S.schedules[S.activeCls]) renderTT(S.activeCls,gradeOfClass(S.activeCls));
+  showConflictResult(findAllConflicts());
+}
+
+// ── 查詢：查班級課表 / 查教師課表 / 查空堂教師
+var queryMode='cls';
+function setQueryMode(m){
+  queryMode=m;
+  ['cls','tch','free'].forEach(function(k){
+    var b=document.getElementById('q-mode-'+k);
+    b.style.background=(k===m)?'#222':'';
+    b.style.color=(k===m)?'#fff':'';
+  });
+}
+function renderQueryControls(){
+  ['cls','tch','free'].forEach(function(k){
+    var b=document.getElementById('q-mode-'+k);
+    if(b){b.style.background=(k===queryMode)?'#222':'';b.style.color=(k===queryMode)?'#fff':'';}
+  });
+  var html='';
+  if(queryMode==='cls'){
+    html='<select id="q-cls-select" onchange="runClassQuery()"><option value="">請選擇班級</option>';
+    GRADES.forEach(function(g){html+='<optgroup label="'+g.name+'">';g.classes.forEach(function(c){html+='<option value="'+c+'">'+c+'</option>';});html+='</optgroup>';});
+    html+='</select>';
+  } else if(queryMode==='tch'){
+    var teachers=allTeacherNames();
+    html='<select id="q-tch-select" onchange="runTeacherQuery()"><option value="">請選擇教師</option>';
+    teachers.forEach(function(t){html+='<option value="'+t+'">'+t+'</option>';});
+    html+='</select>';
+    if(!teachers.length) html+='<div style="font-size:11px;color:#888;margin-top:6px">尚未匯入任何教師資料</div>';
+  } else if(queryMode==='free'){
+    html='<select id="q-free-day" onchange="onFreeDayChange()">'+DAYS.map(function(d){return '<option value="'+d+'">週'+d+'</option>';}).join('')+'</select> '
+       +'<select id="q-free-period" onchange="runFreeQuery()"></select>';
+  }
+  document.getElementById('query-controls').innerHTML=html;
+  document.getElementById('query-result').innerHTML='';
+  if(queryMode==='free') onFreeDayChange();
+}
+function onFreeDayChange(){
+  var day=document.getElementById('q-free-day').value;
+  var maxP=day==='六'?5:3;
+  var sel=document.getElementById('q-free-period');
+  var cur=sel.value||1;
+  var opts='';for(var p=1;p<=maxP;p++) opts+='<option value="'+p+'"'+(p==cur?' selected':'')+'>第'+p+'節</option>';
+  sel.innerHTML=opts;
+  runFreeQuery();
+}
+function runClassQuery(){
+  var cls=document.getElementById('q-cls-select').value;
+  var box=document.getElementById('query-result');
+  if(!cls){box.innerHTML='';return;}
+  var g=gradeOfClass(cls),sched=S.schedules[cls];
+  if(!sched){box.innerHTML='<div class="alert-warn">'+cls+' 尚未排課</div>';return;}
+  var em={};sched.entries.forEach(function(e){em[e.slot]=e;});
+  var maxRows=Math.max(g.weekday,g.sat);
+  var html='<div style="font-size:12px;margin-bottom:6px"><strong>'+cls+'</strong>'+(S.homerooms[cls]?' 導師：'+S.homerooms[cls]:'')+'</div><div style="overflow-x:auto"><table class="tt"><tr><th>節</th>';
+  DAYS.forEach(function(d){html+='<th>週'+d+'</th>';});html+='</tr>';
+  for(var p=1;p<=maxRows;p++){
+    html+='<tr><td style="font-weight:500;background:#f5f5f5">'+p+'</td>';
+    for(var di=0;di<6;di++){
+      if(di===5&&p>g.sat){html+='<td class="na"></td>';continue;}
+      var sl='週'+DAYS[di]+'-'+p;
+      if(di<5&&p===3&&g.weekday<3){html+='<td class="dismiss">放學</td>';continue;}
+      if(di<5&&p>g.weekday){html+='<td class="na"></td>';continue;}
+      var e=em[sl];
+      if(e&&e.sub) html+='<td class="has">'+e.sub+'<br><span style="font-size:8px;opacity:.75">'+(e.teacher||'—')+'</span></td>';
+      else html+='<td style="color:#ccc">—</td>';
+    }
+    html+='</tr>';
+  }
+  html+='</table></div>';
+  box.innerHTML=html;
+}
+function runTeacherQuery(){
+  var t=document.getElementById('q-tch-select').value;
+  var box=document.getElementById('query-result');
+  if(!t){box.innerHTML='';return;}
+  var map=buildTeacherScheduleMap()[t]||{};
+  var html='<div style="font-size:12px;margin-bottom:6px"><strong>'+t+'</strong> 的課表</div><div style="overflow-x:auto"><table class="tt"><tr><th>節</th>';
+  DAYS.forEach(function(d){html+='<th>週'+d+'</th>';});html+='</tr>';
+  for(var p=1;p<=5;p++){
+    html+='<tr><td style="font-weight:500;background:#f5f5f5">'+p+'</td>';
+    for(var di=0;di<6;di++){
+      if(di<5&&p>3){html+='<td class="na"></td>';continue;}
+      var sl='週'+DAYS[di]+'-'+p;
+      var info=map[sl];
+      if(info) html+='<td class="has">'+info.sub+'<br><span style="font-size:8px;opacity:.75">'+info.cls+'</span></td>';
+      else if(violatesBlock(t,sl)) html+='<td class="blocked">不排課</td>';
+      else html+='<td style="color:#ccc">空堂</td>';
+    }
+    html+='</tr>';
+  }
+  html+='</table></div>';
+  box.innerHTML=html;
+}
+function runFreeQuery(){
+  var day=document.getElementById('q-free-day').value,period=+document.getElementById('q-free-period').value;
+  var slot='週'+day+'-'+period;
+  var map=buildTeacherScheduleMap(),teachers=allTeacherNames();
+  var free=freeTeachersAt(slot,map,teachers);
+  var html='<div style="font-size:12px;margin-bottom:8px">週'+day+' 第'+period+'節　空堂教師（共 '+free.length+' 位）</div>';
+  if(!free.length) html+='<div style="font-size:11px;color:#888">這個時段沒有空堂教師</div>';
+  else{html+='<div style="display:flex;flex-wrap:wrap;gap:6px">'+free.map(function(t){return '<span class="teacher-chip">'+t+'</span>';}).join('')+'</div>';}
+  document.getElementById('query-result').innerHTML=html;
+}
+
+// ── 代課：選班級/星期/節次 → 原課堂資訊 + 當節空堂教師名單
+function renderSubControls(){
+  var html='<div><label style="font-size:11px;color:#888;display:block;margin-bottom:3px">班級</label><select id="sub-cls" onchange="runSubQuery()"><option value="">請選擇</option>';
+  GRADES.forEach(function(g){html+='<optgroup label="'+g.name+'">';g.classes.forEach(function(c){html+='<option value="'+c+'">'+c+'</option>';});html+='</optgroup>';});
+  html+='</select></div>';
+  html+='<div><label style="font-size:11px;color:#888;display:block;margin-bottom:3px">星期</label><select id="sub-day" onchange="onSubDayChange()">'+DAYS.map(function(d){return '<option value="'+d+'">週'+d+'</option>';}).join('')+'</select></div>';
+  html+='<div><label style="font-size:11px;color:#888;display:block;margin-bottom:3px">節次</label><select id="sub-period" onchange="runSubQuery()"></select></div>';
+  document.getElementById('sub-controls').innerHTML=html;
+  onSubDayChange();
+}
+function onSubDayChange(){
+  var day=document.getElementById('sub-day').value;
+  var maxP=day==='六'?5:3;
+  var sel=document.getElementById('sub-period');
+  var cur=sel.value||1;
+  var opts='';for(var p=1;p<=maxP;p++) opts+='<option value="'+p+'"'+(p==cur?' selected':'')+'>第'+p+'節</option>';
+  sel.innerHTML=opts;
+  runSubQuery();
+}
+function runSubQuery(){
+  var cls=document.getElementById('sub-cls').value;
+  var box=document.getElementById('sub-result');
+  if(!cls){box.innerHTML='';return;}
+  var day=document.getElementById('sub-day').value,period=+document.getElementById('sub-period').value;
+  var slot='週'+day+'-'+period;
+  var g=gradeOfClass(cls),sched=S.schedules[cls];
+  var origHtml='';
+  if(g&&day!=='六'&&period>g.weekday){origHtml='<div style="font-size:12px;color:#888">這個班級這個時段沒有課</div>';}
+  else if(g&&day!=='六'&&period===3&&g.weekday<3){origHtml='<div style="font-size:12px;color:#b05a00">這個時段是放學時間，沒有課</div>';}
+  else if(g&&day==='六'&&period>g.sat){origHtml='<div style="font-size:12px;color:#888">這個班級這個時段沒有課</div>';}
+  else if(!sched){origHtml='<div class="alert-warn">'+cls+' 尚未排課</div>';}
+  else{
+    var e=sched.entries.find(function(x){return x.slot===slot;});
+    if(e&&e.sub) origHtml='<div class="card" style="padding:.6rem .8rem;background:#f5f5f5"><div style="font-size:12px">原課堂：<strong>'+e.sub+'</strong></div><div style="font-size:12px;margin-top:2px">原老師：<strong>'+(e.teacher||'—')+'</strong></div></div>';
+    else origHtml='<div style="font-size:12px;color:#888">這個時段沒有排課</div>';
+  }
+  var map=buildTeacherScheduleMap(),teachers=allTeacherNames();
+  var free=freeTeachersAt(slot,map,teachers);
+  var freeHtml='<div style="margin-top:10px;font-size:12px;font-weight:500">週'+day+' 第'+period+'節　可代課空堂教師（共 '+free.length+' 位）</div>';
+  if(!free.length) freeHtml+='<div style="font-size:11px;color:#888;margin-top:4px">這個時段沒有空堂教師</div>';
+  else freeHtml+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">'+free.map(function(t){return '<span class="teacher-chip">'+t+'</span>';}).join('')+'</div>';
+  box.innerHTML=origHtml+freeHtml;
+}
+
+// ── Excel 匯出
+function buildColMap(weekday,sat){
+  // 固定絕對欄位：不管這個年級平日只上2節還是3節課，
+  // 每一天在總表上永遠固定佔用3欄的位置（第3節沒課就留空），
+  // 週六永遠固定接在週一~五後面，欄位才不會跟著平日節數跑掉。
+  var m={};
+  for(var d=0;d<5;d++) for(var p=1;p<=weekday;p++) m['週'+DAYS[d]+'-'+p]=3+d*3+(p-1);
+  for(var p=1;p<=sat;p++) m['週六-'+p]=18+(p-1);
+  return m;
+}
+function exportExcel(){
+  var scheduled=Object.keys(S.schedules);
+  if(!scheduled.length){document.getElementById('export-status').innerHTML='<div class="alert-err">⚠ 尚未排課</div>';return;}
+  var conflicts=findAllConflicts();
+  if(conflicts.length){
+    var list=conflicts.slice(0,10).map(function(c){return c.slot+' '+c.teacher+'（'+c.classes.join('、')+'）';}).join('<br>');
+    document.getElementById('export-status').innerHTML='<div class="alert-err">⚠ 目前還有 '+conflicts.length+' 個教師衝堂，必須排到零衝堂才能匯出：<br>'+list+(conflicts.length>10?'<br>…還有 '+(conflicts.length-10)+' 筆':'')+'<br>請到「排課」分頁按「衝堂檢查」處理後再匯出。</div>';
+    return;
+  }
+  var wb=XLSX.utils.book_new();
+
+  // 分頁1：匯入教師 & 導師資料（跟畫面上「匯入教師」分頁的格式一致，可以再貼回去用）
+  (function(){
+    var data=[];
+    GRADES.forEach(function(g){
+      g.classes.forEach(function(cls){
+        var subs=g.subs.map(function(s){return s.n;});
+        data.push([cls].concat(subs));
+        var tMap=(S.teachers[g.id]&&S.teachers[g.id][cls])||{};
+        data.push([S.homerooms[cls]||''].concat(subs.map(function(s){return tMap[s]||'';})));
+      });
+    });
+    var ws=XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb,ws,'匯入教師 & 導師資料');
+  })();
+
+  // 分頁2：匯入的年級&科目&節數
+  (function(){
+    var data=[];
+    GRADES.forEach(function(g){
+      data.push([g.name]);
+      g.subs.forEach(function(s){data.push([s.n,s.c]);});
+    });
+    var ws=XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb,ws,'匯入的年級&科目&節數');
+  })();
+
+  var wsData=[];
+  var r1=new Array(23).fill('');r1[1]='全校總課表（輸入）';wsData.push(r1);
+  var r2=new Array(23).fill('');r2[1]='班級';
+  [[3,'星期一'],[6,'星期二'],[9,'星期三'],[12,'星期四'],[15,'星期五'],[18,'星期六']].forEach(function(x){r2[x[0]-1]=x[1];});wsData.push(r2);
+  var r3=new Array(23).fill('');r3[1]='節數';[1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,4,5].forEach(function(p,i){r3[i+2]=p;});wsData.push(r3);
+  GRADES.forEach(function(g){
+    g.classes.forEach(function(cls){
+      var sched=S.schedules[cls];if(!sched) return;
+      var colMap=buildColMap(g.weekday,g.sat);var entryMap={};sched.entries.forEach(function(e){entryMap[e.slot]=e;});
+      var subRow=new Array(23).fill('');subRow[1]=cls;
+      Object.keys(colMap).forEach(function(slot){var col=colMap[slot]-1;var e=entryMap[slot];subRow[col]=e&&e.sub?e.sub:'';});
+      if(g.weekday<3) for(var d=0;d<5;d++) subRow[3+d*3+2-1]='放學';
+      wsData.push(subRow);
+      var tchRow=new Array(23).fill('');tchRow[1]=S.homerooms[cls]||'';
+      Object.keys(colMap).forEach(function(slot){var col=colMap[slot]-1;var e=entryMap[slot];tchRow[col]=e&&e.teacher?e.teacher:'';});
+      if(g.weekday<3) for(var d=0;d<5;d++) tchRow[3+d*3+2-1]='';
+      wsData.push(tchRow);
+    });
+  });
+  var ws=XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols']=[{wch:3},{wch:13}];for(var i=2;i<22;i++) ws['!cols'].push({wch:7});
+  ws['!merges']=[{s:{r:0,c:1},e:{r:0,c:21}},{s:{r:1,c:2},e:{r:1,c:4}},{s:{r:1,c:5},e:{r:1,c:7}},{s:{r:1,c:8},e:{r:1,c:10}},{s:{r:1,c:11},e:{r:1,c:13}},{s:{r:1,c:14},e:{r:1,c:16}},{s:{r:1,c:17},e:{r:1,c:21}}];
+  function setS(ws,r,c,style){var addr=XLSX.utils.encode_cell({r:r,c:c});if(!ws[addr])ws[addr]={t:'z',v:''};ws[addr].s=style;}
+  var ST={font:{bold:true,sz:13,color:{rgb:'FFFFFF'}},fill:{patternType:'solid',fgColor:{rgb:'1D6F42'}},alignment:{horizontal:'left',vertical:'center'}};
+  var SD={font:{bold:true,sz:10},fill:{patternType:'solid',fgColor:{rgb:'BDD7EE'}},alignment:{horizontal:'center',vertical:'center'}};
+  var SP={font:{bold:true,sz:10},fill:{patternType:'solid',fgColor:{rgb:'FFFF99'}},alignment:{horizontal:'center',vertical:'center'}};
+  var SC={font:{bold:true,sz:11,color:{rgb:'155724'}},fill:{patternType:'solid',fgColor:{rgb:'D4EDDA'}},alignment:{horizontal:'left',vertical:'center'}};
+  var SS={font:{sz:10},fill:{patternType:'solid',fgColor:{rgb:'E8F4FF'}},alignment:{horizontal:'center',vertical:'center'}};
+  var STC={font:{sz:9,color:{rgb:'555555'}},fill:{patternType:'solid',fgColor:{rgb:'F8F8F8'}},alignment:{horizontal:'center',vertical:'center'}};
+  var SDM={font:{sz:10,italic:true,color:{rgb:'A05000'}},fill:{patternType:'solid',fgColor:{rgb:'FFF3E0'}},alignment:{horizontal:'center',vertical:'center'}};
+  var SE={fill:{patternType:'solid',fgColor:{rgb:'F0F0F0'}}};
+  setS(ws,0,1,ST);for(var c=1;c<22;c++) setS(ws,1,c,SD);setS(ws,2,1,SP);for(var c=2;c<22;c++) setS(ws,2,c,SP);
+  var dr=3;
+  GRADES.forEach(function(g){g.classes.forEach(function(cls){var sched=S.schedules[cls];if(!sched)return;var colMap=buildColMap(g.weekday,g.sat);var usedCols=Object.values(colMap);var disSet={};if(g.weekday<3) for(var d=0;d<5;d++) disSet[3+d*3+2]=true;setS(ws,dr,1,SC);for(var c=2;c<22;c++){var col1=c+1;if(disSet[col1]){setS(ws,dr,c,SDM);setS(ws,dr+1,c,STC);}else if(usedCols.indexOf(col1)>=0){setS(ws,dr,c,SS);setS(ws,dr+1,c,STC);}else{setS(ws,dr,c,SE);setS(ws,dr+1,c,SE);}}setS(ws,dr+1,1,STC);dr+=2;});});
+  ws['!rows']=[{hpt:22},{hpt:15},{hpt:15}];GRADES.forEach(function(g){g.classes.forEach(function(cls){if(!S.schedules[cls])return;ws['!rows'].push({hpt:18});ws['!rows'].push({hpt:16});});});
+  XLSX.utils.book_append_sheet(wb,ws,'全校總課表(輸入)');
+
+  // 分頁4：課表模板(修改用) —— 跟「全校總課表(輸入)」內容相同，給老師另外複製修改用
+  wb.Sheets['課表模板(修改用)']=ws;wb.SheetNames.push('課表模板(修改用)');
+
+  var FULL_SLOTS=allSchoolSlots();
+  var teacherMap=buildTeacherScheduleMap();
+  var allTeachers=allTeacherNames();
+
+  // 分頁5：全校教師任課表 —— 每位老師在每個時段教哪一班的什麼科目
+  (function(){
+    var data=[];
+    var r2=new Array(2+FULL_SLOTS.length).fill('');r2[0]='老師';
+    [[2,'星期一'],[5,'星期二'],[8,'星期三'],[11,'星期四'],[14,'星期五'],[17,'星期六']].forEach(function(x){r2[x[0]]=x[1];});
+    data.push(r2);
+    var r3=new Array(2+FULL_SLOTS.length).fill('');r3[0]='節數';[1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,4,5].forEach(function(p,i){r3[i+2]=p;});
+    data.push(r3);
+    allTeachers.forEach(function(t){
+      var row=new Array(2+FULL_SLOTS.length).fill('');row[0]=t;
+      FULL_SLOTS.forEach(function(slot,i){var info=teacherMap[t]&&teacherMap[t][slot];row[2+i]=info?(info.sub+'('+info.cls+')'):'空';});
+      data.push(row);
+    });
+    var ws2=XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb,ws2,'全校教師任課表');
+  })();
+
+  // 分頁6：各教師課表 —— 每位老師自己一格週課表，一位接一位往下排
+  (function(){
+    var data=[];
+    allTeachers.forEach(function(t){
+      data.push([t+' 教師課表']);
+      data.push(['節/星期'].concat(DAYS));
+      for(var p=1;p<=5;p++){
+        var row=[p];
+        for(var di=0;di<6;di++){
+          if(di<5&&p>3){row.push('');continue;}
+          var sl='週'+DAYS[di]+'-'+p;
+          var info=teacherMap[t]&&teacherMap[t][sl];
+          row.push(info?(info.sub+'('+info.cls+')'):'空');
+        }
+        data.push(row);
+      }
+      data.push([]);
+    });
+    var ws3=XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb,ws3,'各教師課表');
+  })();
+
+  // 分頁7：各班課表 —— 每個班級自己一格週課表，一班接一班往下排
+  (function(){
+    var data=[];
+    GRADES.forEach(function(g){
+      g.classes.forEach(function(cls){
+        var sched=S.schedules[cls];if(!sched) return;
+        var em={};sched.entries.forEach(function(e){em[e.slot]=e;});
+        data.push([cls+' 課程表','','','','','導師:',S.homerooms[cls]||'']);
+        data.push(['節/星期'].concat(DAYS));
+        var maxRows=Math.max(g.weekday,g.sat);
+        for(var p=1;p<=maxRows;p++){
+          var subRow=[p+' 科目'],tRow=['　　老師'];
+          for(var di=0;di<6;di++){
+            if(di===5&&p>g.sat){subRow.push('');tRow.push('');continue;}
+            var sl='週'+DAYS[di]+'-'+p;
+            if(di<5&&p===3&&g.weekday<3){subRow.push('放學');tRow.push('');continue;}
+            if(di<5&&p>g.weekday){subRow.push('');tRow.push('');continue;}
+            var e=em[sl];
+            subRow.push(e&&e.sub?e.sub:'');tRow.push(e&&e.teacher?e.teacher:'');
+          }
+          data.push(subRow);data.push(tRow);
+        }
+        data.push([]);
+      });
+    });
+    var ws4=XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb,ws4,'各班課表');
+  })();
+
+  // 分頁8：值日教師參考 —— 每個時段，把當時所有空堂（沒課）的老師都列出來
+  (function(){
+    var freeLists=FULL_SLOTS.map(function(slot){return freeTeachersAt(slot,teacherMap,allTeachers);});
+    var maxLen=freeLists.reduce(function(m,l){return Math.max(m,l.length);},0);
+    var data=[];
+    var r2=new Array(2+FULL_SLOTS.length).fill('');r2[0]='星期';
+    [[2,'星期一'],[5,'星期二'],[8,'星期三'],[11,'星期四'],[14,'星期五'],[17,'星期六']].forEach(function(x){r2[x[0]]=x[1];});
+    data.push(r2);
+    var r3=new Array(2+FULL_SLOTS.length).fill('');r3[0]='節數';[1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,4,5].forEach(function(p,i){r3[i+2]=p;});
+    data.push(r3);
+    var r4=new Array(2+FULL_SLOTS.length).fill('');r4[0]='無課教師';
+    data.push(r4);
+    for(var r=0;r<maxLen;r++){
+      var row=new Array(2+FULL_SLOTS.length).fill('');
+      FULL_SLOTS.forEach(function(slot,i){row[2+i]=freeLists[i][r]||'';});
+      data.push(row);
+    }
+    var ws5=XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb,ws5,'值日教師參考');
+  })();
+
+  var d=new Date();var ds=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  XLSX.writeFile(wb,'全校總課表_'+ds+'.xlsx');
+  document.getElementById('export-status').innerHTML='<div class="alert-ok">✅ 已下載！共 '+Object.keys(S.schedules).length+' 個班級</div>';
+}
+
+// ── 其他UI（年級設定、匯入等）
+function parseExcel(){var txt=document.getElementById('excel-input').value.trim();if(!txt){alert('請貼上Excel內容');return;}var lines=txt.split('\n').filter(function(l){return l.trim();});var imported=0,errors=[];for(var i=0;i+1<lines.length;i+=2){var row1=lines[i].split('\t'),row2=lines[i+1].split('\t');var cls=canonName(row1[0]);if(!cls)continue;var g=gradeOfClass(cls);if(!g){errors.push(cls+': 找不到對應年級');continue;}var hr=row2[0].trim();if(hr)S.homerooms[cls]=hr;var subs=row1.slice(1).map(function(x){return x.trim();}).filter(Boolean);var teachers=row2.slice(1).map(function(x){return x.trim();});if(!S.teachers[g.id])S.teachers[g.id]={};if(!S.teachers[g.id][cls])S.teachers[g.id][cls]={};subs.forEach(function(sub,j){if(teachers[j])S.teachers[g.id][cls][sub]=teachers[j];});imported++;}var html='';if(imported)html+='<div class="alert-ok">✅ 成功匯入 '+imported+' 個班級</div>';if(errors.length)html+='<div class="alert-err">⚠ '+errors.join('<br>')+'</div>';document.getElementById('import-result').innerHTML=html;renderHomeroomOverview();}
+function renderHomeroomOverview(){var list=[];GRADES.forEach(function(g){g.classes.forEach(function(c){if(S.homerooms[c])list.push({cls:c,teacher:S.homerooms[c]});});});if(!list.length){document.getElementById('homeroom-overview').innerHTML='<span style="color:#888">尚未匯入資料</span>';return;}var html='<div style="display:flex;flex-wrap:wrap;gap:6px">';list.forEach(function(x){html+='<div style="background:#f5f5f5;border-radius:5px;padding:4px 10px;font-size:11px"><span style="font-weight:500">'+x.cls+'</span> <span style="color:#888">'+x.teacher+'</span></div>';});html+='</div>';document.getElementById('homeroom-overview').innerHTML=html;}
+function renderGradeTabs(){var tabs='';GRADES.forEach(function(g){var r=isReady(g);tabs+='<button class="grade-tab'+(g.id===S.activeGrade?' active':'')+(r?' ready':'')+'" onclick="renderSetupPage(\''+g.id+'\')">' +g.name+(r?' ✓':'')+'</button>';});document.getElementById('grade-tabs').innerHTML=tabs;}
+function renderSetupPage(id){S.activeGrade=id;renderGradeTabs();var g=getGrade(id);var html='<div class="two-col"><div class="card"><div style="font-size:13px;font-weight:500;margin-bottom:5px">'+g.name+' 科目設定</div><div style="font-size:11px;color:#888;margin-bottom:8px">目標 '+g.slots+' 節/週（週一~五各'+g.weekday+'節，週六'+g.sat+'節）</div><div style="display:grid;grid-template-columns:1fr 52px 28px;gap:5px;margin-bottom:5px"><span style="font-size:10px;color:#888">科目</span><span style="font-size:10px;color:#888;text-align:center">節/週</span><span></span></div><div id="sub-list-'+id+'"></div><div style="display:flex;gap:6px;margin-top:6px"><button class="btn-sm" onclick="addSub(\''+id+'\')">+ 新增</button><button class="btn-sm" onclick="openModal(\''+id+'\')">📂 貼上匯入</button></div><div style="margin-top:8px;font-size:11px">總節數：<strong id="total-'+id+'">0</strong>/'+g.slots+'<div class="progress-bar"><div class="progress-fill" id="bar-'+id+'"></div></div></div></div><div class="card"><div style="font-size:13px;font-weight:500;margin-bottom:8px">班級教師分配</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px" id="cls-btns-'+id+'"></div><div id="assign-panel-'+id+'"><div style="font-size:11px;color:#888">點選班級設定教師</div></div></div></div>';document.getElementById('setup-body').innerHTML=html;renderSubList(id);renderClsBtns(id);}
+function renderSubList(id){var g=getGrade(id);var html='';g.subs.forEach(function(s,i){html+='<div class="sub-row"><input type="text" value="'+s.n+'" onchange="getGrade(\''+id+'\').subs['+i+'].n=this.value;reTotal(\''+id+'\')"><input type="number" min="1" max="20" value="'+s.c+'" onchange="getGrade(\''+id+'\').subs['+i+'].c=+this.value;renderSubList(\''+id+'\')"><button class="btn-sm" onclick="getGrade(\''+id+'\').subs.splice('+i+',1);renderSubList(\''+id+'\')" style="border:none;color:#c0392b;padding:2px 4px">✕</button></div>';});document.getElementById('sub-list-'+id).innerHTML=html;reTotal(id);}
+function addSub(id){getGrade(id).subs.push({n:'新科目',c:1});renderSubList(id);}
+function reTotal(id){var g=getGrade(id),t=totalSubs(g);var el=document.getElementById('total-'+id),bar=document.getElementById('bar-'+id);if(!el||!bar)return;el.textContent=t;var pct=Math.min(100,Math.round(t/g.slots*100));bar.style.width=pct+'%';bar.style.background=t===g.slots?'#2d7a2d':t>g.slots?'#c0392b':'#2196F3';}
+function renderClsBtns(id){var g=getGrade(id);if(!S.teachers[id])S.teachers[id]={};var html='';g.classes.forEach(function(c){var ta=S.teachers[id][c]||{};var done=g.subs.length>0&&g.subs.every(function(s){return ta[s.n];});html+='<button class="cls-btn'+(done?' done':'')+'" onclick="openAssign(\''+id+'\',\''+c+'\')">'+(done?'✓ ':'')+c+'</button>';});document.getElementById('cls-btns-'+id).innerHTML=html;}
+function openAssign(gid,cls){var g=getGrade(gid);if(!S.teachers[gid])S.teachers[gid]={};if(!S.teachers[gid][cls])S.teachers[gid][cls]={};var ta=S.teachers[gid][cls];var html='<div style="font-size:12px;font-weight:500;margin-bottom:4px">'+cls+'</div>';if(S.homerooms[cls])html+='<div style="font-size:11px;color:#888;margin-bottom:6px">導師：'+S.homerooms[cls]+'</div>';if(!g.subs.length){html+='<div style="font-size:11px;color:#888">請先設定科目</div>';}else{html+='<div style="display:grid;grid-template-columns:90px 1fr;gap:5px;margin-bottom:4px"><span style="font-size:10px;color:#888">科目</span><span style="font-size:10px;color:#888">老師</span></div>';g.subs.forEach(function(s){var v=ta[s.n]||'';html+='<div style="display:grid;grid-template-columns:90px 1fr;gap:5px;align-items:center;margin-bottom:4px"><span style="font-size:11px">'+s.n+' ×'+s.c+'</span><input type="text" placeholder="老師姓名" value="'+v+'" onchange="setT(\''+gid+'\',\''+cls+'\',\''+s.n+'\',this.value)"></div>';});}document.getElementById('assign-panel-'+gid).innerHTML=html;}
+function setT(gid,cls,sub,val){if(!S.teachers[gid])S.teachers[gid]={};if(!S.teachers[gid][cls])S.teachers[gid][cls]={};S.teachers[gid][cls][sub]=val.trim();renderClsBtns(gid);}
+function openBulkModal(){document.getElementById('bulk-input').value='';document.getElementById('bulk-preview').innerHTML='';document.getElementById('btn-confirm-bulk').style.display='none';S.bulkParsed=[];document.getElementById('modal-bulk').classList.add('show');placeModal('modal-bulk');}
+function parseBulkText(txt){var lines=txt.split('\n'),results=[],current=null;lines.forEach(function(rawLine){var line=rawLine.trim();if(!line){if(current){results.push(current);current=null;}return;}var m=line.match(/^(.+?)[\s\t]+(\d+)$/);if(!m){if(current)results.push(current);current={gradeName:line,subs:[]};}else{if(!current)current={gradeName:'未知',subs:[]};current.subs.push({n:m[1].trim(),c:parseInt(m[2])});}});if(current)results.push(current);return results;}
+function previewBulk(){var txt=document.getElementById('bulk-input').value.trim();if(!txt){alert('請先貼上資料');return;}var parsed=parseBulkText(txt);S.bulkParsed=parsed;var html='<div style="background:#f8f8f8;border-radius:5px;padding:.6rem .8rem;font-size:11px;max-height:180px;overflow-y:auto">';parsed.forEach(function(item){var g=gradeByName(item.gradeName);var total=item.subs.reduce(function(s,x){return s+x.c;},0);var target=g?g.slots:0;html+='<div class="import-preview-row"><span style="font-weight:500">'+item.gradeName+'</span><span style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;color:#888">'+item.subs.length+'科 '+total+'節'+(target?'/'+target:'')+'</span>';if(!g)html+='<span class="tag-err">找不到年級</span>';else if(total!==target)html+='<span class="tag-warn">節數不符</span>';else html+='<span class="tag-ok">✓</span>';html+='</span></div>';});html+='</div>';document.getElementById('bulk-preview').innerHTML=html;document.getElementById('btn-confirm-bulk').style.display='inline-flex';}
+function confirmBulk(){var imported=0,skipped=[];S.bulkParsed.forEach(function(item){var g=gradeByName(item.gradeName);if(!g){skipped.push(item.gradeName);return;}g.subs=item.subs.slice();imported++;});closeModal('modal-bulk');renderSetupPage(S.activeGrade);renderGradeTabs();alert('成功匯入 '+imported+' 個年級'+(skipped.length?'；略過：'+skipped.join('、'):''));}
+function openModal(gid){S.importGradeId=gid;document.getElementById('modal-grade-name').textContent=getGrade(gid).name;document.getElementById('sub-import-input').value='';document.getElementById('sub-import-msg').innerHTML='';document.getElementById('modal-subs').classList.add('show');placeModal('modal-subs');}
+function doImportSubs(){var gid=S.importGradeId;var lines=document.getElementById('sub-import-input').value.trim().split('\n').filter(function(l){return l.trim();});var subs=[],errs=[];lines.forEach(function(line,idx){var parts=line.trim().split(/[\s\t]+/);if(parts.length<2){errs.push('第'+(idx+1)+'行格式錯誤');return;}var n=parts.slice(0,parts.length-1).join(''),c=parseInt(parts[parts.length-1]);if(isNaN(c)||c<1){errs.push('第'+(idx+1)+'行節數無效');return;}subs.push({n:n,c:c});});if(errs.length){document.getElementById('sub-import-msg').innerHTML='<div class="alert-err">'+errs.join('<br>')+'</div>';return;}getGrade(gid).subs=subs;document.getElementById('sub-import-msg').innerHTML='<div class="alert-ok">✅ 匯入 '+subs.length+' 個科目</div>';setTimeout(function(){closeModal('modal-subs');renderSubList(gid);renderClsBtns(gid);renderGradeTabs();},700);}
+function renderLockPage(){var html='';if(!S.locks.length)html='<div style="font-size:11px;color:#888;margin-bottom:.75rem">尚未設定任何鎖定</div>';S.locks.forEach(function(lock,i){html+='<div class="lock-item"><div style="display:grid;grid-template-columns:1fr 85px 65px 28px;gap:6px;align-items:center"><input type="text" value="'+lock.sub+'" onchange="S.locks['+i+'].sub=this.value" placeholder="科目名稱"><select onchange="S.locks['+i+'].day=this.value">'+DAYS.map(function(d){return'<option value="'+d+'"'+(lock.day===d?' selected':'')+'>週'+d+'</option>';}).join('')+'</select><select onchange="S.locks['+i+'].period=+this.value">'+[1,2,3,4,5].map(function(p){return'<option value="'+p+'"'+(lock.period===p?' selected':'')+'>第'+p+'節</option>';}).join('')+'</select><button class="btn-sm" onclick="S.locks.splice('+i+',1);renderLockPage()" style="border:none;color:#c0392b;padding:2px 4px">✕</button></div></div>';});document.getElementById('lock-list').innerHTML=html;}
+function addLock(){S.locks.push({sub:'才藝',day:'六',period:1});renderLockPage();}
+function showMain(name){['import','setup','lock','generate','export'].forEach(function(n,i){document.getElementById('main-'+n).classList.toggle('active',n===name);document.querySelectorAll('.top-tab')[i].classList.toggle('active',n===name);});if(name==='setup')renderSetupPage(S.activeGrade);if(name==='lock')renderLockPage();if(name==='generate'){renderGenPage();renderBlockUI();renderLoadAnalysis();}if(name==='import')renderHomeroomOverview();}
+
+renderSetupPage('k2');renderLockPage();renderBlockUI();
+
+// 初始化 keydown 監聽
+document.getElementById('no3-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addNo3Teacher();}});
+</script>
+</body>
+</html>
