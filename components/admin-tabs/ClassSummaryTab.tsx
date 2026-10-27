@@ -321,6 +321,16 @@ export default function ClassSummaryPage() {
       ]);
       if (cancelled) return; // 已經切換到別的班級，丟掉這份過期結果
 
+      // 新學期剛開始、本學期還沒有任何成績時，預設自動改看「有成績的上一個學期」，
+      // 不然總表整張都是空的，看起來像成績不見了（使用者仍可用上方「學期」選單自己切換）。
+      if (!chosenTerm && currentTerm && ((subjectRes.data ?? []) as any[]).length === 0) {
+        const other = Array.from(new Set(((termRes.data ?? []) as { term: string }[]).map((r) => r.term))).find((t) => t !== currentTerm);
+        if (other) {
+          setTermChoice({ classId, term: other });
+          return;
+        }
+      }
+
       // ---- 整理結果（跟原本邏輯相同）----
       if (clsRow?.academic_year) setAcademicYear(clsRow.academic_year);
       if (clsRow?.grade_level) setGradeLevel(clsRow.grade_level);
