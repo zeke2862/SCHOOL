@@ -82,8 +82,8 @@ export default function ClassSummaryPage() {
   // 查看過去的學期（例如現在是六年級下學期，要回頭看六年級上學期整班的期中、期末、平時分、總分）。
   // 新學期開始後上一學期的學籍會變成「非現行」，但成績都還在；導師／任課教師／教務在這裡選學期就能看到。
   const [termOptions, setTermOptions] = useState<string[]>([]);
-  const [termChoice, setTermChoice] = useState<{ classId: string | null; term: string | null }>({ classId: null, term: null });
-  const chosenTerm = termChoice.classId === classId ? termChoice.term : null;
+  // 「檢視學期」和「班級」兩個選項互不干涉：使用者選了學期就一直維持，換班級也不會跳掉（null＝目前學期）。
+  const [chosenTerm, setChosenTerm] = useState<string | null>(null);
   const [gradeLevel, setGradeLevel] = useState<string | null>(null);
   const [isHomeroom, setIsHomeroom] = useState(false);
   // 期中考／期末考／平時分：各自獨立查詢是否已鎖定（用 submission_window_locked() 這個
@@ -320,16 +320,6 @@ export default function ClassSummaryPage() {
         subjectP, curriculumP, rankP, gradeP, attP, remarkP, lockP, conductP,
       ]);
       if (cancelled) return; // 已經切換到別的班級，丟掉這份過期結果
-
-      // 新學期剛開始、本學期還沒有任何成績時，預設自動改看「有成績的上一個學期」，
-      // 不然總表整張都是空的，看起來像成績不見了（使用者仍可用上方「學期」選單自己切換）。
-      if (!chosenTerm && currentTerm && ((subjectRes.data ?? []) as any[]).length === 0) {
-        const other = Array.from(new Set(((termRes.data ?? []) as { term: string }[]).map((r) => r.term))).find((t) => t !== currentTerm);
-        if (other) {
-          setTermChoice({ classId, term: other });
-          return;
-        }
-      }
 
       // ---- 整理結果（跟原本邏輯相同）----
       if (clsRow?.academic_year) setAcademicYear(clsRow.academic_year);
@@ -687,16 +677,16 @@ export default function ClassSummaryPage() {
         </p>
       )}
 
-      {termOptions.length > 1 && (
+      {(termOptions.length > 1 || chosenTerm) && (
         <label className="no-print" style={{ display: 'block', fontSize: 13, marginBottom: 12 }}>
           檢視學期：
           <select
             value={chosenTerm ?? ''}
-            onChange={(e) => setTermChoice({ classId, term: e.target.value || null })}
+            onChange={(e) => setChosenTerm(e.target.value || null)}
             style={{ padding: 6, marginLeft: 6 }}
           >
             <option value="">目前學期（現行學籍）</option>
-            {termOptions.map((t) => (
+            {Array.from(new Set([...termOptions, ...(chosenTerm ? [chosenTerm] : [])])).sort().map((t) => (
               <option key={t} value={t}>
                 {t}
               </option>
