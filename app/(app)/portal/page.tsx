@@ -596,7 +596,7 @@ export default function ParentPortalPage() {
 
               <section style={{ marginBottom: 24 }}>
                 <h2 style={{ fontSize: 14, marginBottom: 8 }}>歷年成績</h2>
-                <p style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>點選「總分」可以展開看該學期各科成績。</p>
+                <p style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>點選右邊的「各科」（或總分）可以展開看該學期各科成績。總分與排名要等學校設定好科目比重並公布後才會顯示。</p>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr>
@@ -609,6 +609,7 @@ export default function ParentPortalPage() {
                       <th style={{ textAlign: 'right', padding: 6 }}>總表</th>
                       <th style={{ textAlign: 'right', padding: 6 }}>班排名</th>
                       <th style={{ textAlign: 'right', padding: 6 }}>年級排名</th>
+                      <th style={{ textAlign: 'right', padding: 6 }}>各科成績</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -650,11 +651,21 @@ export default function ParentPortalPage() {
                             <td style={{ padding: 6, textAlign: 'right' }}>{scoreButton('平時', r.daily_total)}</td>
                             <td style={{ padding: 6, textAlign: 'right' }}>{scoreButton('總表', r.total_score)}</td>
                             <td style={{ padding: 6, textAlign: 'right' }}>{r.class_rank ?? '—'}</td>
-                            <td style={{ padding: 6, textAlign: 'right' }}>{r.grade_rank ?? '—'}</td>
+                            <td style={{ padding: 6, textAlign: 'right' }}>
+                              {/* 總分／排名要有「科目比重」才算得出來；沒有時上面幾欄都是「—」，
+                                  這個按鈕讓家長／學生仍然看得到各科成績，不用靠總分才能展開。 */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleTermScores(r.enrollment_id)}
+                                style={{ border: '1px solid #ccc', background: '#fff', borderRadius: 6, padding: '2px 8px', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                              >
+                                各科 {expandedId === r.enrollment_id ? '▲' : '▼'}
+                              </button>
+                            </td>
                           </tr>
                           {expandedId === r.enrollment_id && (
                             <tr key={`${r.enrollment_id}-detail`}>
-                              <td colSpan={9} style={{ padding: '4px 6px 12px 24px', background: '#FAFAF8' }}>
+                              <td colSpan={10} style={{ padding: '4px 6px 12px 24px', background: '#FAFAF8' }}>
                                 {subjectScoresLoading === r.enrollment_id ? (
                                   <p style={{ fontSize: 12, color: '#999' }}>載入中…</p>
                                 ) : (subjectScores[r.enrollment_id]?.length ?? 0) > 0 ? (
