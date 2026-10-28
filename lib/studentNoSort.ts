@@ -28,8 +28,15 @@ export function genderRank(g: string | null | undefined): number {
 
 export function compareForSeat(order: SeatOrder, a: { student_no: string; gender?: string | null }, b: { student_no: string; gender?: string | null }): number {
   if (order === 'gender') {
-    const d = genderRank(a.gender) - genderRank(b.gender);
+    const d = genderRank(a.gender || genderFromStudentNo(a.student_no)) - genderRank(b.gender || genderFromStudentNo(b.student_no));
     if (d) return d;
   }
   return compareStudentNo(a.student_no, b.student_no);
+}
+
+/** 依學號判定性別：6 碼學號第 3 碼 1＝男、2＝女；其他（舊的 3～4 碼學號等）無法判定，回傳 null。要和 sql/123 的 gender_from_student_no 一致 */
+export function genderFromStudentNo(studentNo: string | null | undefined): '男' | '女' | null {
+  const s = (studentNo ?? '').trim();
+  if (!/^\d{6}$/.test(s)) return null;
+  return s[2] === '1' ? '男' : s[2] === '2' ? '女' : null;
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { isWeakPassword } from '@/lib/weakPasswords';
 
 // 對應「第一次登入強制更改密碼」流程的最後一步：驗證呼叫者身分、更新自己的密碼，
 // 並把 app_users.must_change_password 清成 false（往後就不會再被
@@ -11,6 +12,10 @@ export async function POST(req: NextRequest) {
     const { newPassword } = (await req.json()) as { newPassword: string };
     if (!newPassword || newPassword.length < 6) {
       return NextResponse.json({ error: '密碼至少要6個字元' }, { status: 400 });
+    }
+
+    if (isWeakPassword(newPassword)) {
+      return NextResponse.json({ error: '這組密碼太常見，請設定其他密碼' }, { status: 400 });
     }
 
     const authHeader = req.headers.get('authorization');

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { isWeakPassword } from '@/lib/weakPasswords';
 import { supabase, getCurrentAppUser, getMyIdentity, resetIdentityCache } from '@/lib/supabaseClient';
 import { BulletinPost, getPublishedPosts } from '@/lib/bulletin';
 
@@ -130,6 +131,18 @@ export default function LoginPage() {
       return;
     }
 
+    // 用已公開的預設密碼登入的教職員：標記成下次一定要改密碼（layout 會擋在 /change-password）
+    if (isWeakPassword(password)) {
+      const { data: sess } = await supabase.auth.getSession();
+      const accessToken = sess.session?.access_token;
+      if (accessToken) {
+        await fetch('/api/account/flag-weak-password', { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` } }).catch(() => {});
+      }
+    }
+
+    // 先清快取再查：getCurrentAppUser 會順便把身分查好放進快取，後面 getMyIdentity 直接用，不用再打一次
+    if (typeof window !== 'undefined') sessionStorage.removeItem('viewMode');
+    resetIdentityCache();
     const appUser = await getCurrentAppUser();
     if (!appUser) {
       setError('找不到對應的使用者角色資料，請聯絡管理員');
@@ -139,8 +152,6 @@ export default function LoginPage() {
 
     // 登入頁只分「教職員」與「家長」；進去之後看到什麼，完全由帳號的身分決定（見 lib/permissions.ts）。
     // 不再有「管理者／教師」兩種畫面：主管同時也是老師，所以首頁會同時列出「教學作業」與「行政管理」。
-    if (typeof window !== 'undefined') sessionStorage.removeItem('viewMode');
-    resetIdentityCache();
     const ident = await getMyIdentity();
     if (ident?.expired) {
       setError('此帳號已到期，請聯絡教務處');

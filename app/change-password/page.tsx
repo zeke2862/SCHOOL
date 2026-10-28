@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { isWeakPassword } from '@/lib/weakPasswords';
 
 // 對應反映事項「開發人員處增加【第一次登入強制更改密碼】功能」：開關開啟時，
 // 新建立的教職員帳號會被標記 must_change_password=true（見
@@ -32,6 +33,10 @@ export default function ChangePasswordPage() {
     setError(null);
     if (newPassword.length < 6) {
       setError('密碼至少要6個字元');
+      return;
+    }
+    if (isWeakPassword(newPassword)) {
+      setError('這組密碼太常見，請設定其他密碼');
       return;
     }
     if (newPassword !== confirmPassword) {

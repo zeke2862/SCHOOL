@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { fetchAllPages, chunk } from '@/lib/supabasePaging';
 import { supabase, getCurrentAppUser, isAdminInCurrentView } from '@/lib/supabaseClient';
 import ErrorBanner from '@/components/ErrorBanner';
@@ -90,6 +90,7 @@ export default function StudentSearchPage() {
   const [attendanceSummary, setAttendanceSummary] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const loadReq = useRef(0);
 
   const { caps } = useCaps();
   const canBatchMove = !!caps?.academic; // 批次調班只有教務（含教務主管、系統管理員）能用
@@ -152,6 +153,8 @@ export default function StudentSearchPage() {
   }
 
   async function loadStudents() {
+    // 連續切換班級時，先送出的慢查詢（例如全校）不能蓋掉後送出的結果，否則選了某班卻看到其他班
+    const reqId = ++loadReq.current;
     setLoading(true);
     // 全校在籍學生超過 1000 人，一次查詢最多只會回 1000 筆，所以要分頁查完（排序加 id 才不會漏資料）
     const { data, error } = await fetchAllPages((from, to) => {
@@ -166,24 +169,27 @@ export default function StudentSearchPage() {
       if (classId) query = query.eq('class_id', classId);
       return query.range(from, to);
     });
+    if (reqId !== loadReq.current) return;
     setLoadError(error ? '讀取學生名冊失敗：' + error : null);
     let rows = (data ?? []) as unknown as EnrolledStudent[];
     if (!isAdmin) {
       // 休學／轉學／退學的學生，只有管理者視角看得到（管理員切到教師視角預覽時，資料庫不會過濾，這裡補一層）
       const hidden = await getHiddenStudentNos(rows.map((r) => r.student_no));
       rows = rows.filter((r) => !hidden.has(r.student_no));
+      if (reqId !== loadReq.current) return;
     }
     setStudents(rows);
     setSelectedIds(new Set());
-    loadAttendanceSummary(rows.map((r) => r.student_no));
     setLoading(false);
+    // 出缺席統計慢，不擋名冊顯示；名冊先出來、統計再補上
+    loadAttendanceSummary(rows.map((r) => r.student_no), reqId);
   }
 
   // 出缺席狀況：統計目前顯示的每位學生已登錄的出缺勤次數（累計至今，不限學期範圍），
   // 只顯示「非出席」的幾種狀態，方便一眼看出哪些學生缺勤/請假偏多。
-  async function loadAttendanceSummary(studentNos: string[]) {
+  async function loadAttendanceSummary(studentNos: string[], reqId: number) {
     if (studentNos.length === 0) {
-      setAttendanceSummary({});
+      if (reqId === loadReq.current) setAttendanceSummary({});
       return;
     }
     // 只算「本學期」：學期起訖日取自「學年學期管理」（沒填起日就用預設的開學日），
@@ -204,20 +210,29 @@ export default function StudentSearchPage() {
     }
     // 一次 .in() 放一千多個學號網址會太長，而且結果超過 1000 筆也會被截斷：學號分小段、每段再分頁
     const map: Record<string, Record<string, number>> = {};
-    for (const part of chunk(studentNos, 100)) {
-      const { data, error } = await fetchAllPages((from, to) => {
-        let q = supabase.from('attendance').select('student_no, status').in('student_no', part);
-        if (rangeStart) q = q.gte('record_date', rangeStart);
-        if (rangeEnd) q = q.lte('record_date', rangeEnd);
-        return q.order('id').range(from, to);
-      });
-      if (error) return; // 讀取失敗時不擋主要查詢流程，出缺席欄位就顯示空白
-      (data ?? []).forEach((r: any) => {
-        map[r.student_no] = map[r.student_no] ?? {};
-        map[r.student_no][r.status] = (map[r.student_no][r.status] ?? 0) + 1;
-      });
+    const parts = chunk(studentNos, 100);
+    // 分段同時查（每次 6 段），比一段一段排隊快很多
+    for (let i = 0; i < parts.length; i += 6) {
+      const results = await Promise.all(
+        parts.slice(i, i + 6).map((part) =>
+          fetchAllPages((from, to) => {
+            let q = supabase.from('attendance').select('student_no, status').in('student_no', part);
+            if (rangeStart) q = q.gte('record_date', rangeStart);
+            if (rangeEnd) q = q.lte('record_date', rangeEnd);
+            return q.order('id').range(from, to);
+          })
+        )
+      );
+      if (reqId !== loadReq.current) return;
+      for (const { data, error } of results) {
+        if (error) return; // 讀取失敗時不擋主要查詢流程，出缺席欄位就顯示空白
+        (data ?? []).forEach((r: any) => {
+          map[r.student_no] = map[r.student_no] ?? {};
+          map[r.student_no][r.status] = (map[r.student_no][r.status] ?? 0) + 1;
+        });
+      }
     }
-    setAttendanceSummary(map);
+    if (reqId === loadReq.current) setAttendanceSummary(map);
   }
 
   useEffect(() => {

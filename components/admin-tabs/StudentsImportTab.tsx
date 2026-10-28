@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { fetchAllPages, chunk } from '@/lib/supabasePaging';
 import { supabase } from '@/lib/supabaseClient';
+import { genderFromStudentNo } from '@/lib/studentNoSort';
 import { suggestSeatNo } from '@/lib/seatSuggest';
 import ExcelUploadButton from '@/components/ExcelUploadButton';
 import TemplateDownloadButton from '@/components/TemplateDownloadButton';
@@ -326,7 +327,7 @@ export default function ImportStudentPage() {
       const { error: studentError } = await supabase.from('students').insert({
         student_no: form.student_no,
         name: form.name,
-        gender: form.gender || null,
+        gender: form.gender || genderFromStudentNo(form.student_no),
       });
       if (studentError) {
         alert('建立學生資料失敗：' + studentError.message);
@@ -379,7 +380,7 @@ export default function ImportStudentPage() {
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <input placeholder="學號" value={form.student_no} onChange={(e) => setForm({ ...form, student_no: e.target.value })} style={{ padding: 8 }} required />
         <input placeholder="姓名" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={{ padding: 8 }} required />
-        <input placeholder="性別（選填）" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} style={{ padding: 8 }} />
+        <input placeholder="性別（選填；空白則依學號判定）" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} style={{ padding: 8 }} />
         <select value={form.class_id} onChange={(e) => setForm({ ...form, class_id: e.target.value })} style={{ padding: 8 }} required>
           <option value="">選擇編入班級</option>
           {classes.map((c) => (

@@ -1,3 +1,4 @@
+import { isWeakPassword } from '@/lib/weakPasswords';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
@@ -23,6 +24,10 @@ export async function POST(req: NextRequest) {
     const { data: callerAuth, error: callerErr } = await supabaseAdmin.auth.getUser(token);
     if (callerErr || !callerAuth.user || !callerAuth.user.email) {
       return NextResponse.json({ error: '登入憑證無效' }, { status: 401 });
+    }
+
+    if (isWeakPassword(newPassword)) {
+      return NextResponse.json({ error: '這組密碼太常見，請設定其他密碼' }, { status: 400 });
     }
 
     const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/token?grant_type=password`, {

@@ -63,7 +63,9 @@ export type MyIdentity = {
 };
 
 async function fetchMyIdentity(): Promise<MyIdentity | null> {
-  const { data: authData } = await supabase.auth.getUser();
+  // 用本機 session 判斷有沒有登入（不打 Auth 伺服器）；真正的身分驗證由資料庫的 auth.uid() 與 RLS 負責
+  const { data: sessData } = await supabase.auth.getSession();
+  const authData = { user: sessData.session?.user ?? null };
   if (!authData.user) return null;
   const { data, error } = await supabase.rpc('my_effective_identity');
   if (error || !data) {
@@ -135,7 +137,8 @@ export function resetIdentityCache() {
 }
 
 async function fetchCurrentAppUser() {
-  const { data: authData } = await supabase.auth.getUser();
+  const { data: sessData } = await supabase.auth.getSession();
+  const authData = { user: sessData.session?.user ?? null };
   if (!authData.user) return null;
   const ident = await getMyIdentity();
   if (!ident) return null;

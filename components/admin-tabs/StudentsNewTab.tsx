@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { genderFromStudentNo } from '@/lib/studentNoSort';
 import { suggestSeatNo } from '@/lib/seatSuggest';
 
 type ClassOption = { id: string; label: string };
@@ -77,7 +78,7 @@ export default function NewStudentRegistrationPage() {
       student_no: student.student_no,
       name: student.name,
       thai_name: student.thai_name || null,
-      gender: student.gender || null,
+      gender: student.gender || genderFromStudentNo(student.student_no),
       dob: student.dob || null,
       id_number: student.id_number || null,
       nationality: student.nationality || null,
