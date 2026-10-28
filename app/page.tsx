@@ -9,7 +9,7 @@ type CardKey = 'staff' | 'parent';
 
 const CARDS: { key: CardKey; title: string; desc: string; emoji: string }[] = [
   { key: 'staff', title: '教職員', desc: '老師、主任、行政人員（登入後依您的身分顯示功能）', emoji: '🍎' },
-  { key: 'parent', title: '家長', desc: '查詢孩子的成績與出缺席紀錄', emoji: '👪' },
+  { key: 'parent', title: '家長/學生登入口', desc: '查詢孩子的成績與出缺席紀錄', emoji: '👪' },
 ];
 
 // 首頁登入卡片上方的「公佈欄」：最新一篇用縮圖凸顯，接下來幾篇只列標題。

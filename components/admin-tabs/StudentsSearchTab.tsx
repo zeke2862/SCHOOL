@@ -6,7 +6,7 @@ import { supabase, getCurrentAppUser, isAdminInCurrentView } from '@/lib/supabas
 import ErrorBanner from '@/components/ErrorBanner';
 import { getHiddenStudentNos } from '@/lib/hiddenStudents';
 import { useCaps } from '@/lib/useCaps';
-import { compareStudentNo } from '@/lib/studentNoSort';
+import { compareForSeat, SEAT_ORDER_OPTIONS, SeatOrder } from '@/lib/studentNoSort';
 import { resolveCurrentTerm, estimateTermStart } from '@/lib/academicTerm';
 
 type ClassOption = { id: string; label: string; academic_year: number; grade_level: string; class_name: string };
@@ -99,6 +99,7 @@ export default function StudentSearchPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [moveClassId, setMoveClassId] = useState('');
   const [reseat, setReseat] = useState(true);
+  const [seatOrder, setSeatOrder] = useState<SeatOrder>('student_no');
   const [moving, setMoving] = useState(false);
   const [moveMsg, setMoveMsg] = useState('');
   // 非本班導師／非管理員：只能看監護人聯絡電話（不給看身分證、地址等個資，見 sql/83fix_roster_pii_exposure.sql）
@@ -374,11 +375,13 @@ export default function StudentSearchPage() {
     else setPhones({ name: s.students?.name ?? s.student_no, rows: (data ?? []) as any });
   }
 
-  // 重排某班某學期的座號（依學號由小到大 1、2、3…）；避開同班同學期「非現行」學籍佔用的座號。
+  // 重排某班某學期的座號（依學號由小到大 1、2、3…，或先男女再學號）；避開同班同學期「非現行」學籍佔用的座號。
   // 先全部改成大數字再改回來，避免中途座號重複撞到「同班同學期座號不可重複」的限制。
   async function renumberClass(cid: string, term: string) {
-    const { data } = await supabase.from('enrollments').select('id, student_no, is_current, seat_no').eq('class_id', cid).eq('term', term).order('id');
-    const all = ((data ?? []) as { id: string; student_no: string; is_current: boolean; seat_no: number }[]).sort((x, y) => compareStudentNo(x.student_no, y.student_no));
+    const { data } = await supabase.from('enrollments').select('id, student_no, is_current, seat_no, students(gender)').eq('class_id', cid).eq('term', term).order('id');
+    const all = ((data ?? []) as any[])
+      .map((r) => ({ id: r.id as string, student_no: r.student_no as string, is_current: r.is_current as boolean, seat_no: r.seat_no as number, gender: (r.students?.gender ?? null) as string | null }))
+      .sort((x, y) => compareForSeat(seatOrder, x, y));
     const current = all.filter((r) => r.is_current);
     const used = new Set(all.filter((r) => !r.is_current).map((r) => r.seat_no));
     for (let i = 0; i < current.length; i++) {
@@ -403,14 +406,14 @@ export default function StudentSearchPage() {
       return;
     }
     const term = terms[0];
-    if (!confirm(`把 ${rows.length} 位學生調到「${target.label}」？${reseat ? '\n調完會把原班與新班的座號依學號重新排。' : '\n座號會接在新班現有座號後面。'}`)) return;
+    if (!confirm(`把 ${rows.length} 位學生調到「${target.label}」？${reseat ? `\n調完會把原班與新班的座號${seatOrder === 'gender' ? '先男女、再依學號' : '依學號'}重新排。` : '\n座號會接在新班現有座號後面。'}`)) return;
     setMoving(true);
     setMoveMsg('');
     try {
       const { data: existing } = await supabase.from('enrollments').select('seat_no').eq('class_id', moveClassId).eq('term', term);
       let seat = Math.max(0, ...((existing ?? []) as { seat_no: number }[]).map((e) => e.seat_no ?? 0));
       const sources = new Set<string>();
-      for (const r of [...rows].sort((a, b) => compareStudentNo(a.student_no, b.student_no))) {
+      for (const r of [...rows].sort((a, b) => compareForSeat(seatOrder, { student_no: a.student_no, gender: a.students?.gender }, { student_no: b.student_no, gender: b.students?.gender }))) {
         if (r.classes?.id) sources.add(r.classes.id);
         seat++;
         const { error } = await supabase.from('enrollments').update({ class_id: moveClassId, seat_no: seat }).eq('id', r.id);
@@ -482,8 +485,15 @@ export default function StudentSearchPage() {
             ))}
           </select>
           <label style={{ fontSize: 12 }}>
-            <input type="checkbox" checked={reseat} onChange={(e) => setReseat(e.target.checked)} /> 調完依學號重排兩班座號
+            <input type="checkbox" checked={reseat} onChange={(e) => setReseat(e.target.checked)} /> 調完重排兩班座號
           </label>
+          {reseat && (
+            <select value={seatOrder} onChange={(e) => setSeatOrder(e.target.value as SeatOrder)} style={{ padding: 4, fontSize: 12 }}>
+              {SEAT_ORDER_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          )}
           <button onClick={handleBatchMove} disabled={moving || selectedIds.size === 0 || !moveClassId} style={{ padding: '6px 14px', fontSize: 13, cursor: 'pointer' }}>
             {moving ? '調班中…' : '批次調班'}
           </button>

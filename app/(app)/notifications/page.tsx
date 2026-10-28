@@ -100,7 +100,7 @@ export default function NotificationsPage() {
             <p style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>
               {n.category}｜{new Date(n.created_at).toLocaleString('zh-TW')}
             </p>
-            <p style={{ fontSize: 13, marginBottom: n.read_at ? 0 : 8 }}>{n.message}</p>
+            <p style={{ fontSize: 13, marginBottom: n.read_at ? 0 : 8, whiteSpace: 'pre-line' }}>{n.message}</p>
             {!n.read_at && (
               <button onClick={() => markRead(n.id)} style={{ fontSize: 12, padding: '2px 10px' }}>
                 標記已讀

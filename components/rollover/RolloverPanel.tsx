@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { departmentForGrade, SPECIFIC_GRADE_LEVELS } from '@/lib/gradeMapping';
+import { SEAT_ORDER_OPTIONS, SeatOrder } from '@/lib/studentNoSort';
 
 // 新學期升級作業（整批、一次完成；邏輯在資料庫 sql/112_term_rollover.sql）。
 //   同學年 上學期→下學期：學生留在原班，開新學期學籍，座號依學號重新排。
@@ -42,6 +43,7 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
   const [promote, setPromote] = useState(true);
   const [graduate, setGraduate] = useState(true);
   const [keepSeats, setKeepSeats] = useState(false);
+  const [seatOrder, setSeatOrder] = useState<SeatOrder>('student_no');
   // 新學年：詢問是否沿用上一學期的科目比重與整體佔比（同學年上學期→下學期一律自動沿用，不用問）
   const [inheritSettings, setInheritSettings] = useState(true);
   const supported = isSupportedRollover(src, tgt);
@@ -71,7 +73,7 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
     setBusy(true);
     setError('');
     const { data, error } = await supabase.rpc('run_term_rollover', {
-      p_sy: src.year, p_st: src.term, p_ty: tgt.year, p_tt: tgt.term, p_promote: promote, p_graduate: graduate, p_keep_seats: keepSeats, p_map: mapRules,
+      p_sy: src.year, p_st: src.term, p_ty: tgt.year, p_tt: tgt.term, p_promote: promote, p_graduate: graduate, p_keep_seats: keepSeats, p_map: mapRules, p_seat_order: seatOrder,
     });
     setBusy(false);
     if (error) {
@@ -194,7 +196,17 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
                 <input type="checkbox" checked={inheritSettings} onChange={(e) => setInheritSettings(e.target.checked)} /> 沿用{src.term}的科目比重與整體佔比（有變動的科目之後再自行修改；已輸入的不會被蓋掉）
               </label>
             )}
-            <span style={{ fontSize: 12, color: '#888' }}>座號預設：每班依學號由小到大重新排 1、2、3…。舊學期的學籍與成績都會保留，不會被覆蓋。</span>
+            {!(sameYear && keepSeats) && (
+              <label>
+                重新排座號的方式：
+                <select value={seatOrder} onChange={(e) => setSeatOrder(e.target.value as SeatOrder)} style={{ padding: 3, marginLeft: 4 }}>
+                  {SEAT_ORDER_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <span style={{ fontSize: 12, color: '#888' }}>座號預設：每班依學號由小到大重新排 1、2、3…；選「先男女、再學號」則男生在前、女生在後（性別空白的排最後），同性別內依學號。舊學期的學籍與成績都會保留，不會被覆蓋。</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={run} disabled={busy} style={{ ...btn, background: '#2C2C2A', color: '#fff', border: 'none' }}>
