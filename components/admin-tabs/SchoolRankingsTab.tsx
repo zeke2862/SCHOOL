@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import ErrorBanner from '@/components/ErrorBanner';
+import { compareGradeClass } from '@/lib/schoolOrder';
 
 type ClassTopRow = {
   class_id: string;
@@ -20,7 +21,7 @@ type GradeTopRow = {
   total_score: number;
   grade_rank: number;
 };
-type ClassLabel = { id: string; label: string };
+type ClassMeta = { grade_level: string; class_name: string };
 
 // 全校排行榜：各班前三名、各年級前三名。
 // 資料來源是 class_rankings_for_class() / grade_rankings_for_class() 這兩支資料庫函式（已經套用加扣分規則計算好加權總分，每次只算單班/單年級），
@@ -30,6 +31,7 @@ export default function SchoolRankingsPage() {
   const [academicYear, setAcademicYear] = useState(new Date().getFullYear());
   const [term, setTerm] = useState('上學期');
   const [classLabels, setClassLabels] = useState<Record<string, string>>({});
+  const [classMeta, setClassMeta] = useState<Record<string, ClassMeta>>({});
   const [classTop, setClassTop] = useState<ClassTopRow[]>([]);
   const [gradeTop, setGradeTop] = useState<GradeTopRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -68,6 +70,11 @@ export default function SchoolRankingsPage() {
       labelMap[c.id] = `${c.grade_level}${c.class_name}`;
     });
     setClassLabels(labelMap);
+    const metaMap: Record<string, ClassMeta> = {};
+    (classRows ?? []).forEach((c: any) => {
+      metaMap[c.id] = { grade_level: c.grade_level, class_name: c.class_name };
+    });
+    setClassMeta(metaMap);
 
     const yearClasses = (classRows ?? []).filter((c: any) => c.academic_year === academicYear);
 
@@ -138,6 +145,35 @@ export default function SchoolRankingsPage() {
     gradeGroups.set(key, list);
   });
 
+  // 固定排序：幼乙、幼甲、1～6年、初一～初三、高一～高三；同年級內 忠、孝、仁、愛
+  const metaOf = (id: string): ClassMeta => classMeta[id] ?? { grade_level: '', class_name: '' };
+  const sortedClassGroups = Array.from(classGroups.entries()).sort((a, b) => compareGradeClass(metaOf(a[0]), metaOf(b[0])));
+  const sortedGradeGroups = Array.from(gradeGroups.entries()).sort((a, b) =>
+    compareGradeClass({ grade_level: a[1][0].grade_level }, { grade_level: b[1][0].grade_level })
+  );
+
+  async function downloadExcel() {
+    const XLSX = await import('xlsx');
+    const classSheet: (string | number)[][] = [['班級', '名次', '姓名', '座號', '總分']];
+    sortedClassGroups.forEach(([classId, rows]) => {
+      [...rows].sort((a, b) => a.class_rank - b.class_rank || a.seat_no - b.seat_no).forEach((r) => {
+        classSheet.push([classLabels[classId] ?? classId, r.class_rank, r.name, r.seat_no, r.total_score]);
+      });
+    });
+    const gradeSheet: (string | number)[][] = [['部別', '年級', '名次', '姓名', '班級', '座號', '總分']];
+    sortedGradeGroups.forEach(([, rows]) => {
+      [...rows]
+        .sort((a, b) => a.grade_rank - b.grade_rank || compareGradeClass(metaOf(a.class_id), metaOf(b.class_id)) || a.seat_no - b.seat_no)
+        .forEach((r) => {
+          gradeSheet.push([r.department, r.grade_level, r.grade_rank, r.name, classLabels[r.class_id] ?? '', r.seat_no, r.total_score]);
+        });
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(classSheet), '各班前三名');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(gradeSheet), '各年級前三名');
+    XLSX.writeFile(wb, `全校排行榜_${academicYear}_${term}.xlsx`);
+  }
+
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>全校排行榜</h1>
@@ -157,6 +193,14 @@ export default function SchoolRankingsPage() {
           <option value="上學期">上學期</option>
           <option value="下學期">下學期</option>
         </select>
+        <button
+          type="button"
+          onClick={downloadExcel}
+          disabled={loading || (classTop.length === 0 && gradeTop.length === 0)}
+          style={{ padding: '8px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+        >
+          下載 Excel
+        </button>
       </div>
 
       {loading ? (
@@ -166,7 +210,7 @@ export default function SchoolRankingsPage() {
           <h2 style={{ fontSize: 14, marginBottom: 8 }}>全校各班前三名</h2>
           {classGroups.size === 0 && <p style={{ fontSize: 13, color: '#999', marginBottom: 20 }}>目前沒有已鎖定的班級排名資料</p>}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, marginBottom: 28 }}>
-            {Array.from(classGroups.entries()).map(([classId, rows]) => (
+            {sortedClassGroups.map(([classId, rows]) => (
               <div key={classId} style={{ border: '1px solid #eee', borderRadius: 8, padding: 12 }}>
                 <p style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 6 }}>{classLabels[classId] ?? classId}</p>
                 {rows
@@ -183,7 +227,7 @@ export default function SchoolRankingsPage() {
           <h2 style={{ fontSize: 14, marginBottom: 8 }}>全校各年級前三名</h2>
           {gradeGroups.size === 0 && <p style={{ fontSize: 13, color: '#999' }}>目前沒有已鎖定的年級排名資料</p>}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-            {Array.from(gradeGroups.entries()).map(([key, rows]) => (
+            {sortedGradeGroups.map(([key, rows]) => (
               <div key={key} style={{ border: '1px solid #eee', borderRadius: 8, padding: 12 }}>
                 <p style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 6 }}>{key}</p>
                 {rows
