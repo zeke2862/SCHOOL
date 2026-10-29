@@ -1,11 +1,8 @@
 @echo off
-chcp 65001 >nul
+rem Run the clock sync once. Messages are printed by sync-clock.mjs (see sync.log).
+rem Keep this file ASCII-only: cmd misreads UTF-8 batch files under chcp 65001.
 cd /d "%~dp0"
 node sync-clock.mjs %*
 set RC=%ERRORLEVEL%
-if /i not "%~1"=="--scheduled" (
-  echo.
-  if %RC%==0 (echo 同步完成，詳細請看 sync.log) else (echo 同步失敗，詳細請看 sync.log)
-  pause
-)
+if /i not "%~1"=="--scheduled" pause
 exit /b %RC%

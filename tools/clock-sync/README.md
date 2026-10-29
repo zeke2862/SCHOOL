@@ -17,8 +17,9 @@
    - 或者讀匯出檔：把 `device` 整段刪掉，改填 `csvPath`（CSV 完整路徑；填資料夾會自動取最新的 `.csv`）
    - `config.json` 已列在 `.gitignore`，密碼與 token 不會被推上 GitHub。
 5. 雙擊 `run-sync.bat` 測試（第一次會送整份檔案；也可先用 `node sync-clock.mjs --dry-run` 只檢查不送出）。
-6. 成功後對 `install-windows-task.bat` 按右鍵「以系統管理員身分執行」，建立每天 21:30 的排程。
-   到「工作排程器」→ 該工作 →「設定」勾選「如果錯過排定的開始時間，儘快執行工作」。
+6. 成功後對 `install-windows-task.bat` 按右鍵「以系統管理員身分執行」，建立每天泰國時間 17:10 的排程（會自動換算成這台電腦的時區，台北 +8 是 18:10），
+   並自動設定「錯過排定時間就儘快補跑」。要改時間就改 `install-windows-task.ps1` 開頭的 `$thaiHour`、`$thaiMinute` 再執行一次。
+   兩個 `.bat` 只用英文字（cmd 讀 UTF-8 中文批次檔會亂碼、結束碼也會錯），中文訊息由 Node／PowerShell 顯示。
 
 ## 運作方式
 
@@ -31,4 +32,4 @@
 
 ## Mac / Linux
 
-`crontab -e` 加一行：`30 21 * * * cd /路徑/clock-sync && node sync-clock.mjs >> cron.out 2>&1`
+`crontab -e` 加一行：`10 17 * * * cd /路徑/clock-sync && node sync-clock.mjs >> cron.out 2>&1`
