@@ -15,3 +15,8 @@ _backup_before_hwfix3/
 .claude/
 *.zip
 test_report_round3.docx
+
+# 打卡同步：含通訊密碼與 token，只放在本機
+tools/clock-sync/config.json
+tools/clock-sync/sync.log*
+tools/clock-sync/.sync-state.json

@@ -3,7 +3,8 @@
 // 打卡機 CSV → 校務系統：本機自動同步程式（不需要安裝任何套件，Node.js 18 以上即可）
 //
 // 做的事：
-//   1) 找到打卡機軟體匯出的 CSV（config.json 的 csvPath，可以是檔案，也可以是資料夾——資料夾就取最新的 .csv）
+//   1) 取得打卡資料：config.json 有 device.ip 就直接連打卡機讀（zk.mjs，需要通訊密碼 device.commKey）；
+//      否則讀打卡機軟體匯出的 CSV（csvPath，可以是檔案，也可以是資料夾——資料夾就取最新的 .csv）
 //   2) 問網站「資料庫目前最新一筆打卡是什麼時候」，只送那之前 lookbackDays 天以後的資料（不用每天重送整份）
 //   3) 分批送到 /api/clock/import（伺服器會自動略過重複的打卡，所以重複執行、重疊送都很安全）
 //   4) 結果寫進 sync.log；失敗會以非 0 結束碼離開（排程工作的「上次執行結果」會顯示錯誤）
@@ -61,7 +62,50 @@ const lookbackDays = Number.isFinite(Number(cfg.lookbackDays)) ? Number(cfg.look
 const batchLines = Math.max(200, Number(cfg.batchLines) || 3000);
 if (!/^https?:\/\//.test(apiBase)) fail('config.json 的 apiBase 要是完整網址，例如 https://your-school.vercel.app');
 if (!token || token.includes('請填')) fail('config.json 的 token 還沒填（要跟 Vercel 環境變數 CLOCK_SYNC_TOKEN 一模一樣）');
-if (!csvPath || csvPath.includes('請填')) fail('config.json 的 csvPath 還沒填');
+// device.ip 有填：直接連打卡機讀；沒填：讀打卡機軟體匯出的 CSV
+const device = cfg.device && String(cfg.device.ip ?? '').trim() && !String(cfg.device.ip).includes('請填') ? cfg.device : null;
+if (!device && (!csvPath || csvPath.includes('請填'))) fail('config.json 的 csvPath 還沒填（或改填 device 直接連打卡機）');
+
+let csvFile = null;
+let st = null;
+let lines;
+if (device) lines = await loadFromDevice(device);
+else lines = loadFromCsv();
+const header = lines[0];
+const sourceLabel = device ? `device-${device.ip}` : path.basename(csvFile);
+
+// ---------- 直接連打卡機 ----------
+async function loadFromDevice(dev) {
+  const { ZkClient, verifyLabel } = await import('./zk.mjs');
+  const machineNo = Number(dev.machineNo) || 1;
+  const zk = new ZkClient({ ip: String(dev.ip).trim(), port: Number(dev.port) || 4370, timeoutMs: (Number(dev.timeoutSec) || 20) * 1000 });
+  let users, logs;
+  try {
+    await zk.connect(dev.commKey ?? 0);
+    const sizes = await zk.readSizes();
+    users = await zk.getUsers(sizes.users);
+    logs = await zk.getAttendance(sizes.records);
+    log(`打卡機 ${dev.ip}：人員 ${users.length} 位、打卡紀錄 ${logs.length} 筆`);
+  } catch (e) {
+    fail(e.message);
+  } finally {
+    await zk.disconnect();
+  }
+  const names = new Map(users.map((u) => [u.userId, u.name]));
+  const pad = (n) => String(n).padStart(2, '0');
+  const q = (s) => `"${String(s).replace(/"/g, '""')}"`;
+  // 組成跟軟體匯出一樣的 9 欄格式，伺服器端照原本方式解析
+  const out = ['Depart,Name,No,DateTime,Status,MachineNo,EmpNo,VerifyMode,Card'];
+  for (const r of logs) {
+    if (!/^\d+$/.test(r.userId)) continue;
+    const t = r.time;
+    const dt = `${pad(t.day)}/${pad(t.month)}/${t.year} ${pad(t.hour)}:${pad(t.minute)}`;
+    const dir = r.punch === 1 ? 'C/Out' : 'C/In';
+    out.push(['', q(names.get(r.userId) ?? ''), r.userId, dt, dir, machineNo, '', verifyLabel(r.status), ''].join(','));
+  }
+  if (out.length < 2) fail('打卡機裡沒有打卡紀錄');
+  return out;
+}
 
 // ---------- 找 CSV ----------
 function resolveCsv(p) {
@@ -76,35 +120,37 @@ function resolveCsv(p) {
   if (files.length === 0) fail(`資料夾裡沒有 .csv 檔：${p}`);
   return files[0].f;
 }
-const csvFile = resolveCsv(csvPath);
-const st = fs.statSync(csvFile);
+function loadFromCsv() {
+  csvFile = resolveCsv(csvPath);
+  st = fs.statSync(csvFile);
 
-let prev = {};
-try {
-  prev = JSON.parse(fs.readFileSync(STATE_PATH, 'utf8'));
-} catch {
-  /* 第一次執行 */
-}
-if (!FORCE && !DRY && prev.file === csvFile && prev.size === st.size && prev.mtimeMs === st.mtimeMs) {
-  log(`略過：${path.basename(csvFile)} 自上次成功同步後沒有變動（要強制重送請加 --force）`);
-  process.exit(0);
-}
-
-// ---------- 解碼（UTF-8 失敗就當泰文 Windows-874；表頭以外都是 ASCII，所以最差的 latin1 也不影響資料） ----------
-const bytes = fs.readFileSync(csvFile);
-let text;
-try {
-  text = new TextDecoder('utf-8', { fatal: true }).decode(bytes).replace(/^\uFEFF/, '');
-} catch {
+  let prev = {};
   try {
-    text = new TextDecoder('windows-874').decode(bytes);
+    prev = JSON.parse(fs.readFileSync(STATE_PATH, 'utf8'));
   } catch {
-    text = new TextDecoder('latin1').decode(bytes);
+    /* 第一次執行 */
   }
+  if (!FORCE && !DRY && prev.file === csvFile && prev.size === st.size && prev.mtimeMs === st.mtimeMs) {
+    log(`略過：${path.basename(csvFile)} 自上次成功同步後沒有變動（要強制重送請加 --force）`);
+    process.exit(0);
+  }
+
+  // 解碼（UTF-8 失敗就當泰文 Windows-874；表頭以外都是 ASCII，所以最差的 latin1 也不影響資料）
+  const bytes = fs.readFileSync(csvFile);
+  let text;
+  try {
+    text = new TextDecoder('utf-8', { fatal: true }).decode(bytes).replace(/^\uFEFF/, '');
+  } catch {
+    try {
+      text = new TextDecoder('windows-874').decode(bytes);
+    } catch {
+      text = new TextDecoder('latin1').decode(bytes);
+    }
+  }
+  const out = text.split(/\r?\n/).filter((l) => l.trim());
+  if (out.length < 2) fail(`${csvFile} 沒有資料列`);
+  return out;
 }
-const lines = text.split(/\r?\n/).filter((l) => l.trim());
-if (lines.length < 2) fail(`${csvFile} 沒有資料列`);
-const header = lines[0];
 
 const DATE_RE = /(\d{1,2})\/(\d{1,2})\/(\d{4})\s+\d{1,2}:\d{2}/;
 function lineDateNum(line) {
@@ -153,7 +199,7 @@ try {
     const n = lineDateNum(l);
     return n != null && n >= cutoff;
   });
-  log(`檔案：${path.basename(csvFile)}（共 ${lines.length - 1} 列），本次要送 ${dataLines.length} 列`);
+  log(`來源：${sourceLabel}（共 ${lines.length - 1} 列），本次要送 ${dataLines.length} 列`);
 
   if (DRY) {
     log('（--dry-run：不送出）');
@@ -163,7 +209,7 @@ try {
   const tot = { received: 0, inserted: 0, duplicates: 0, invalid: 0, newCodes: new Set() };
   for (let i = 0; i < dataLines.length; i += batchLines) {
     const body = [header, ...dataLines.slice(i, i + batchLines)].join('\n');
-    const r = await api('POST', `${apiBase}/api/clock/import?file=${encodeURIComponent(path.basename(csvFile))}`, body);
+    const r = await api('POST', `${apiBase}/api/clock/import?file=${encodeURIComponent(sourceLabel)}`, body);
     tot.received += r.received ?? 0;
     tot.inserted += r.inserted ?? 0;
     tot.duplicates += r.duplicates ?? 0;
@@ -171,7 +217,7 @@ try {
     for (const c of r.newCodes ?? []) tot.newCodes.add(c);
   }
 
-  fs.writeFileSync(STATE_PATH, JSON.stringify({ file: csvFile, size: st.size, mtimeMs: st.mtimeMs, lastOkAt: stamp() }));
+  if (csvFile) fs.writeFileSync(STATE_PATH, JSON.stringify({ file: csvFile, size: st.size, mtimeMs: st.mtimeMs, lastOkAt: stamp() }));
   log(`✅ 完成：送出 ${tot.received} 筆，新增 ${tot.inserted}、重複略過 ${tot.duplicates}、格式不符 ${tot.invalid}` + (tot.newCodes.size ? `；新機號 ${[...tot.newCodes].join('、')}（請到網站「人員對照」設定）` : ''));
 } catch (e) {
   fail('同步失敗：' + (e?.message ?? e));
