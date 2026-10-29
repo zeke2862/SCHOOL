@@ -8,15 +8,17 @@ import {
   ClockRecord,
   ClockShift,
   DaySummary,
+  EffectivePeriod,
   RangeStats,
   bangkokNow,
+  dateRange,
   employeeLabel,
   fmtHours,
   monthRange,
   summarizeRange,
 } from '@/lib/staffClock';
-import { buildDays, loadClockRange, loadHolidays } from '@/lib/staffClockData';
-import { DayTable, MonthPicker, StatsCards, StatusBadge, btn, input, td, th } from './ClockParts';
+import { ClockTerm, buildDays, loadClockCalendar, loadClockRange, loadClockTerms, termsToYears } from '@/lib/staffClockData';
+import { DayTable, MonthPicker, StatsCards, StatusBadge, TermPicker, btn, input, td, th } from './ClockParts';
 
 type Props = {
   employees: ClockEmployee[];
@@ -26,9 +28,11 @@ type Props = {
 
 type Row = { emp: ClockEmployee; label: string; days: DaySummary[]; stats: RangeStats };
 
-// 出席總覽：① 整月統計（每人一列，點開看每日明細）② 單日名單（誰幾點到、誰沒打卡）。
+// 出席總覽：① 學期統計／學年統計（起訖日跟著「學年學期設定」，可選過去的）② 整月統計
+// ③ 單日名單（誰幾點到、誰沒打卡）。放假日＝手動設定＋自動判定（排班的人 80% 以上沒打卡）；
+// 特殊時段／考試週期間改用設定的上下班時間。
 export default function ClockOverviewTab({ employees, teacherNames, shifts }: Props) {
-  const [mode, setMode] = useState<'month' | 'day'>('month');
+  const [mode, setMode] = useState<'term' | 'year' | 'month' | 'day'>('term');
   const [month, setMonth] = useState(() => bangkokNow().date.slice(0, 7));
   const [date, setDate] = useState(() => bangkokNow().date);
   const [showInactive, setShowInactive] = useState(false);
@@ -36,12 +40,37 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
   const [records, setRecords] = useState<ClockRecord[]>([]);
   const [overrides, setOverrides] = useState<ClockOverride[]>([]);
   const [holidays, setHolidays] = useState<ClockHoliday[]>([]);
+  const [periods, setPeriods] = useState<EffectivePeriod[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openCode, setOpenCode] = useState<number | null>(null);
+  const [terms, setTerms] = useState<ClockTerm[]>([]);
+  const [termKey, setTermKey] = useState('');
+  const [yearKey, setYearKey] = useState('');
+  const years = useMemo(() => termsToYears(terms), [terms]);
 
-  // 單日模式只需要那一天；月模式撈整個月
-  const range = useMemo(() => (mode === 'month' ? monthRange(month) : { from: date, to: date, dates: [date] }), [mode, month, date]);
+  useEffect(() => {
+    loadClockTerms()
+      .then((t) => {
+        setTerms(t);
+        setTermKey((t.find((x) => x.isCurrent) ?? t[0])?.key ?? '');
+        const ys = termsToYears(t);
+        setYearKey((ys.find((x) => x.isCurrent) ?? ys[0])?.key ?? '');
+        if (t.length === 0) setMode('month');
+      })
+      .catch((e) => setError(e.message ?? String(e)));
+  }, []);
+  const term = mode === 'year' ? years.find((y) => y.key === yearKey) ?? null : terms.find((t) => t.key === termKey) ?? null;
+
+  // 單日模式只需要那一天；月模式撈整個月；學期／學年模式撈整個學期／學年
+  const byTerm = mode === 'term' || mode === 'year';
+  const range = useMemo(() => {
+    if (byTerm && term) return dateRange(term.from, term.to);
+    if (mode === 'day') return { from: date, to: date, dates: [date] };
+    return monthRange(byTerm ? bangkokNow().date.slice(0, 7) : month);
+  }, [byTerm, mode, month, date, term]);
+  const isRange = mode !== 'day';
+  const periodLabel = byTerm && term ? term.label.replace(' ', '') : month;
 
   useEffect(() => {
     let alive = true;
@@ -49,11 +78,12 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
     setError(null);
     (async () => {
       try {
-        const [r, h] = await Promise.all([loadClockRange(range.from, range.to), loadHolidays(range.from, range.to)]);
+        const [r, cal] = await Promise.all([loadClockRange(range.from, range.to), loadClockCalendar(range.from, range.to)]);
         if (!alive) return;
         setRecords(r.records);
         setOverrides(r.overrides);
-        setHolidays(h);
+        setHolidays(cal.holidays);
+        setPeriods(cal.periods);
       } catch (e: any) {
         if (alive) setError(e.message ?? String(e));
       } finally {
@@ -90,6 +120,7 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
           records: recBy.get(emp.device_code) ?? [],
           overrides: ovBy.get(emp.device_code) ?? [],
           holidays: hol,
+          periods,
         });
         return {
           emp,
@@ -98,11 +129,13 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
           stats: summarizeRange(days),
         };
       });
-  }, [employees, shifts, records, overrides, holidays, range.dates, showInactive, teacherNames]);
+  }, [employees, shifts, records, overrides, holidays, periods, range.dates, showInactive, teacherNames]);
+
+  const autoHolidays = holidays.filter((h) => h.name.startsWith('自動判定')).sort((a, b) => a.holiday_date.localeCompare(b.holiday_date));
 
   const visibleRows = rows.filter((r) => {
     if (!onlyProblems) return true;
-    return mode === 'month'
+    return isRange
       ? r.stats.late + r.stats.early + r.stats.missing + r.stats.absent > 0
       : ['遲到', '早退', '遲到早退', '漏打卡', '缺勤'].includes(r.days[0]?.status);
   });
@@ -110,18 +143,18 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
   async function exportExcel() {
     const XLSX = await import('xlsx');
     const wb = XLSX.utils.book_new();
-    if (mode === 'month') {
+    if (isRange) {
       const sum = [['機號', '姓名', '應到', '正常', '遲到', '早退', '漏打卡', '缺勤', '請假', '公出', '遲到分鐘', '在校分鐘']];
       for (const r of visibleRows)
         sum.push([r.emp.device_code, r.label, r.stats.expectedDays, r.stats.normal, r.stats.late, r.stats.early, r.stats.missing, r.stats.absent, r.stats.leave, r.stats.official, r.stats.lateMinutes, r.stats.workedMinutes] as any);
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sum), `${month} 統計`);
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sum), `${periodLabel} 統計`);
       const detail = [['機號', '姓名', '日期', '班別', '上班', '下班', '狀態', '全部打卡', '備註']];
       for (const r of visibleRows)
         for (const d of r.days)
           if (!(d.status === '非排班日' && d.punches.length === 0))
             detail.push([r.emp.device_code, r.label, d.date, d.shiftLabel, d.inTime ?? '', d.outTime ?? '', d.status, d.punches.join(' '), d.note] as any);
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detail), `${month} 明細`);
-      XLSX.writeFile(wb, `教職員打卡_${month}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detail), `${periodLabel} 明細`);
+      XLSX.writeFile(wb, `教職員打卡_${periodLabel}.xlsx`);
     } else {
       const sheet = [['機號', '姓名', '班別', '上班', '下班', '狀態', '全部打卡', '備註']];
       for (const r of visibleRows) {
@@ -137,6 +170,12 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
     <div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', marginBottom: 12 }}>
         <span>
+          <button style={{ ...btn, background: mode === 'term' ? '#eee' : '#fff' }} onClick={() => setMode('term')} disabled={terms.length === 0}>
+            學期統計
+          </button>{' '}
+          <button style={{ ...btn, background: mode === 'year' ? '#eee' : '#fff' }} onClick={() => setMode('year')} disabled={terms.length === 0}>
+            學年統計
+          </button>{' '}
           <button style={{ ...btn, background: mode === 'month' ? '#eee' : '#fff' }} onClick={() => setMode('month')}>
             整月統計
           </button>{' '}
@@ -144,7 +183,10 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
             單日名單
           </button>
         </span>
-        {mode === 'month' ? <MonthPicker value={month} onChange={setMonth} /> : <input type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} style={input} />}
+        {mode === 'term' && <TermPicker terms={terms} value={termKey} onChange={setTermKey} />}
+        {mode === 'year' && <TermPicker terms={years} value={yearKey} onChange={setYearKey} currentLabel="本學年" />}
+        {mode === 'month' && <MonthPicker value={month} onChange={setMonth} />}
+        {mode === 'day' && <input type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} style={input} />}
         <label style={{ fontSize: 13 }}>
           <input type="checkbox" checked={onlyProblems} onChange={(e) => setOnlyProblems(e.target.checked)} /> 只看有異常
         </label>
@@ -158,8 +200,20 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
 
       {loading && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
       {error && <p style={{ fontSize: 13, color: '#c00' }}>{error}</p>}
+      {!loading && autoHolidays.length > 0 && (
+        <p style={{ fontSize: 12, color: '#666', margin: '0 0 10px' }}>
+          以下 {autoHolidays.length} 天排班的人有 80% 以上沒打卡，已自動當放假日計算（不算缺勤）：
+          {autoHolidays.map((h) => h.holiday_date.slice(5).replace('-', '/')).join('、')}。要正式記錄或更正，請到「班別與放假日」。
+        </p>
+      )}
+      {!loading && periods.length > 0 && (
+        <p style={{ fontSize: 12, color: '#666', margin: '0 0 10px' }}>
+          特殊時段（期間內改用設定的上下班時間）：
+          {periods.map((p) => `${p.name} ${p.from.slice(5).replace('-', '/')}～${p.to.slice(5).replace('-', '/')}${p.start_time ? ' 上班 ' + p.start_time.slice(0, 5) : ''}${p.end_time ? ' 下班 ' + p.end_time.slice(0, 5) : ''}`).join('；')}
+        </p>
+      )}
 
-      {mode === 'month' && (
+      {isRange && (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
             <thead>

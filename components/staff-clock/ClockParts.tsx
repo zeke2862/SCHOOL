@@ -1,6 +1,7 @@
 'use client';
 
 import { DaySummary, DayStatus, RangeStats, STATUS_COLOR, WEEKDAY_LABEL, fmtHours, shiftMonth } from '@/lib/staffClock';
+import type { ClockTerm } from '@/lib/staffClockData';
 
 export const th: React.CSSProperties = { padding: '6px 8px', borderBottom: '2px solid #ddd', textAlign: 'left', whiteSpace: 'nowrap', background: '#fafafa' };
 export const td: React.CSSProperties = { padding: '6px 8px', borderBottom: '1px solid #eee', verticalAlign: 'top' };
@@ -25,6 +26,39 @@ export function MonthPicker({ value, onChange }: { value: string; onChange: (ym:
       <button style={btn} onClick={() => onChange(shiftMonth(value, 1))}>
         ▶
       </button>
+    </span>
+  );
+}
+
+/** 學期／學年下拉選單（依「學年學期設定」，新的在前；目前的加註） */
+export function TermPicker({
+  terms,
+  value,
+  onChange,
+  currentLabel = '本學期',
+}: {
+  terms: Pick<ClockTerm, 'key' | 'label' | 'from' | 'to' | 'isCurrent'>[];
+  value: string;
+  onChange: (key: string) => void;
+  currentLabel?: string;
+}) {
+  if (terms.length === 0) return <span style={{ fontSize: 13, color: '#b26a00' }}>尚未建立學年學期（請到「學年學期設定」新增）</span>;
+  const cur = terms.find((t) => t.key === value);
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+      <select value={value} onChange={(e) => onChange(e.target.value)} style={input}>
+        {terms.map((t) => (
+          <option key={t.key} value={t.key}>
+            {t.label}
+            {t.isCurrent ? `（${currentLabel}）` : ''}
+          </option>
+        ))}
+      </select>
+      {cur && (
+        <span style={{ fontSize: 12, color: '#888' }}>
+          {cur.from} ～ {cur.to}
+        </span>
+      )}
     </span>
   );
 }

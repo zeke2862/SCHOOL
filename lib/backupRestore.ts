@@ -85,6 +85,7 @@ export const BACKUP_TABLES = [
   // 教職員打卡（sql/104）：clock_import_log 只是匯入流水帳，不列入備份
   'clock_shifts',
   'clock_holidays',
+  'clock_special_periods', // 特殊時段／考試週（sql/127）
   'clock_employee_map',
   'clock_records',
   'clock_day_overrides',

@@ -12,6 +12,7 @@ type Draft = Pick<ClockEmployee, 'display_name' | 'teacher_id' | 'shift_ids' | '
 
 // 人員對照：打卡機只認「機號＋拼音名字」，這裡把每個機號對應到學校系統的教師帳號（才能「自己查自己」），
 // 並指定班別（才能判斷遲到／早退／缺勤）。匯入時沒看過的機號會自動出現在這裡，teacher 先留空。
+// 可以一次改很多列再按「儲存全部變更」；已經對應給其他機號的教師不會出現在下拉選單（要改給別人，先把原本那列改回未對應）。
 export default function ClockMappingTab({ employees, teachers, shifts, onChanged }: Props) {
   const [drafts, setDrafts] = useState<Record<number, Draft>>({});
   const [filter, setFilter] = useState('');
@@ -47,25 +48,50 @@ export default function ClockMappingTab({ employees, teachers, shifts, onChanged
     return String(e.device_code).includes(f) || e.device_name.toLowerCase().includes(f) || (e.display_name ?? '').toLowerCase().includes(f) || tName.toLowerCase().includes(f);
   });
 
-  async function save(e: ClockEmployee) {
-    setBusy(e.device_code);
-    setMessage(null);
+  async function update(e: ClockEmployee) {
     const d = draftOf(e);
     const { error } = await supabase
       .from('clock_employee_map')
       .update({ display_name: d.display_name?.trim() || null, teacher_id: d.teacher_id || null, shift_ids: d.shift_ids, active: d.active, note: d.note?.trim() || null })
       .eq('device_code', e.device_code);
-    setBusy(null);
-    if (error) {
-      setMessage(`機號 ${e.device_code} 儲存失敗：${error.message}`);
-      return;
-    }
+    return error ? `機號 ${e.device_code}：${error.message}` : null;
+  }
+
+  function clearDrafts(codes: number[]) {
     setDrafts((prev) => {
       const n = { ...prev };
-      delete n[e.device_code];
+      for (const c of codes) delete n[c];
       return n;
     });
+  }
+
+  async function save(e: ClockEmployee) {
+    setBusy(e.device_code);
+    setMessage(null);
+    const err = await update(e);
+    setBusy(null);
+    if (err) {
+      setMessage('儲存失敗：' + err);
+      return;
+    }
+    clearDrafts([e.device_code]);
     onChanged();
+  }
+
+  const dirtyList = employees.filter(isDirty);
+
+  // 批次儲存：所有有改動的列一起送出；失敗的列保留草稿（黃底），成功的清掉
+  async function saveAll() {
+    if (dirtyList.length === 0) return;
+    setBusy('bulk');
+    setMessage(null);
+    const results = await Promise.all(dirtyList.map(async (e) => ({ code: e.device_code, err: await update(e) })));
+    setBusy(null);
+    const ok = results.filter((r) => !r.err).map((r) => r.code);
+    const failed = results.filter((r) => r.err).map((r) => r.err);
+    clearDrafts(ok);
+    setMessage(failed.length ? `已儲存 ${ok.length} 筆；${failed.length} 筆失敗（仍保留在畫面上）：${failed.join('；')}` : `已儲存 ${ok.length} 筆變更。`);
+    if (ok.length) onChanged();
   }
 
   // 一鍵：把「所有啟用中的班別」套給目前在職、還沒設班別的人（平日晚班＋週六早班這種最常見的情況）
@@ -102,7 +128,15 @@ export default function ClockMappingTab({ employees, teachers, shifts, onChanged
         <label style={{ fontSize: 13 }}>
           <input type="checkbox" checked={onlyUnmapped} onChange={(e) => setOnlyUnmapped(e.target.checked)} /> 只看未對應帳號
         </label>
-        <button style={btn} disabled={busy === 'bulk' || activeShifts.length === 0} onClick={applyDefaultShifts}>
+        <button style={dirtyList.length ? btnPrimary : btn} disabled={busy !== null || dirtyList.length === 0} onClick={saveAll}>
+          儲存全部變更{dirtyList.length ? `（${dirtyList.length} 筆）` : ''}
+        </button>
+        {dirtyList.length > 0 && (
+          <button style={btn} disabled={busy !== null} onClick={() => setDrafts({})}>
+            放棄變更
+          </button>
+        )}
+        <button style={btn} disabled={busy === 'bulk' || activeShifts.length === 0 || dirtyList.length > 0} onClick={applyDefaultShifts} title={dirtyList.length ? '請先儲存或放棄目前的變更' : undefined}>
           一鍵套用班別給「尚未設定班別」的在職人員
         </button>
       </div>
@@ -133,7 +167,7 @@ export default function ClockMappingTab({ employees, teachers, shifts, onChanged
                   <td style={td}>
                     <select value={d.teacher_id ?? ''} onChange={(ev) => patch(e, { teacher_id: ev.target.value || null })} style={{ ...input, maxWidth: 170 }}>
                       <option value="">（未對應）</option>
-                      {teachers.map((t) => (
+                      {teachers.filter((t) => t.id === d.teacher_id || !teacherUse.has(t.id)).map((t) => (
                         <option key={t.id} value={t.id}>
                           {t.name}
                         </option>
@@ -180,6 +214,13 @@ export default function ClockMappingTab({ employees, teachers, shifts, onChanged
           </tbody>
         </table>
       </div>
+      {dirtyList.length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <button style={btnPrimary} disabled={busy !== null} onClick={saveAll}>
+            儲存全部變更（{dirtyList.length} 筆）
+          </button>
+        </div>
+      )}
     </div>
   );
 }

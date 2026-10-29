@@ -10,14 +10,16 @@ import {
   ClockOverride,
   ClockRecord,
   ClockShift,
+  EffectivePeriod,
   bangkokNow,
+  dateRange,
   employeeLabel,
   monthRange,
   summarizeRange,
   shiftLabel,
 } from '@/lib/staffClock';
-import { buildDays, loadClockRange, loadEmployees, loadHolidays, loadLastDataAt, loadShifts } from '@/lib/staffClockData';
-import { DayTable, MonthPicker, StatsCards, input } from '@/components/staff-clock/ClockParts';
+import { ClockTerm, buildDays, loadClockCalendar, loadClockRange, loadClockTerms, loadEmployees, loadLastDataAt, loadShifts, termsToYears } from '@/lib/staffClockData';
+import { DayTable, MonthPicker, StatsCards, TermPicker, btn, input } from '@/components/staff-clock/ClockParts';
 
 // 我的打卡紀錄：每位教職員只查得到「對應到自己」的打卡（資料庫 RLS 把關，不是只靠畫面隱藏）。
 // 教務處／系統管理員S／管理員A 另外可以在上方下拉選單切換查看任何人。
@@ -35,6 +37,12 @@ export default function MyStaffClockPage() {
   const [shifts, setShifts] = useState<ClockShift[]>([]);
   const [selectedCode, setSelectedCode] = useState<number | null>(null);
   const [month, setMonth] = useState(() => bangkokNow().date.slice(0, 7));
+  const [period, setPeriod] = useState<'month' | 'term' | 'year'>('month');
+  const [terms, setTerms] = useState<ClockTerm[]>([]);
+  const [termKey, setTermKey] = useState('');
+  const [yearKey, setYearKey] = useState('');
+  const [periods, setPeriods] = useState<EffectivePeriod[]>([]);
+  const years = useMemo(() => termsToYears(terms), [terms]);
   const [records, setRecords] = useState<ClockRecord[]>([]);
   const [overrides, setOverrides] = useState<ClockOverride[]>([]);
   const [holidays, setHolidays] = useState<ClockHoliday[]>([]);
@@ -50,12 +58,17 @@ export default function MyStaffClockPage() {
           return;
         }
         setRoleManage(isAdminInCurrentView(me.role) && (me.role === 'system_admin_s' || me.role === 'admin_a'));
-        const [emps, shiftList, last, tRes] = await Promise.all([
+        const [emps, shiftList, last, tRes, termList] = await Promise.all([
           loadEmployees(),
           loadShifts(),
           loadLastDataAt(),
           supabase.from('teachers').select('id, name'),
+          loadClockTerms().catch(() => [] as ClockTerm[]),
         ]);
+        setTerms(termList);
+        setTermKey((termList.find((t) => t.isCurrent) ?? termList[0])?.key ?? '');
+        const ys = termsToYears(termList);
+        setYearKey((ys.find((y) => y.isCurrent) ?? ys[0])?.key ?? '');
         const names = new Map<string, string>();
         const mine: string[] = [];
         for (const t of (tRes.data ?? []) as { id: string; name: string }[]) names.set(t.id, t.name);
@@ -79,19 +92,21 @@ export default function MyStaffClockPage() {
   const myEmployees = useMemo(() => employees.filter((e) => e.teacher_id && myTeacherIds.includes(e.teacher_id)), [employees, myTeacherIds]);
   const selectable = canManage ? employees.filter((e) => e.active) : myEmployees;
   const selected = employees.find((e) => e.device_code === selectedCode) ?? null;
-  const { from, to, dates } = useMemo(() => monthRange(month), [month]);
+  const term = period === 'term' ? terms.find((t) => t.key === termKey) ?? null : period === 'year' ? years.find((y) => y.key === yearKey) ?? null : null;
+  const { from, to, dates } = useMemo(() => (term ? dateRange(term.from, term.to) : monthRange(month)), [term, month]);
 
-  // 2) 選到的人／月份變動時，重新讀取當月資料
+  // 2) 選到的人／月份、學期或學年變動時，重新讀取該期間資料
   useEffect(() => {
     if (selectedCode == null) return;
     let alive = true;
     (async () => {
       try {
-        const [range, hol] = await Promise.all([loadClockRange(from, to, [selectedCode]), loadHolidays(from, to)]);
+        const [range, hol] = await Promise.all([loadClockRange(from, to, [selectedCode]), loadClockCalendar(from, to)]);
         if (!alive) return;
         setRecords(range.records);
         setOverrides(range.overrides);
-        setHolidays(hol);
+        setHolidays(hol.holidays);
+        setPeriods(hol.periods);
       } catch (e: any) {
         if (alive) setError(e.message ?? String(e));
       }
@@ -110,8 +125,9 @@ export default function MyStaffClockPage() {
       records,
       overrides,
       holidays: new Map(holidays.map((h) => [h.holiday_date, h])),
+      periods,
     });
-  }, [selected, dates, shifts, records, overrides, holidays]);
+  }, [selected, dates, shifts, records, overrides, holidays, periods]);
   const stats = useMemo(() => summarizeRange(days), [days]);
   const myShifts = selected ? (selected.shift_ids.map((id) => shifts.find((s) => s.id === id)).filter(Boolean) as ClockShift[]) : [];
   const lastLabel = lastDataAt ? new Date(lastDataAt).toLocaleString('zh-TW', { timeZone: 'Asia/Bangkok', hour12: false }) : null;
@@ -135,7 +151,20 @@ export default function MyStaffClockPage() {
       {!loading && selectable.length > 0 && (
         <>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', margin: '12px 0' }}>
-            <MonthPicker value={month} onChange={setMonth} />
+            <span>
+              <button style={{ ...btn, background: period === 'month' ? '#eee' : '#fff' }} onClick={() => setPeriod('month')}>
+                依月份
+              </button>{' '}
+              <button style={{ ...btn, background: period === 'term' ? '#eee' : '#fff' }} onClick={() => setPeriod('term')} disabled={terms.length === 0}>
+                依學期
+              </button>{' '}
+              <button style={{ ...btn, background: period === 'year' ? '#eee' : '#fff' }} onClick={() => setPeriod('year')} disabled={terms.length === 0}>
+                依學年
+              </button>
+            </span>
+            {period === 'month' && <MonthPicker value={month} onChange={setMonth} />}
+            {period === 'term' && <TermPicker terms={terms} value={termKey} onChange={setTermKey} />}
+            {period === 'year' && <TermPicker terms={years} value={yearKey} onChange={setYearKey} currentLabel="本學年" />}
             {canManage && (
               <label style={{ fontSize: 13 }}>
                 查看人員：

@@ -61,6 +61,34 @@ export type ClockOverride = {
 
 export type ClockHoliday = { holiday_date: string; name: string };
 
+/** 特殊時段設定（clock_special_periods）。exam_week 沒有日期，由成績收件時段推算。 */
+export type ClockSpecialPeriod = {
+  id: string;
+  name: string;
+  kind: 'fixed' | 'exam_week';
+  date_from: string | null;
+  date_to: string | null;
+  shift_ids: string[]; // 空＝所有班別
+  start_time: string | null; // null＝維持原班別時間
+  end_time: string | null;
+  active: boolean;
+  note: string | null;
+};
+
+/** 已展開成實際日期的特殊時段（考試週也已換算成日期） */
+export type EffectivePeriod = { name: string; from: string; to: string; shift_ids: string[]; start_time: string | null; end_time: string | null };
+
+/** 某天落在特殊時段內：把適用班別的上下班時間換掉，班別名稱加註時段名稱（多個時段重疊時取第一個） */
+export function applyPeriods(shifts: ClockShift[], date: string, periods: EffectivePeriod[]): ClockShift[] {
+  const p = periods.find((x) => x.from <= date && date <= x.to);
+  if (!p) return shifts;
+  return shifts.map((s) =>
+    p.shift_ids.length && !p.shift_ids.includes(s.id)
+      ? s
+      : { ...s, name: `${s.name}（${p.name}）`, start_time: p.start_time ?? s.start_time, end_time: p.end_time ?? s.end_time }
+  );
+}
+
 export type ClockRowInput = {
   device_code: number;
   device_name: string;
@@ -217,6 +245,13 @@ export function monthRange(ym: string): { from: string; to: string; dates: strin
   const dates: string[] = [];
   for (let d = 1; d <= last; d++) dates.push(`${y}-${pad2(m)}-${pad2(d)}`);
   return { from: dates[0], to: dates[dates.length - 1], dates };
+}
+
+/** 任意起訖日（含）→ { from, to, dates } */
+export function dateRange(from: string, to: string): { from: string; to: string; dates: string[] } {
+  const dates: string[] = [];
+  for (let d = from; d <= to && dates.length < 800; d = addDays(d, 1)) dates.push(d);
+  return { from, to, dates };
 }
 
 export function shiftMonth(ym: string, delta: number): string {

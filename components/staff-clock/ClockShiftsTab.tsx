@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { ClockHoliday, ClockShift, WEEKDAY_LABEL, addDays, bangkokNow, isoWeekday } from '@/lib/staffClock';
 import { loadHolidays } from '@/lib/staffClockData';
 import { btn, btnPrimary, input, td, th } from './ClockParts';
+import ClockSpecialPeriods from './ClockSpecialPeriods';
 
 type Props = { shifts: ClockShift[]; onChanged: () => void };
 
@@ -239,6 +240,8 @@ export default function ClockShiftsTab({ shifts, onChanged }: Props) {
           </tbody>
         </table>
       </div>
+
+      <ClockSpecialPeriods shifts={shifts} />
 
       <h3 style={{ fontSize: 15, marginTop: 28 }}>全校放假日</h3>
       <p style={{ fontSize: 12, color: '#777', marginTop: 0 }}>放假日當天不判缺勤、不計入應到天數（個別請假請到「補卡／更正」分頁）。</p>
