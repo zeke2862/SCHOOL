@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import ParentLeaveTab from '@/components/portal/ParentLeaveTab';
 
 type LinkedStudent = { id: string; student_no: string; relation: string; name: string };
 type TermRecord = {
@@ -65,7 +66,7 @@ const STUDENT_PROFILE_FIELDS: { field: string; label: string }[] = [
 ];
 
 export default function ParentPortalPage() {
-  const [activeTab, setActiveTab] = useState<'成績' | '課表' | '通知' | '獎懲'>('成績');
+  const [activeTab, setActiveTab] = useState<'成績' | '課表' | '通知' | '獎懲' | '請假'>('成績');
   const [linkedStudents, setLinkedStudents] = useState<LinkedStudent[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -543,7 +544,7 @@ export default function ParentPortalPage() {
         <>
           {/* 頁面上方三個切換按鈕：成績／教師班級課表／通知 */}
           <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid #e5e5e0' }}>
-            {(['成績', '課表', '獎懲', '通知'] as const).map((tab) => (
+            {(['成績', '課表', '獎懲', '請假', '通知'] as const).map((tab) => (
               <button
                 key={tab}
                 type="button"
@@ -566,6 +567,10 @@ export default function ParentPortalPage() {
               <span style={{ alignSelf: 'center', fontSize: 11, color: '#A36A2D' }}>● 通知有新內容</span>
             )}
           </div>
+
+          {activeTab === '請假' && (
+            <ParentLeaveTab studentNo={selected.student_no} studentName={selected.name} canRequest={selected.relation === '家長'} />
+          )}
 
           {activeTab === '成績' && (
             <>
