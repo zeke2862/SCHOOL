@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useDepartmentPermissions } from '@/lib/useDepartmentPermissions';
+import { CurrentTerm, resolveCurrentTerm } from '@/lib/academicTerm';
 
 // 成績上傳時間設定表
 // ------------------------------------------------------------
@@ -18,6 +19,8 @@ import { useDepartmentPermissions } from '@/lib/useDepartmentPermissions';
 // 再往上看全校的設定（sql/34fix_exam_type_locked_scope.sql 的 exam_type_locked() 函式）。
 // 一般情況下，教務處可以直接設定「全校」一次搞定所有班級；如果某班需要個別處理
 // （例如緩考、成績有疑義還沒確認），再對那個班單獨設定即可蓋過全校/部別的設定。
+//
+// 列表預設只顯示「目前學期」，其他學期收在下方「其他學期的設定」，需要時再展開。
 
 type DataType = '期中考' | '期末考' | '平時分' | '出缺勤';
 type Scope = '全校' | '部別' | '班級';
@@ -79,6 +82,8 @@ export default function ScoreSubmissionWindowsPage() {
   const [closesAt, setClosesAt] = useState('');
   const [isLocked, setIsLocked] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [currentTerm, setCurrentTerm] = useState<CurrentTerm | null>(null);
+  const [showOthers, setShowOthers] = useState(false);
 
   const canManageCurrentType = dataType === '出缺勤' ? canManageDiscipline : canManageAcademic;
 
@@ -104,7 +109,20 @@ export default function ScoreSubmissionWindowsPage() {
   }
   useEffect(() => {
     load();
+    // 表單預設帶目前學期，列表也以目前學期為主
+    resolveCurrentTerm().then((t) => {
+      setCurrentTerm(t);
+      if (t) {
+        setAcademicYear(t.academic_year);
+        setTerm(t.term as '上學期' | '下學期');
+      }
+    });
   }, []);
+
+  // 查不到目前學期時全部都當「目前」顯示，避免整張表被收起來
+  const isCurrent = (r: WindowRow) => !currentTerm || (r.academic_year === currentTerm.academic_year && r.term === currentTerm.term);
+  const currentRows = rows.filter(isCurrent);
+  const otherRows = rows.filter((r) => !isCurrent(r));
 
   function resetScopeRef(nextScope: Scope) {
     setScope(nextScope);
@@ -267,6 +285,24 @@ export default function ScoreSubmissionWindowsPage() {
       {loading ? (
         <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
       ) : (
+        <>
+          <h2 style={{ fontSize: 15, margin: '0 0 8px' }}>{currentTerm ? `${currentTerm.academic_year}學年度 ${currentTerm.term}（目前學期）` : '全部設定'}</h2>
+          {renderTable(currentRows, currentTerm ? '目前學期還沒有任何設定' : '目前沒有任何設定')}
+          {otherRows.length > 0 && (
+            <div style={{ marginTop: 20 }}>
+              <button type="button" onClick={() => setShowOthers((v) => !v)} style={{ fontSize: 13, padding: '4px 12px', cursor: 'pointer' }}>
+                {showOthers ? '▾ 收起其他學期的設定' : `▸ 其他學期的設定（${otherRows.length} 筆）`}
+              </button>
+              {showOthers && <div style={{ marginTop: 8 }}>{renderTable(otherRows, '')}</div>}
+            </div>
+          )}
+        </>
+      )}
+    </main>
+  );
+
+  function renderTable(list: WindowRow[], emptyText: string) {
+    return (
         <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
           <thead>
             <tr style={{ background: '#f5f5f5' }}>
@@ -276,7 +312,7 @@ export default function ScoreSubmissionWindowsPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => {
+            {list.map((r) => {
               const rowManageable = r.data_type === '出缺勤' ? canManageDiscipline : canManageAcademic;
               return (
                 <tr key={r.id}>
@@ -300,16 +336,15 @@ export default function ScoreSubmissionWindowsPage() {
                 </tr>
               );
             })}
-            {rows.length === 0 && (
+            {list.length === 0 && (
               <tr>
-                <td colSpan={8} style={{ ...tdStyle, color: '#999', textAlign: 'center' }}>目前沒有任何設定</td>
+                <td colSpan={8} style={{ ...tdStyle, color: '#999', textAlign: 'center' }}>{emptyText}</td>
               </tr>
             )}
           </tbody>
         </table>
-      )}
-    </main>
-  );
+    );
+  }
 }
 
 const inputStyle: React.CSSProperties = { display: 'block', width: '100%', padding: 5, fontSize: 13, boxSizing: 'border-box', marginTop: 3 };
