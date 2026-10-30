@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { estimateTermStart, resolveCurrentTerm } from '@/lib/academicTerm';
 
 const STATUS_OPTIONS = ['入學', '休學', '轉學', '退學', '畢業', '肄業', '復學'] as const;
 const HIDDEN_STATUSES = ['休學', '轉學', '退學', '畢業', '肄業'] as const;
@@ -38,6 +39,9 @@ export default function StatusChangePage() {
   const [hiddenList, setHiddenList] = useState<HiddenStudentRow[] | null>(null);
   const [hiddenListError, setHiddenListError] = useState<string | null>(null);
   const [loadingHiddenList, setLoadingHiddenList] = useState(false);
+  // 「應隱藏」名單預設只列這學期（生效日在本學期開學日之後）的學生，更早學期的要管理人特別點選才會顯示
+  const [termStart, setTermStart] = useState<string | null>(null);
+  const [showOlder, setShowOlder] = useState(false);
 
   async function loadHiddenList() {
     setLoadingHiddenList(true);
@@ -94,7 +98,22 @@ export default function StatusChangePage() {
 
   useEffect(() => {
     loadHiddenList();
+    (async () => {
+      const cur = await resolveCurrentTerm();
+      if (!cur) return;
+      const { data } = await supabase
+        .from('academic_terms')
+        .select('term_start_date')
+        .eq('academic_year', cur.academic_year)
+        .eq('term', cur.term)
+        .maybeSingle();
+      setTermStart(data?.term_start_date ?? estimateTermStart(cur.academic_year, cur.term));
+    })();
   }, []);
+
+  const currentHidden = (hiddenList ?? []).filter((r) => !termStart || r.effective_date >= termStart);
+  const olderHidden = (hiddenList ?? []).filter((r) => termStart && r.effective_date < termStart);
+  const shownHidden = showOlder ? [...currentHidden, ...olderHidden] : currentHidden;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -240,10 +259,22 @@ export default function StatusChangePage() {
           如果某位學生明明已經辦好離校手續、卻沒有出現在下面，代表系統裡沒有他的狀態變更紀錄，用上面的表單補登記即可。
         </p>
         {hiddenListError && <p style={{ fontSize: 12, color: '#A32D2D' }}>{hiddenListError}</p>}
-        {hiddenList && hiddenList.length === 0 && !hiddenListError && (
-          <p style={{ fontSize: 12, color: '#999' }}>目前沒有任何學生被系統判定為應隱藏。</p>
+        {hiddenList && termStart && (
+          <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+            預設只列本學期（{termStart} 起）的名單。
+            {olderHidden.length > 0 ? (
+              <button type="button" onClick={() => setShowOlder(!showOlder)} style={{ marginLeft: 8, fontSize: 12, padding: '2px 10px' }}>
+                {showOlder ? '收起以前學期的名單' : `顯示以前學期的名單（${olderHidden.length} 位）`}
+              </button>
+            ) : (
+              '以前學期沒有應隱藏的學生。'
+            )}
+          </p>
         )}
-        {hiddenList && hiddenList.length > 0 && (
+        {hiddenList && shownHidden.length === 0 && !hiddenListError && (
+          <p style={{ fontSize: 12, color: '#999' }}>{termStart && !showOlder ? '本學期目前沒有學生被系統判定為應隱藏。' : '目前沒有任何學生被系統判定為應隱藏。'}</p>
+        )}
+        {hiddenList && shownHidden.length > 0 && (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr>
@@ -254,7 +285,7 @@ export default function StatusChangePage() {
               </tr>
             </thead>
             <tbody>
-              {hiddenList.map((r) => (
+              {shownHidden.map((r) => (
                 <tr key={r.student_no}>
                   <td style={{ padding: '4px 8px', borderBottom: '1px solid #f5f5f5' }}>{r.student_no}</td>
                   <td style={{ padding: '4px 8px', borderBottom: '1px solid #f5f5f5' }}>{r.name}</td>

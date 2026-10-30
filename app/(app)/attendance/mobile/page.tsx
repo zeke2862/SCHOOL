@@ -9,6 +9,7 @@ import { departmentForGrade } from '@/lib/gradeMapping';
 import { getEffectivePeriodCount } from '@/lib/periodConfig';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
 import StatusChangeRequestPanel from '@/components/attendance/StatusChangeRequestPanel';
+import { getMyDepartments, hasDepartment } from '@/lib/departments';
 
 // 【2026-08-11 修正】根因：原本「導師/管理員決定當天可選節次」的 useEffect 只要
 // isHomeroom 或 isAdmin 成立就會整個覆蓋 periods 狀態，換成 period_config 算出來的
@@ -103,6 +104,8 @@ export default function MobileAttendancePage() {
   const [notifyBusy, setNotifyBusy] = useState(false);
   const notifyPrompt = notifyQueue[0] ?? null;
   const [showStatusRequest, setShowStatusRequest] = useState(false);
+  // 管理員A、系統管理員S、教務處：可替任何班送出學籍異動申請（管理員視角下選的班級）
+  const [canRequestAnyClass, setCanRequestAnyClass] = useState(false);
 
   const selectedEntry = periods.find((p) => p.key === selectedKey) ?? null;
   // 這個節次是不是「自己導師班的節次」（不論是導師班全部節次的 source='homeroom'，
@@ -125,6 +128,11 @@ export default function MobileAttendancePage() {
       // 教師視角的邏輯（只能操作自己導師班/任課班），不然「切換身分」對這頁形同虛設。
       const admin = isAdminInCurrentView(appUser.role);
       setIsAdmin(admin);
+      if (admin) {
+        setCanRequestAnyClass(
+          appUser.role === 'admin_a' || appUser.role === 'system_admin_s' || hasDepartment(await getMyDepartments(appUser.id), 'academic')
+        );
+      }
 
       if (admin) {
         const { data: allClasses } = await supabase
@@ -495,7 +503,7 @@ export default function MobileAttendancePage() {
     <main style={{ maxWidth: 420, margin: '0 auto', padding: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <h1 style={{ fontSize: 18 }}>出缺勤登錄</h1>
-        {!isAdmin && isHomeroom && homeroomClassId && (
+        {((!isAdmin && isHomeroom && homeroomClassId) || (isAdmin && canRequestAnyClass && adminClassId)) && (
           <button
             onClick={() => setShowStatusRequest(true)}
             style={{ fontSize: 13, padding: '6px 12px', borderRadius: 8, border: '1px solid #2C2C2A', background: '#fff', whiteSpace: 'nowrap' }}
@@ -504,8 +512,13 @@ export default function MobileAttendancePage() {
           </button>
         )}
       </div>
-      {showStatusRequest && homeroomClassId && (
-        <StatusChangeRequestPanel classId={homeroomClassId} classLabel={homeroomClassLabel} onClose={() => setShowStatusRequest(false)} />
+      {showStatusRequest && (isAdmin ? adminClassId : homeroomClassId) && (
+        <StatusChangeRequestPanel
+          key={isAdmin ? adminClassId! : homeroomClassId!}
+          classId={(isAdmin ? adminClassId : homeroomClassId)!}
+          classLabel={isAdmin ? classOptions.find((c) => c.id === adminClassId)?.label ?? '' : homeroomClassLabel}
+          onClose={() => setShowStatusRequest(false)}
+        />
       )}
 
       <div style={{ marginBottom: 12 }}>
