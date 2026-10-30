@@ -308,16 +308,16 @@ export const LEGACY_RULE_UNTIL = '2026-10-31';
 const LEGACY_MIN_SHIFT_START = 12 * 60;
 
 /**
- * 【歷史考試／報名週】這三段是舊學期的學期考試＆報名週，晚班一律 19:00 下班。
+ * 【歷史特殊下班時間】過去學期的考試／報名週與突發事件，晚班的下班時間與平常不同。
  * 因為屬於過去的學期，不放進「特殊時段」設定（以免出現在現在學期的時間表），直接在判定裡處理，
  * 只影響晚班類（上班時間 12:00 以後）班別，星期六早班不受影響。
  */
-const LEGACY_EXAM_WEEKS: { from: string; to: string }[] = [
-  { from: '2026-05-12', to: '2026-05-16' },
-  { from: '2026-07-13', to: '2026-07-17' },
-  { from: '2026-09-21', to: '2026-09-24' },
+const LEGACY_END_OVERRIDES: { from: string; to: string; end: string; why: string }[] = [
+  { from: '2026-05-12', to: '2026-05-16', end: '19:00:00', why: '學期考試／報名週' },
+  { from: '2026-07-13', to: '2026-07-17', end: '19:00:00', why: '學期考試／報名週' },
+  { from: '2026-08-28', to: '2026-08-28', end: '19:30:00', why: '事故，全校提早放學' },
+  { from: '2026-09-21', to: '2026-09-24', end: '19:00:00', why: '學期考試／報名週' },
 ];
-const LEGACY_EXAM_WEEK_END = '19:00:00';
 
 /** 彈性打卡人員：凌晨這個時間（06:00）以前的打卡算「前一天的下班」，白天的打卡才算當天上班 */
 const FLEX_PREV_DAY_CUTOFF_MIN = 6 * 60;
@@ -348,9 +348,8 @@ export function summarizeDay(p: {
   const weekday = isoWeekday(date);
   const activeShifts = shifts.filter((s) => s.active);
   let shift = activeShifts.find((s) => s.work_days.includes(weekday)) ?? null;
-  if (shift && timeToMin(shift.start_time) >= LEGACY_MIN_SHIFT_START && LEGACY_EXAM_WEEKS.some((w) => w.from <= date && date <= w.to)) {
-    shift = { ...shift, end_time: LEGACY_EXAM_WEEK_END };
-  }
+  const endOverride = shift && timeToMin(shift.start_time) >= LEGACY_MIN_SHIFT_START ? LEGACY_END_OVERRIDES.find((w) => w.from <= date && date <= w.to) : undefined;
+  if (shift && endOverride) shift = { ...shift, end_time: endOverride.end };
 
   const punchMinutes = records
     .map((r) => toBangkok(r.punched_at).minutes)
