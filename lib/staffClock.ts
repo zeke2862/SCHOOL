@@ -307,6 +307,9 @@ const MIN_SPAN_MIN = 20;
 export const LEGACY_RULE_UNTIL = '2026-10-31';
 const LEGACY_MIN_SHIFT_START = 12 * 60;
 
+/** 彈性打卡人員：凌晨這個時間（06:00）以前的打卡算「前一天的下班」，白天的打卡才算當天上班 */
+const FLEX_PREV_DAY_CUTOFF_MIN = 6 * 60;
+
 export function shiftLabel(s: ClockShift): string {
   return `${s.name} ${s.start_time.slice(0, 5)}–${s.end_time.slice(0, 5)}`;
 }
@@ -356,17 +359,20 @@ export function summarizeDay(p: {
     expected: false,
   };
 
+  // 彈性打卡人員：凌晨（06:00 前）的打卡屬於前一天的下班，不算當天
+  const dayPunches = flexible ? punchMinutes.filter((m) => m >= FLEX_PREV_DAY_CUTOFF_MIN) : punchMinutes;
+
   // 取窗內打卡計算上下班（沒有班別時，用當天首末筆）
   let inMin: number | null = null;
   let outMin: number | null = null;
-  let windowed = punchMinutes;
+  let windowed = dayPunches;
   // 寬鬆規則只適用晚班類（上班時間 12:00 以後）且日期在 LEGACY_RULE_UNTIL 以前
   const legacy = !!shift && date <= LEGACY_RULE_UNTIL && timeToMin(shift.start_time) >= LEGACY_MIN_SHIFT_START;
   if (shift) {
     const start = timeToMin(shift.start_time);
     const end = timeToMin(shift.end_time);
-    const from = legacy ? 0 : start - shift.window_before_min; // 寬鬆規則：上班前任何時間的打卡都算
-    windowed = punchMinutes.filter((m) => m >= from && m <= end + shift.window_after_min);
+    const from = legacy || flexible ? 0 : start - shift.window_before_min; // 寬鬆規則：上班前任何時間的打卡都算
+    windowed = dayPunches.filter((m) => m >= from && m <= end + shift.window_after_min);
   }
   if (windowed.length >= 2 && windowed[windowed.length - 1] - windowed[0] >= MIN_SPAN_MIN) {
     inMin = windowed[0];
@@ -435,14 +441,20 @@ export function summarizeDay(p: {
 
   // 彈性打卡：上班時間（含）前有打卡、下班時間（含）後有打卡 → 算有上下班，不計遲到早退
   if (flexible) {
-    const first = punchMinutes[0];
-    const last = punchMinutes[punchMinutes.length - 1];
-    if (first != null && first <= start && last >= end) {
+    const first = dayPunches[0];
+    const last = dayPunches[dayPunches.length - 1];
+    // 隔天凌晨（06:00 前）的打卡算這天的下班
+    const nextEarly = nextDayRecords
+      .map((r) => toBangkok(r.punched_at).minutes)
+      .filter((m) => m < FLEX_PREV_DAY_CUTOFF_MIN)
+      .sort((a, b) => b - a)[0];
+    if (first != null && first <= start && (last >= end || nextEarly != null)) {
+      const nextDay = !(last >= end);
       base.inTime = minToHHMM(first);
-      base.outTime = minToHHMM(last);
-      base.workedMinutes = last - first;
+      base.outTime = nextDay ? minToHHMM(nextEarly!) + '（隔天）' : minToHHMM(last);
+      base.workedMinutes = nextDay ? nextEarly! + 1440 - first : last - first;
       base.status = '正常';
-      base.note = '彈性打卡';
+      base.note = nextDay ? `彈性打卡；下班以隔天凌晨 ${minToHHMM(nextEarly!)} 的打卡認定` : '彈性打卡';
       return base;
     }
   }
