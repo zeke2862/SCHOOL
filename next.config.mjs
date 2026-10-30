@@ -17,6 +17,15 @@ const nextConfig = {
   // 這裡要求每次都向伺服器確認有沒有新版。
   async headers() {
     return [
+      // 字型與圖片很少更動，讓瀏覽器快取一年，每個人只需要下載一次（之後換檔案請換檔名）
+      {
+        source: '/fonts/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        source: '/images/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
       {
         source: '/scheduler/:path*',
         headers: [{ key: 'Cache-Control', value: 'no-cache, must-revalidate' }],

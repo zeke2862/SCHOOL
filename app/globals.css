@@ -1,14 +1,8 @@
-/* 字型：粉圓體（jf open 粉圓 2.1，OFL 開源授權，已放在 public/fonts 自己提供，不依賴外部網站）。
-   字型檔載入前、或電腦上沒有時，依序退回標楷體（Windows 標楷體／DFKai-SB、Mac BiauKai）。 */
-@font-face {
-  font-family: 'jf-openhuninn';
-  src: url('/fonts/jf-openhuninn-2.1.woff2') format('woff2');
-  font-weight: 400 700;
-  font-display: swap;
-}
-
+/* 字型：改用電腦／手機內建的字體（標楷體等），不再下載外部字型檔。
+   原本載入的粉圓體（jf-openhuninn-2.1.woff2）有 2.1MB，每個人每次開頁面都要下載，
+   50 人同時使用時學校網路會被塞滿，登入頁也跟著變慢。粉圓體檔案仍留在 public/fonts，之後想改回來可以再加 @font-face。 */
 body, button, input, select, textarea {
-  font-family: 'jf-openhuninn', '標楷體', 'DFKai-SB', 'BiauKai', 'Noto Serif TC', serif;
+  font-family: '標楷體', 'DFKai-SB', 'BiauKai', 'Noto Serif TC', serif;
 }
 button, input, select, textarea { font-family: inherit; }
 /* 粉圓體只有一種粗細，粗體靠瀏覽器加粗；h1 h2 h3 不要再額外加粗過頭 */
