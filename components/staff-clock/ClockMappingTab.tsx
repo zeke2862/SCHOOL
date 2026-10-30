@@ -8,7 +8,7 @@ import { btn, btnPrimary, input, td, th } from './ClockParts';
 type Teacher = { id: string; name: string };
 type Props = { employees: ClockEmployee[]; teachers: Teacher[]; shifts: ClockShift[]; onChanged: () => void };
 
-type Draft = Pick<ClockEmployee, 'display_name' | 'teacher_id' | 'shift_ids' | 'active' | 'note'>;
+type Draft = Pick<ClockEmployee, 'display_name' | 'teacher_id' | 'shift_ids' | 'active' | 'note' | 'flexible_punch'>;
 
 // 人員對照：打卡機只認「機號＋拼音名字」，這裡把每個機號對應到學校系統的教師帳號（才能「自己查自己」），
 // 並指定班別（才能判斷遲到／早退／缺勤）。匯入時沒看過的機號會自動出現在這裡，teacher 先留空。
@@ -22,10 +22,10 @@ export default function ClockMappingTab({ employees, teachers, shifts, onChanged
 
   const activeShifts = shifts.filter((s) => s.active);
   const draftOf = (e: ClockEmployee): Draft =>
-    drafts[e.device_code] ?? { display_name: e.display_name, teacher_id: e.teacher_id, shift_ids: e.shift_ids, active: e.active, note: e.note };
+    drafts[e.device_code] ?? { display_name: e.display_name, teacher_id: e.teacher_id, shift_ids: e.shift_ids, active: e.active, note: e.note, flexible_punch: !!e.flexible_punch };
   const isDirty = (e: ClockEmployee) => {
     const d = drafts[e.device_code];
-    return !!d && JSON.stringify(d) !== JSON.stringify({ display_name: e.display_name, teacher_id: e.teacher_id, shift_ids: e.shift_ids, active: e.active, note: e.note });
+    return !!d && JSON.stringify(d) !== JSON.stringify({ display_name: e.display_name, teacher_id: e.teacher_id, shift_ids: e.shift_ids, active: e.active, note: e.note, flexible_punch: !!e.flexible_punch });
   };
   function patch(e: ClockEmployee, p: Partial<Draft>) {
     setDrafts((prev) => ({ ...prev, [e.device_code]: { ...draftOf(e), ...p } }));
@@ -52,7 +52,7 @@ export default function ClockMappingTab({ employees, teachers, shifts, onChanged
     const d = draftOf(e);
     const { error } = await supabase
       .from('clock_employee_map')
-      .update({ display_name: d.display_name?.trim() || null, teacher_id: d.teacher_id || null, shift_ids: d.shift_ids, active: d.active, note: d.note?.trim() || null })
+      .update({ display_name: d.display_name?.trim() || null, teacher_id: d.teacher_id || null, shift_ids: d.shift_ids, active: d.active, note: d.note?.trim() || null, flexible_punch: !!d.flexible_punch })
       .eq('device_code', e.device_code);
     return error ? `機號 ${e.device_code}：${error.message}` : null;
   }
@@ -152,6 +152,7 @@ export default function ClockMappingTab({ employees, teachers, shifts, onChanged
               <th style={th}>顯示名稱（選填）</th>
               <th style={th}>班別</th>
               <th style={th}>在職</th>
+              <th style={th} title="上班時間前有打卡、下班時間後有打卡，就算有上下班">彈性打卡</th>
               <th style={th}>備註</th>
               <th style={th}></th>
             </tr>
@@ -194,6 +195,9 @@ export default function ClockMappingTab({ employees, teachers, shifts, onChanged
                     <input type="checkbox" checked={d.active} onChange={(ev) => patch(e, { active: ev.target.checked })} />
                   </td>
                   <td style={td}>
+                    <input type="checkbox" checked={!!d.flexible_punch} onChange={(ev) => patch(e, { flexible_punch: ev.target.checked })} />
+                  </td>
+                  <td style={td}>
                     <input value={d.note ?? ''} onChange={(ev) => patch(e, { note: ev.target.value })} style={{ ...input, width: 120 }} />
                   </td>
                   <td style={td}>
@@ -206,7 +210,7 @@ export default function ClockMappingTab({ employees, teachers, shifts, onChanged
             })}
             {list.length === 0 && (
               <tr>
-                <td style={{ ...td, color: '#999' }} colSpan={8}>
+                <td style={{ ...td, color: '#999' }} colSpan={9}>
                   沒有資料。匯入打卡機 CSV 後，機號會自動出現在這裡。
                 </td>
               </tr>

@@ -208,6 +208,7 @@ export function buildDays(p: {
       date,
       records: byDate.get(date) ?? [],
       nextDayRecords: byDate.get(addDays(date, 1)) ?? [],
+      flexible: !!employee.flexible_punch,
       shifts: applyPeriods(myShifts, date, periods),
       override: ovByDate.get(date) ?? null,
       holiday: holidays.get(date) ?? null,

@@ -37,6 +37,8 @@ export type ClockEmployee = {
   shift_ids: string[];
   active: boolean;
   note: string | null;
+  /** 彈性打卡：上班時間前有打卡、下班時間後有打卡，就算有上下班（正常） */
+  flexible_punch?: boolean;
 };
 
 export type ClockRecord = {
@@ -324,8 +326,10 @@ export function summarizeDay(p: {
   nowMinutes: number;
   /** 隔天的未作廢打卡（寬鬆規則 2 用：前一天漏打下班卡時，看隔天上班前有沒有打卡） */
   nextDayRecords?: ClockRecord[];
+  /** 彈性打卡人員（見 ClockEmployee.flexible_punch） */
+  flexible?: boolean;
 }): DaySummary {
-  const { date, records, shifts, override, holiday, today, nowMinutes, nextDayRecords = [] } = p;
+  const { date, records, shifts, override, holiday, today, nowMinutes, nextDayRecords = [], flexible = false } = p;
   const weekday = isoWeekday(date);
   const activeShifts = shifts.filter((s) => s.active);
   const shift = activeShifts.find((s) => s.work_days.includes(weekday)) ?? null;
@@ -427,6 +431,20 @@ export function summarizeDay(p: {
     base.status = '尚未打卡';
     base.note = '';
     return base;
+  }
+
+  // 彈性打卡：上班時間（含）前有打卡、下班時間（含）後有打卡 → 算有上下班，不計遲到早退
+  if (flexible) {
+    const first = punchMinutes[0];
+    const last = punchMinutes[punchMinutes.length - 1];
+    if (first != null && first <= start && last >= end) {
+      base.inTime = minToHHMM(first);
+      base.outTime = minToHHMM(last);
+      base.workedMinutes = last - first;
+      base.status = '正常';
+      base.note = '彈性打卡';
+      return base;
+    }
   }
 
   if (windowed.length === 0) {
