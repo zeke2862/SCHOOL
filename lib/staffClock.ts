@@ -299,8 +299,9 @@ export type DaySummary = {
 const MIN_SPAN_MIN = 20;
 
 /**
- * 【2026-10-31（含）以前的紀錄採寬鬆判定】僅適用「下午／晚上上班」的班別（上班時間 12:00 以後，例如 17:00 開始的晚班）：
- *  1. 當天上班時間（17:00）之前有打卡，就算正常準時上班（提早到也算，不再因為不在打卡時段內判缺勤）。
+ * 【2026-10-31（含）以前的紀錄採寬鬆判定】
+ *  1. 當天上班時間之前有打卡（晚班 17:00 前、星期六早班 07:30 前），就算正常準時上班（提早到也算，不再因為不在打卡時段內判缺勤）。所有班別適用。
+ *  以下第 2 條只適用「下午／晚上上班」的晚班（上班時間 12:00 以後）：
  *  2. 前一天只打了上班卡、漏打下班卡，但隔天上班時間之前打過至少兩次卡（最早那次認定為前一天下班，另一次是隔天自己的上班卡），就視為前一天有打下班卡。
  * 這是過渡期的處理，之後的日子照原本的嚴格規則判定。
  */
@@ -382,7 +383,9 @@ export function summarizeDay(p: {
   let outMin: number | null = null;
   let windowed = dayPunches;
   // 寬鬆規則只適用晚班類（上班時間 12:00 以後）且日期在 LEGACY_RULE_UNTIL 以前
-  const legacy = !!shift && date <= LEGACY_RULE_UNTIL && timeToMin(shift.start_time) >= LEGACY_MIN_SHIFT_START;
+  // 規則 1（上班前任何時間的打卡都算準時上班）所有班別都適用，含星期六早班；規則 2（隔天補認下班）只適用晚班
+  const legacy = !!shift && date <= LEGACY_RULE_UNTIL;
+  const legacyEvening = legacy && timeToMin(shift!.start_time) >= LEGACY_MIN_SHIFT_START;
   if (shift) {
     const start = timeToMin(shift.start_time);
     const end = timeToMin(shift.end_time);
@@ -490,7 +493,7 @@ export function summarizeDay(p: {
     const mid = (start + end) / 2;
 
     // 寬鬆規則 2：只有上班卡，但隔天上班前還有打過卡 → 視為有打下班
-    if (legacy && !isToday && only <= mid) {
+    if (legacyEvening && !isToday && only <= mid) {
       // 隔天上班前要打過至少兩次：最早那次才算前一天的下班，後面那次是隔天自己的上班卡（不能拿上班卡當前一天下班）
       const nextBefore = nextDayRecords
         .map((r) => toBangkok(r.punched_at).minutes)
