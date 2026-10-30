@@ -63,11 +63,11 @@ export type ClockOverride = {
 
 export type ClockHoliday = { holiday_date: string; name: string };
 
-/** 特殊時段設定（clock_special_periods）。exam_week 沒有日期，由成績收件時段推算。 */
+/** 特殊時段設定（clock_special_periods）。exam_week 沒有日期，由成績收件時段推算；term_start 沒有日期，取學年學期的開學日（當天）。 */
 export type ClockSpecialPeriod = {
   id: string;
   name: string;
-  kind: 'fixed' | 'exam_week';
+  kind: 'fixed' | 'exam_week' | 'term_start';
   date_from: string | null;
   date_to: string | null;
   shift_ids: string[]; // 空＝所有班別

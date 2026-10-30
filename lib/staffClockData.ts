@@ -73,14 +73,23 @@ export async function loadExamWeeks(): Promise<ExamWeek[]> {
   }));
 }
 
-/** 把啟用中的特殊時段展開成實際日期（考試週套到每一次考試），只留跟 [from, to] 有重疊的 */
-export function expandPeriods(periods: ClockSpecialPeriod[], exams: ExamWeek[], from: string, to: string): EffectivePeriod[] {
+/** 各學期的開學日（academic_terms.term_start_date，有填的才算） */
+export async function loadTermStartDates(): Promise<string[]> {
+  const { data, error } = await supabase.from('academic_terms').select('term_start_date').not('term_start_date', 'is', null);
+  if (error) return [];
+  return ((data ?? []) as { term_start_date: string }[]).map((r) => r.term_start_date);
+}
+
+/** 把啟用中的特殊時段展開成實際日期（考試週套到每一次考試、開學日套到每一個學期），只留跟 [from, to] 有重疊的 */
+export function expandPeriods(periods: ClockSpecialPeriod[], exams: ExamWeek[], from: string, to: string, termStarts: string[] = []): EffectivePeriod[] {
   const out: EffectivePeriod[] = [];
   for (const p of periods) {
     if (!p.active) continue;
     const base = { shift_ids: p.shift_ids ?? [], start_time: p.start_time, end_time: p.end_time };
     if (p.kind === 'exam_week') {
       for (const e of exams) out.push({ ...base, name: `${e.exam}週`, from: e.from, to: e.to });
+    } else if (p.kind === 'term_start') {
+      for (const d of termStarts) out.push({ ...base, name: p.name, from: d, to: d });
     } else if (p.date_from && p.date_to) {
       out.push({ ...base, name: p.name, from: p.date_from, to: p.date_to });
     }
@@ -94,8 +103,8 @@ export function expandPeriods(periods: ClockSpecialPeriod[], exams: ExamWeek[], 
  * - 特殊時段＝固定日期的時段 ＋ 考試週
  */
 export async function loadClockCalendar(from: string, to: string): Promise<{ holidays: ClockHoliday[]; periods: EffectivePeriod[] }> {
-  const [manual, auto, sp, exams] = await Promise.all([loadHolidays(from, to), loadAutoHolidays(from, to), loadSpecialPeriods(), loadExamWeeks()]);
-  const periods = expandPeriods(sp, exams, from, to);
+  const [manual, auto, sp, exams, termStarts] = await Promise.all([loadHolidays(from, to), loadAutoHolidays(from, to), loadSpecialPeriods(), loadExamWeeks(), loadTermStartDates()]);
+  const periods = expandPeriods(sp, exams, from, to, termStarts);
   const set = new Set(manual.map((h) => h.holiday_date));
   const inPeriod = (d: string) => periods.some((p) => p.from <= d && d <= p.to);
   return { holidays: [...manual, ...auto.filter((h) => !set.has(h.holiday_date) && !inPeriod(h.holiday_date))], periods };

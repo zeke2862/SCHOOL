@@ -106,6 +106,7 @@ export default function ClockSpecialPeriods({ shifts }: Props) {
         <select value={d.kind} onChange={(e) => set({ kind: e.target.value as Draft['kind'] })} style={input}>
           <option value="fixed">固定日期</option>
           <option value="exam_week">考試週（自動）</option>
+          <option value="term_start">開學日（自動）</option>
         </select>
       </td>
       <td style={{ ...td, whiteSpace: 'nowrap' }}>
@@ -115,6 +116,8 @@ export default function ClockSpecialPeriods({ shifts }: Props) {
             <span style={{ margin: '0 4px' }}>～</span>
             <input type="date" value={d.date_to ?? ''} onChange={(e) => set({ date_to: e.target.value || null })} style={input} />
           </>
+        ) : d.kind === 'term_start' ? (
+          <span style={{ fontSize: 12, color: '#666' }}>依學年學期的開學日，各算一天</span>
         ) : (
           <span style={{ fontSize: 12, color: '#666' }}>依成績收件時段，各算一週</span>
         )}
