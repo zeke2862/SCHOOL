@@ -78,7 +78,7 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
     setError(null);
     (async () => {
       try {
-        const [r, cal] = await Promise.all([loadClockRange(range.from, range.to), loadClockCalendar(range.from, range.to)]);
+        const [r, cal] = await Promise.all([loadClockRange(range.from, range.to, undefined, true), loadClockCalendar(range.from, range.to)]);
         if (!alive) return;
         setRecords(r.records);
         setOverrides(r.overrides);

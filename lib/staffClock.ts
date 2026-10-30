@@ -296,6 +296,15 @@ export type DaySummary = {
 /** 兩次打卡間隔小於這個分鐘數，視為同一次（重複刷） */
 const MIN_SPAN_MIN = 20;
 
+/**
+ * 【2026-10-31（含）以前的紀錄採寬鬆判定】僅適用「下午／晚上上班」的班別（上班時間 12:00 以後，例如 17:00 開始的晚班）：
+ *  1. 當天上班時間（17:00）之前有打卡，就算正常準時上班（提早到也算，不再因為不在打卡時段內判缺勤）。
+ *  2. 前一天只打了上班卡、漏打下班卡，但隔天上班時間之前還有打過卡，就視為前一天有打下班卡。
+ * 這是過渡期的處理，之後的日子照原本的嚴格規則判定。
+ */
+export const LEGACY_RULE_UNTIL = '2026-10-31';
+const LEGACY_MIN_SHIFT_START = 12 * 60;
+
 export function shiftLabel(s: ClockShift): string {
   return `${s.name} ${s.start_time.slice(0, 5)}–${s.end_time.slice(0, 5)}`;
 }
@@ -313,8 +322,10 @@ export function summarizeDay(p: {
   holiday?: ClockHoliday | null;
   today: string;
   nowMinutes: number;
+  /** 隔天的未作廢打卡（寬鬆規則 2 用：前一天漏打下班卡時，看隔天上班前有沒有打卡） */
+  nextDayRecords?: ClockRecord[];
 }): DaySummary {
-  const { date, records, shifts, override, holiday, today, nowMinutes } = p;
+  const { date, records, shifts, override, holiday, today, nowMinutes, nextDayRecords = [] } = p;
   const weekday = isoWeekday(date);
   const activeShifts = shifts.filter((s) => s.active);
   const shift = activeShifts.find((s) => s.work_days.includes(weekday)) ?? null;
@@ -345,10 +356,13 @@ export function summarizeDay(p: {
   let inMin: number | null = null;
   let outMin: number | null = null;
   let windowed = punchMinutes;
+  // 寬鬆規則只適用晚班類（上班時間 12:00 以後）且日期在 LEGACY_RULE_UNTIL 以前
+  const legacy = !!shift && date <= LEGACY_RULE_UNTIL && timeToMin(shift.start_time) >= LEGACY_MIN_SHIFT_START;
   if (shift) {
     const start = timeToMin(shift.start_time);
     const end = timeToMin(shift.end_time);
-    windowed = punchMinutes.filter((m) => m >= start - shift.window_before_min && m <= end + shift.window_after_min);
+    const from = legacy ? 0 : start - shift.window_before_min; // 寬鬆規則：上班前任何時間的打卡都算
+    windowed = punchMinutes.filter((m) => m >= from && m <= end + shift.window_after_min);
   }
   if (windowed.length >= 2 && windowed[windowed.length - 1] - windowed[0] >= MIN_SPAN_MIN) {
     inMin = windowed[0];
@@ -429,6 +443,22 @@ export function summarizeDay(p: {
     // 只有一次（或兩次間隔太近）：判斷比較像上班還是下班
     const only = windowed[0];
     const mid = (start + end) / 2;
+
+    // 寬鬆規則 2：只有上班卡，但隔天上班前還有打過卡 → 視為有打下班
+    if (legacy && !isToday && only <= mid) {
+      const nextEarly = nextDayRecords
+        .map((r) => toBangkok(r.punched_at).minutes)
+        .filter((m) => m < start)
+        .sort((a, b) => a - b)[0];
+      if (nextEarly != null) {
+        base.inTime = minToHHMM(only);
+        base.outTime = minToHHMM(nextEarly) + '（隔天）';
+        base.lateMinutes = Math.max(0, only - start);
+        base.status = base.lateMinutes > shift.late_grace_min ? '遲到' : '正常';
+        base.note = `下班卡以隔天 ${minToHHMM(nextEarly)} 的打卡認定` + (base.status === '遲到' ? `；遲到 ${base.lateMinutes} 分` : '');
+        return base;
+      }
+    }
     if (isToday && !dayOver && only <= mid) {
       base.inTime = minToHHMM(only);
       base.lateMinutes = Math.max(0, only - start);

@@ -101,7 +101,7 @@ export default function MyStaffClockPage() {
     let alive = true;
     (async () => {
       try {
-        const [range, hol] = await Promise.all([loadClockRange(from, to, [selectedCode]), loadClockCalendar(from, to)]);
+        const [range, hol] = await Promise.all([loadClockRange(from, to, [selectedCode], true), loadClockCalendar(from, to)]);
         if (!alive) return;
         setRecords(range.records);
         setOverrides(range.overrides);

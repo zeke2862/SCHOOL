@@ -148,14 +148,16 @@ export async function loadEmployees(): Promise<ClockEmployee[]> {
 }
 
 /** 讀取區間內的打卡與更正。codes 有給就只撈這些人（一般教職員自己查自己時用），沒給就撈全部（管理權限）。 */
-export async function loadClockRange(from: string, to: string, codes?: number[]) {
+export async function loadClockRange(from: string, to: string, codes?: number[], lookahead = false) {
+  // lookahead：多撈區間後一天的打卡，給「隔天上班前打卡視為前一天下班」的判定用（只供 buildDays，不要拿來列清單）
+  const toQ = lookahead ? addDays(to, 1) : to;
   if (codes && codes.length === 0) return { records: [] as ClockRecord[], overrides: [] as ClockOverride[] };
   const records = await fetchAll<ClockRecord>((a, b) => {
     let q = supabase
       .from('clock_records')
       .select('id, device_code, punched_at, punch_date, method, source, voided, voided_reason, note')
       .gte('punch_date', from)
-      .lte('punch_date', to)
+      .lte('punch_date', toQ)
       .order('punched_at')
       .range(a, b);
     if (codes) q = q.in('device_code', codes);
@@ -205,6 +207,7 @@ export function buildDays(p: {
     summarizeDay({
       date,
       records: byDate.get(date) ?? [],
+      nextDayRecords: byDate.get(addDays(date, 1)) ?? [],
       shifts: applyPeriods(myShifts, date, periods),
       override: ovByDate.get(date) ?? null,
       holiday: holidays.get(date) ?? null,
