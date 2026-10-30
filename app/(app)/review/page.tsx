@@ -9,6 +9,7 @@ import AuditLogsPage from '@/app/(app)/admin/audit-logs/page';
 import ChangeAuditPanel from '@/components/ChangeAuditPanel';
 import PortalRegistrationReview from '@/components/portal/PortalRegistrationReview';
 import StudentLeaveReview from '@/components/portal/StudentLeaveReview';
+import StatusRequestReview from '@/components/portal/StatusRequestReview';
 
 // 審核中心：每一類審核各一個分頁，依登入者身分只顯示自己有份的；各部門只看得到自己部門的案件（由資料庫權限把關）
 export default function ReviewHubPage() {
@@ -21,6 +22,7 @@ export default function ReviewHubPage() {
         profile: () => <ProfileRequestsPage />,
         'portal-requests': () => <PortalRegistrationReview />,
         'student-leave': () => <StudentLeaveReview />,
+        'status-requests': () => <StatusRequestReview />,
         pending: () => <PendingChangesPage />,
         audit: () => <AuditLogsPage />,
         changes: () => <ChangeAuditPanel />,

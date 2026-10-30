@@ -234,6 +234,7 @@ export const HUBS: HubDef[] = [
       { key: 'profile', label: '學生資料變更通知', show: (c) => c.homeroom || c.academic },
       { key: 'portal-requests', label: '家長／學生帳號申請', show: (c) => c.homeroom || c.academic, hint: '核對手機後核准' },
       { key: 'student-leave', label: '學生請假申請', show: (c) => c.homeroom || c.academic, hint: '家長請假，核准後寫入出缺席' },
+      { key: 'status-requests', label: '學籍異動申請', show: (c) => c.homeroom || c.academic || c.a || c.sd, hint: '休學／轉學／轉班，同意後立即更新名單' },
       { key: 'pending', label: '送審總覽', show: (c) => c.anyLead || c.a || c.sd },
       { key: 'audit', label: '成績／出缺勤修正紀錄', show: (c) => c.a || c.sd },
       { key: 'changes', label: '全系統異動紀錄', show: (c) => c.a || c.sd },

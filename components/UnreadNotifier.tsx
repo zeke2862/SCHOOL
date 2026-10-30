@@ -11,6 +11,7 @@ import { supabase, getCurrentTeacherId } from '@/lib/supabaseClient';
 const TARGET_BY_CATEGORY: Record<string, { href: string; label: string }> = {
   審核通知: { href: '/review?tab=portal-requests', label: '家長／學生帳號申請' },
   請假申請: { href: '/review?tab=student-leave', label: '學生請假申請' },
+  學籍異動申請: { href: '/review?tab=status-requests', label: '學籍異動申請' },
   學生資料變更: { href: '/review?tab=profile', label: '學生資料變更' },
   個資修改申請: { href: '/review?tab=profile', label: '個資修改申請' },
   考場通知: { href: '/exam-rosters', label: '考場名冊' },
