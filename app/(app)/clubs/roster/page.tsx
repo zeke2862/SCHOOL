@@ -8,7 +8,7 @@ import { resolveCurrentTerm } from '@/lib/academicTerm';
 type ClubOption = { id: string; name: string };
 type MemberRow = { student_no: string; name: string; class_label: string; seat_no: number | null };
 
-const STATUS_OPTIONS = ['出席', '曠課', '遲到', '病假', '事假', '公假'] as const;
+const EXCEPTION_OPTIONS = ['曠課', '遲到', '病假', '事假', '公假'] as const;
 
 function todayStr() {
   const d = new Date();
@@ -185,17 +185,28 @@ export default function ClubRosterPage() {
                   <td style={{ padding: 6 }}>{m.seat_no ?? '－'}</td>
                   <td style={{ padding: 6 }}>{m.name}</td>
                   <td style={{ padding: 6 }}>
-                    <select
-                      value={statusMap[m.student_no] ?? '出席'}
-                      onChange={(e) => setStatusMap({ ...statusMap, [m.student_no]: e.target.value })}
-                      style={{ padding: 4 }}
-                    >
-                      {STATUS_OPTIONS.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
+                    {/* 比照當日出缺勤：橫排五個異常選項，沒選＝出席，再點一次已選的選項即取消 */}
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                      {EXCEPTION_OPTIONS.map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() =>
+                            setStatusMap({ ...statusMap, [m.student_no]: (statusMap[m.student_no] ?? '出席') === opt ? '出席' : opt })
+                          }
+                          style={{
+                            fontSize: 13,
+                            padding: isMobile ? '8px 12px' : '4px 10px',
+                            borderRadius: 6,
+                            border: '1px solid #ccc',
+                            background: (statusMap[m.student_no] ?? '出席') === opt ? '#EAF3DE' : '#fff',
+                          }}
+                        >
+                          {opt}
+                        </button>
                       ))}
-                    </select>
+                      {(statusMap[m.student_no] ?? '出席') === '出席' && <span style={{ fontSize: 12, color: '#3B6D11' }}>出席</span>}
+                    </div>
                   </td>
                 </tr>
               ))}
