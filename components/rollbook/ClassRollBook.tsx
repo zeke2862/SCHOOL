@@ -17,6 +17,8 @@ const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 const ROWS_AREA_MM = 253;
 const ROW_MAX_MM = 16;
 const ROW_MIN_MM = 4.6;
+// 各班簽名列固定用高三忠班（在學 18 人）排版時的簽名列高度：2 列高
+const REF_CLASS_COUNT = 18;
 
 const classLabel = (c: ClassRow) => `${c.grade_level}${c.class_name}班`;
 
@@ -211,9 +213,11 @@ export default function ClassRollBook() {
     const list = students[c.id] ?? [];
     const dayPeriods = WEEKDAY_LABELS.map((_, i) => Math.max(1, periodsFor(c.department, i + 1)));
     const total = dayPeriods.reduce((a, b) => a + b, 0);
-    // 版面以「列高」為單位：學生 n 列 ＋（有簽名欄時）標題與班級列之間空 1 列 ＋ 簽名 2 列高；人數最多的班（如幼乙愛）列高最小，人數少的班自動加高、字也跟著放大
-    const units = Math.max(list.length, 1) + (signRow ? 3 : 0);
-    const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, ROWS_AREA_MM / units));
+    // 簽名列高度固定（＝高三忠班排版時的 2 列高）；空 1 列＋學生 n 列平分剩下的高度，人數最多的班列高最小
+    const refRowMm = Math.min(ROW_MAX_MM, ROWS_AREA_MM / (REF_CLASS_COUNT + 3));
+    const signMm = refRowMm * 2;
+    const units = Math.max(list.length, 1) + (signRow ? 1 : 0);
+    const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, (ROWS_AREA_MM - (signRow ? signMm : 0)) / units));
     // 姓名字級隨列高自動放大／縮小（人少列高、字就大；人多列矮、字就小）
     const nameSize = Math.round(Math.min(30, Math.max(10, rowMm * 3.78 * 0.78)));
     const smallSize = Math.round(Math.min(16, Math.max(9, rowMm * 3.78 * 0.5)));
@@ -293,7 +297,7 @@ export default function ClassRollBook() {
             ))}
             {signRow && list.length > 0 && (
               <>
-                <tr style={{ height: `${rowMm * 2}mm` }}>
+                <tr style={{ height: `${signMm}mm` }}>
                   <td colSpan={3} style={{ border: THIN, textAlign: 'center', fontSize: 14, fontWeight: 600, padding: '0 4px' }}>
                     <Dist text="任課教師簽名" />
                   </td>
