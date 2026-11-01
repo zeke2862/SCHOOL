@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase, getCurrentAppUser } from '@/lib/supabaseClient';
 import ParentLeaveTab from '@/components/portal/ParentLeaveTab';
 
 type LinkedStudent = { id: string; student_no: string; relation: string; name: string };
@@ -101,6 +101,7 @@ export default function ParentPortalPage() {
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   // 通知：公佈欄最新公告
   const [bulletinPosts, setBulletinPosts] = useState<BulletinPost[]>([]);
+  const [previewMode, setPreviewMode] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -109,6 +110,27 @@ export default function ParentPortalPage() {
       if (!sessionData.session) {
         router.push('/portal/login');
         return;
+      }
+      // 系統管理員S的「家長視角預覽」：不綁定任何家長帳號（不會動到真正家長的綁定），
+      // 只是用管理員自己的讀取權限，以唯讀方式看某位學生的家長端畫面。
+      try {
+        const raw = typeof window !== 'undefined' ? sessionStorage.getItem('portalPreviewStudent') : null;
+        if (raw) {
+          const appUser = await getCurrentAppUser();
+          if (appUser?.role === 'system_admin_s') {
+            const p = JSON.parse(raw) as { student_no: string; name: string };
+            const one: LinkedStudent = { id: 'preview', student_no: p.student_no, relation: '預覽', name: p.name };
+            setPreviewMode(true);
+            setLinkedStudents([one]);
+            setSelected(one);
+            setLoadingAccounts(false);
+            const { data: settingRow } = await supabase.from('attendance_alert_settings').select('threshold_periods').eq('id', 1).maybeSingle();
+            if (settingRow) setAlertThreshold(settingRow.threshold_periods);
+            return;
+          }
+        }
+      } catch {
+        // 預覽資訊壞掉就當作沒有預覽，走一般流程
       }
       // 【2026-08-19】原本這裡完全沒有「還在載入」跟「載入完成但沒有綁定任何學生」
       // 這兩種狀態的畫面——不管是哪種情況，畫面上都只會看到標題「家長／學生查詢
@@ -344,6 +366,10 @@ export default function ParentPortalPage() {
 
   async function handleSubmitAllEdits() {
     if (!selected) return;
+    if (previewMode) {
+      alert('目前是預覽模式（唯讀），不會送出任何申請。');
+      return;
+    }
     const changed = editableOptions.filter((o) => {
       const next = fieldEdits[o.key];
       return next !== undefined && next !== o.currentValue;
@@ -482,6 +508,23 @@ export default function ParentPortalPage() {
 
   return (
     <main style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
+      {previewMode && selected && (
+        <div style={{ background: '#FFF7EC', border: '1px solid #F0DCB8', borderRadius: 8, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#8A5A00', display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span>預覽模式（唯讀）：正在以家長端看「{selected.name}（{selected.student_no}）」，不會送出任何申請。</span>
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                sessionStorage.removeItem('portalPreviewStudent');
+              } catch {}
+              router.push('/admin');
+            }}
+            style={{ padding: '4px 12px' }}
+          >
+            結束預覽
+          </button>
+        </div>
+      )}
       <h1 style={{ fontSize: 16, marginBottom: 16 }}>家長／學生查詢入口</h1>
 
       {/* 【2026-08-26 新增】社團／才藝課選社（/portal/clubs）這個頁面本來就有，
@@ -491,7 +534,7 @@ export default function ParentPortalPage() {
           明顯的連結，不放進上面「成績／課表／通知」的分頁切換裡，是因為選社
           只有學生本人能操作（家長不行，見 /portal/clubs 頁面本身的說明），
           獨立成一個連結，點了才進去，跟其他分頁的「查詢」性質分開。 */}
-      {!loadingAccounts && !loadError && linkedStudents.length > 0 && (
+      {!loadingAccounts && !loadError && linkedStudents.length > 0 && !previewMode && (
         <button
           type="button"
           onClick={() => router.push('/portal/clubs')}

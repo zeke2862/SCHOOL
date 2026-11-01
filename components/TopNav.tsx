@@ -154,6 +154,43 @@ export default function TopNav() {
     }
     setActingBusy(false);
   }
+  // 系統管理員S專用：輸入學號或姓名，直接用唯讀方式預覽該學生的家長端畫面
+  // （不需要有監護人資料，也不會動到真正家長的綁定）。
+  async function handlePreviewParentOfStudent() {
+    const kw = window.prompt('請輸入要預覽的學生「學號」或「姓名」（會以唯讀方式顯示該學生的家長端畫面）：');
+    if (!kw || !kw.trim()) return;
+    const key = kw.trim().replace(/[,%()]/g, '');
+    const { data, error } = await supabase
+      .from('students')
+      .select('student_no, name')
+      .or(`student_no.eq.${key},name.ilike.%${key}%`)
+      .limit(10);
+    if (error) {
+      alert('查詢學生失敗：' + error.message);
+      return;
+    }
+    let picked = data?.[0];
+    if (!data || data.length === 0) {
+      alert('找不到符合的學生');
+      return;
+    }
+    if (data.length > 1) {
+      const exact = data.find((s: any) => s.student_no === key);
+      if (exact) {
+        picked = exact;
+      } else {
+        const list = data.map((s: any, i: number) => `${i + 1}. ${s.name}（${s.student_no}）`).join('\n');
+        const n = Number(window.prompt('找到多位學生，請輸入要預覽的編號：\n' + list));
+        if (!n || n < 1 || n > data.length) return;
+        picked = data[n - 1];
+      }
+    }
+    if (!picked) return;
+    sessionStorage.setItem('portalPreviewStudent', JSON.stringify({ student_no: picked.student_no, name: picked.name }));
+    setSwitching(false);
+    router.push('/portal');
+  }
+
   async function handleStopActing() {
     setActingBusy(true);
     try {
@@ -392,6 +429,15 @@ export default function TopNav() {
                       </button>
                     ))}
                   </>
+                )}
+                {canSwitchIdentity && (
+                  <button
+                    onClick={handlePreviewParentOfStudent}
+                    title="系統管理員S專用：選一位學生，以唯讀方式預覽家長／學生端畫面"
+                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', borderTop: '1px solid #f0f0f0', cursor: 'pointer', font: 'inherit', color: '#2C2C2A' }}
+                  >
+                    預覽家長視角（選學生）
+                  </button>
                 )}
                 <button
                   onClick={handleViewAsParent}
