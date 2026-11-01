@@ -14,7 +14,7 @@ const CLASS_ORDER = ['忠', '孝', '仁', '愛'];
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 
 // A4 直式、邊界 5mm：可用高度 287mm。扣掉標題區與表頭後，剩下給學生列的高度（mm）
-const ROWS_AREA_MM = 236;
+const ROWS_AREA_MM = 247;
 const ROW_MAX_MM = 10;
 const SIGN_MM = 11; // 任課教師簽名列的高度
 const ROW_MIN_MM = 4.6;
@@ -212,8 +212,8 @@ export default function ClassRollBook() {
     const total = dayPeriods.reduce((a, b) => a + b, 0);
     const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, (ROWS_AREA_MM - (signRow ? SIGN_MM : 0)) / Math.max(list.length, 1)));
     // 姓名字級隨列高自動放大／縮小（人少列高、字就大；人多列矮、字就小）
-    const nameSize = Math.round(Math.min(22, Math.max(10, rowMm * 3.78 * 0.62)));
-    const smallSize = Math.round(Math.min(14, Math.max(9, rowMm * 3.78 * 0.42)));
+    const nameSize = Math.round(Math.min(22, Math.max(10, rowMm * 3.78 * 0.78)));
+    const smallSize = Math.round(Math.min(14, Math.max(9, rowMm * 3.78 * 0.5)));
     const hdrMm = 6;
     const thCommon = { border: THIN, background: '#f3f3f3', padding: 0, textAlign: 'center' as const, fontSize: 12, height: `${hdrMm}mm`, fontWeight: 600 };
 
