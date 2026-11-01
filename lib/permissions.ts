@@ -66,7 +66,8 @@ export function computeCaps(rawIdent: MyIdentity, previewTeacher = false, kind: 
         ...rawIdent,
         isHomeroom: kind === 'homeroom' || kind === 'both',
         isTeaching: kind === 'teaching' || kind === 'both',
-        isClubTeacher: kind === 'club',
+        // 社團資格不分導師／任課：帳號本人真的有帶社團，預覽任何老師類型都要看得到社團入口
+        isClubTeacher: kind === 'club' || rawIdent.isClubTeacher,
       }
     : rawIdent;
   const depts = preview ? [] : ident.departments;
