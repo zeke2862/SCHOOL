@@ -17,6 +17,8 @@ const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 const ROWS_AREA_MM = 236; // 略小於實際可用高度，剩下的由表格自動拉伸補滿（不同電腦字型高度略有差異也不會爆頁）
 const ROW_MAX_MM = 16;
 const ROW_MIN_MM = 3.4;
+// 列高只設成預估值的 85% 當「最小值」，實際高度由表格依真正的頁面高度自動拉伸補滿（紙張、邊界、字型不同都能自適應）
+const ROW_BASE = 0.85;
 // 各班簽名列固定用高三忠班（在學 18 人）排版時的簽名列高度：2 列高
 const REF_CLASS_COUNT = 18;
 // 標題與「班級／導師」那一行之間的空隙：所有班固定
@@ -294,7 +296,7 @@ export default function ClassRollBook() {
               // 每 5 位學生用粗線隔開，方便對照
               const bb: React.CSSProperties = (idx + 1) % 5 === 0 ? { borderBottom: THICK } : {};
               return (
-              <tr key={s.student_no} style={{ height: `${rowMm}mm` }}>
+              <tr key={s.student_no} style={{ height: `${rowMm * ROW_BASE}mm` }}>
                 <td style={{ border: THIN, textAlign: 'center', fontSize: smallSize, padding: 0, ...bb }}>{s.seat_no}</td>
                 <td style={{ border: THIN, textAlign: 'center', fontSize: Math.max(9, smallSize - 1), padding: 0, ...bb }}>{s.student_no}</td>
                 <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: nameSize, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', ...bb }}><NameBox text={s.name} size={nameSize} /></td>
@@ -307,7 +309,7 @@ export default function ClassRollBook() {
             })}
             {signRow && list.length > 0 && (
               <>
-                <tr style={{ height: `${signMm}mm` }}>
+                <tr style={{ height: `${signMm * ROW_BASE}mm` }}>
                   <td colSpan={3} style={{ border: THIN, textAlign: 'center', fontSize: 22, fontWeight: 700, padding: '0 6px' }}>
                     <Dist text="任課教師簽名" />
                   </td>
@@ -357,7 +359,7 @@ export default function ClassRollBook() {
         @page { size: A4 portrait; margin: 0; }
         @media print {
           .no-print { display: none !important; }
-          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 296.5mm; padding: 5mm !important; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
+          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 296.5mm; height: calc(100vh - 0.5mm); padding: 5mm !important; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
           .rollbook-tablewrap { flex: 1; min-height: 0; }
           html { zoom: 1 !important; }
           main, .hub-content { padding: 0 !important; max-width: none !important; margin: 0 !important; }
