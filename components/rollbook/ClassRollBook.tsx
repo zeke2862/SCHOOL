@@ -12,7 +12,7 @@ const DEPT_ORDER = ['幼兒園', '國小', '國中', '高中'];
 const GRADE_ORDER = ['幼乙', '幼甲', '1年', '2年', '3年', '4年', '5年', '6年', '初一', '初二', '初三', '高一', '高二', '高三'];
 const CLASS_ORDER = ['忠', '孝', '仁', '愛'];
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
-const WEEKS_PER_PAGE = 4;
+const WEEKS_PER_PAGE = 2;
 const MIN_ROWS = 0;
 
 const classLabel = (c: ClassRow) => `${c.grade_level}${c.class_name}班`;
@@ -56,6 +56,9 @@ function buildWeeks(startStr: string, endStr: string): Date[][] {
 
 const cell: React.CSSProperties = { border: '1px solid #333', padding: 0, textAlign: 'center', fontSize: 9, height: 17, lineHeight: '17px' };
 const head: React.CSSProperties = { ...cell, background: '#f3f3f3', fontWeight: 600 };
+// 整學期（橫式 A4）用較小的格子，讓兩週的每日每節都放得下
+const cellS: React.CSSProperties = { ...cell, fontSize: 8, height: 13, lineHeight: '13px' };
+const headS: React.CSSProperties = { ...cellS, background: '#f3f3f3', fontWeight: 600 };
 
 function SheetHeader({ title, cls, teacher, subtitle }: { title: string; cls: string; teacher: string; subtitle: string }) {
   return (
@@ -67,7 +70,7 @@ function SheetHeader({ title, cls, teacher, subtitle }: { title: string; cls: st
         </span>
         <span>{subtitle}</span>
       </div>
-      <div style={{ fontSize: 9, color: '#444' }}>符號：曠課○　遲到x　事假⊗　病假∆　公假☆　早退y（出席不必記號）</div>
+      <div style={{ fontSize: 9, color: '#444' }}>符號：曠課10　遲到1　病假2　事假3　公假4　早退5（出席不必記號）</div>
     </div>
   );
 }
@@ -230,6 +233,8 @@ export default function ClassRollBook() {
 
   function renderTermSheets(c: ClassRow) {
     const list = students[c.id] ?? [];
+    const dayPeriods = WEEKDAY_LABELS.map((_, i) => Math.max(1, periodsFor(c.department, i + 1)));
+    const perWeek = dayPeriods.reduce((a, b) => a + b, 0);
     const pages: Date[][][] = [];
     for (let i = 0; i < weeks.length; i += WEEKS_PER_PAGE) pages.push(weeks.slice(i, i + WEEKS_PER_PAGE));
     return pages.map((pg, pi) => (
@@ -243,11 +248,11 @@ export default function ClassRollBook() {
         <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed' }}>
           <thead>
             <tr>
-              <th rowSpan={3} style={{ ...head, width: 24 }}>座號</th>
-              <th rowSpan={3} style={{ ...head, width: 52 }}>學號</th>
-              <th rowSpan={3} style={{ ...head, width: 64 }}>姓名</th>
+              <th rowSpan={3} style={{ ...headS, width: 22 }}>座號</th>
+              <th rowSpan={3} style={{ ...headS, width: 48 }}>學號</th>
+              <th rowSpan={3} style={{ ...headS, width: 58 }}>姓名</th>
               {pg.map((w, wi) => (
-                <th key={wi} colSpan={6} style={head}>
+                <th key={wi} colSpan={perWeek} style={headS}>
                   第 {pi * WEEKS_PER_PAGE + wi + 1} 週
                 </th>
               ))}
@@ -255,34 +260,34 @@ export default function ClassRollBook() {
             <tr>
               {pg.map((w, wi) =>
                 w.map((d, di) => (
-                  <th key={wi + '-' + di} style={{ ...head, fontWeight: 400, fontSize: 8 }}>
-                    {d.getMonth() + 1}/{d.getDate()}
+                  <th key={wi + '-' + di} colSpan={dayPeriods[di]} style={{ ...headS, fontWeight: 400 }}>
+                    {d.getMonth() + 1}/{d.getDate()}（{WEEKDAY_LABELS[di]}）
                   </th>
                 ))
               )}
             </tr>
             <tr>
               {pg.map((w, wi) =>
-                w.map((d, di) => (
-                  <th key={wi + '-' + di} style={{ ...head, fontWeight: 400 }}>
-                    {WEEKDAY_LABELS[di]}
+                w.map((d, di) => Array.from({ length: dayPeriods[di] }, (_, p) => (
+                  <th key={wi + '-' + di + '-' + p} style={{ ...headS, fontWeight: 400 }}>
+                    {p + 1}
                   </th>
-                ))
+                )))
               )}
             </tr>
           </thead>
           <tbody>
             {list.map((s) => (
               <tr key={s.student_no}>
-                <td style={cell}>{s.seat_no}</td>
-                <td style={cell}>{s.student_no}</td>
-                <td style={{ ...cell, textAlign: 'left', paddingLeft: 3, whiteSpace: 'nowrap', overflow: 'hidden' }}>{s.name}</td>
-                {pg.map((w, wi) => w.map((_, di) => <td key={wi + '-' + di} style={cell}></td>))}
+                <td style={cellS}>{s.seat_no}</td>
+                <td style={cellS}>{s.student_no}</td>
+                <td style={{ ...cellS, textAlign: 'left', paddingLeft: 3, whiteSpace: 'nowrap', overflow: 'hidden' }}>{s.name}</td>
+                {pg.map((w, wi) => w.map((d, di) => Array.from({ length: dayPeriods[di] }, (_, p) => <td key={wi + '-' + di + '-' + p} style={cellS}></td>)))}
               </tr>
             ))}
             {list.length === 0 && (
               <tr>
-                <td colSpan={3 + pg.length * 6} style={cell}>
+                <td colSpan={3 + pg.length * perWeek} style={cellS}>
                   這個班目前沒有在學學生
                 </td>
               </tr>
@@ -298,7 +303,7 @@ export default function ClassRollBook() {
   return (
     <main style={{ maxWidth: 1000, margin: '0 auto', padding: 16 }}>
       <style>{`
-        @page { size: A4 portrait; margin: 8mm; }
+        @page { size: A4 ${mode === 'term' ? 'landscape' : 'portrait'}; margin: 8mm; }
         @media print {
           .no-print { display: none !important; }
           .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; }
@@ -312,7 +317,7 @@ export default function ClassRollBook() {
       <div className="no-print">
         <h1 style={{ fontSize: 16, marginBottom: 4 }}>班級點名冊</h1>
         <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
-          選好班級與列印方式後按「列印」。「一週」不印日期，節數依各部別的節次設定；「整學期」從開學日印到期末考結束，每頁 4 週、每天一格。名單只含在學學生（休學、轉學不會出現）。
+          選好班級與列印方式後按「列印」。「一週」不印日期，節數依各部別的節次設定；「整學期」從開學日印到期末考結束（橫式），每頁 2 週，每天依節數分格，附日期。名單只含在學學生（休學、轉學不會出現）。
         </p>
         {error && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 8 }}>{error}</p>}
 
