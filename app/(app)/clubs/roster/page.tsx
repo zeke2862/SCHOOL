@@ -16,6 +16,18 @@ function todayStr() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+// 才藝社團固定在星期六第五節上課，其他日期不開放點名，避免出缺勤記到錯的日子
+const CLUB_WEEKDAY = 6;
+function isClubDay(dateStr: string) {
+  return new Date(`${dateStr}T00:00:00`).getDay() === CLUB_WEEKDAY;
+}
+function lastClubDay(dateStr: string) {
+  const d = new Date(`${dateStr}T00:00:00`);
+  d.setDate(d.getDate() - ((d.getDay() - CLUB_WEEKDAY + 7) % 7));
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 // 社團點名冊：社團老師登入後只看得到自己指導的社團（跨班級/科系的學生名單），
 // 依規格書 2.1，橫向顯示【學號】【原班級】【原座號】【姓名】，逐日點名。
 export default function ClubRosterPage() {
@@ -163,7 +175,14 @@ export default function ClubRosterPage() {
       {error && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{error}</p>}
       {saveMsg && <p style={{ fontSize: 13, color: '#2D7A3A', marginBottom: 12 }}>{saveMsg}</p>}
 
-      {loading ? (
+      {!isClubDay(recordDate) ? (
+        <div style={{ fontSize: 13, color: '#A36A2D', background: '#FFF7EC', border: '1px solid #F0DCB8', borderRadius: 8, padding: '12px 14px' }}>
+          <p style={{ marginBottom: 8 }}>{recordDate} 不是社團上課日（星期六第五節），不開放點名。</p>
+          <button onClick={() => setRecordDate(lastClubDay(recordDate))} style={{ padding: '6px 14px' }}>
+            跳到最近的星期六（{lastClubDay(recordDate)}）
+          </button>
+        </div>
+      ) : loading ? (
         <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
       ) : (
         <>
