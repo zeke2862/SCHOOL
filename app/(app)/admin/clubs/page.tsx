@@ -123,7 +123,7 @@ export default function AdminClubsPage() {
     setMemberError(null);
     const { data: memberRows, error: memberErr } = await supabase
       .from('club_members')
-      .select('id, student_no, status, students(name), enrollments(seat_no, term, classes(grade_level, class_name, academic_year))')
+      .select('id, student_no, status, students(name, enrollments(seat_no, term, is_current, classes(grade_level, class_name, academic_year)))')
       .eq('club_id', clubId)
       .order('student_no');
     if (memberErr) {
@@ -131,8 +131,14 @@ export default function AdminClubsPage() {
       return;
     }
     const rows: MemberRow[] = (memberRows ?? []).map((r: any) => {
-      const enrollmentList = Array.isArray(r.enrollments) ? r.enrollments : r.enrollments ? [r.enrollments] : [];
-      const currentEnrollment = term ? enrollmentList.find((e: any) => e?.term === term.term && e?.classes?.academic_year === term.academic_year) ?? null : enrollmentList[0] ?? null;
+      // club_members 和 enrollments 之間沒有直接外鍵，所以從 students 底下展開 enrollments
+      const raw = r.students?.enrollments;
+      const enrollmentList = Array.isArray(raw) ? raw : raw ? [raw] : [];
+      const currentEnrollment = term
+        ? enrollmentList.find((e: any) => e?.is_current && e?.term === term.term && e?.classes?.academic_year === term.academic_year) ??
+          enrollmentList.find((e: any) => e?.term === term.term && e?.classes?.academic_year === term.academic_year) ??
+          null
+        : enrollmentList.find((e: any) => e?.is_current) ?? enrollmentList[0] ?? null;
       return {
         id: r.id,
         student_no: r.student_no,
