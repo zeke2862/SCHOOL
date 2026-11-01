@@ -235,7 +235,8 @@ export default function TimetablePrint() {
           periodsFor={(w) => periodsFor(c.department, w)}
           cell={(w, p) => {
             const x = bySlotClass.get(`${c.id}|${w}|${p}`);
-            return x ? { top: x.subject, bottom: realTeacher(x.teacher_id)?.name ?? '' } : null;
+            // 才藝課是各社團老師帶，班級課表上不顯示教師欄
+            return x ? { top: x.subject, bottom: x.subject === '才藝' ? '' : realTeacher(x.teacher_id)?.name ?? '' } : null;
           }}
         />
       </div>
@@ -373,7 +374,7 @@ export default function TimetablePrint() {
             periodsFor: (w: number) => periodsFor(c.department, w),
             cell: (w: number, p: number) => {
               const x = bySlotClass.get(`${c.id}|${w}|${p}`);
-              return x ? { top: x.subject, bottom: realTeacher(x.teacher_id)?.name ?? '' } : null;
+              return x ? { top: x.subject, bottom: x.subject === '才藝' ? '' : realTeacher(x.teacher_id)?.name ?? '' } : null;
             },
           })),
           tpl,

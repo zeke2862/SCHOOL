@@ -146,7 +146,7 @@ export default function ScheduleLookupPage() {
                       {cell ? (
                         <>
                           <div>{cell.subject}</div>
-                          <div style={{ fontSize: 11, color: '#888' }}>{mode === 'teacher' ? cell.classLabel : cell.teacherName}</div>
+                          <div style={{ fontSize: 11, color: '#888' }}>{mode === 'teacher' ? cell.classLabel : cell.subject === '才藝' ? '' : cell.teacherName}</div>
                         </>
                       ) : (
                         <span style={{ color: '#ccc' }}>—</span>
