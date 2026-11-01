@@ -14,9 +14,8 @@ const CLASS_ORDER = ['忠', '孝', '仁', '愛'];
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 
 // A4 直式、邊界 5mm：可用高度 287mm。扣掉標題區與表頭後，剩下給學生列的高度（mm）
-const ROWS_AREA_MM = 247;
+const ROWS_AREA_MM = 253;
 const ROW_MAX_MM = 10;
-const SIGN_MM = 11; // 任課教師簽名列的高度
 const ROW_MIN_MM = 4.6;
 
 const classLabel = (c: ClassRow) => `${c.grade_level}${c.class_name}班`;
@@ -91,16 +90,17 @@ const THIN = '1px solid #333';
 const DASH = '1px dashed #777';
 
 function SheetHeader({ title, cls, teacher, subtitle }: { title: string; cls: string; teacher: string; subtitle: string }) {
+  // 班級／導師、符號、週次放在同一行，省下一行高度給學生列
   return (
     <div style={{ marginBottom: 2 }}>
-      <div style={{ textAlign: 'center', fontSize: 24, fontWeight: 700 }}>{title}</div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 17, marginTop: 2 }}>
-        <span>
+      <div style={{ textAlign: 'center', fontSize: 24, fontWeight: 700, lineHeight: 1.2 }}>{title}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', whiteSpace: 'nowrap', marginTop: 1 }}>
+        <span style={{ fontSize: 16 }}>
           班級：<b>{cls}</b>　導師：<b>{teacher || '　　　'}</b>
         </span>
-        <span>{subtitle}</span>
+        <span style={{ fontSize: 14, color: '#333' }}>符號：曠課10　遲到1　病假2　事假3　公假4　早退5</span>
+        <span style={{ fontSize: 14 }}>{subtitle}</span>
       </div>
-      <div style={{ fontSize: 15, color: '#333', textAlign: 'center' }}>符號：曠課10　遲到1　病假2　事假3　公假4　早退5</div>
     </div>
   );
 }
@@ -210,7 +210,9 @@ export default function ClassRollBook() {
     const list = students[c.id] ?? [];
     const dayPeriods = WEEKDAY_LABELS.map((_, i) => Math.max(1, periodsFor(c.department, i + 1)));
     const total = dayPeriods.reduce((a, b) => a + b, 0);
-    const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, (ROWS_AREA_MM - (signRow ? SIGN_MM : 0)) / Math.max(list.length, 1)));
+    // 版面以「列高」為單位：學生 n 列 ＋（有簽名欄時）空 1 列 ＋ 簽名 2 列高；人數最多的班（如幼乙愛）列高最小，人數少的班自動加高、字也跟著放大
+    const units = Math.max(list.length, 1) + (signRow ? 3 : 0);
+    const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, ROWS_AREA_MM / units));
     // 姓名字級隨列高自動放大／縮小（人少列高、字就大；人多列矮、字就小）
     const nameSize = Math.round(Math.min(22, Math.max(10, rowMm * 3.78 * 0.78)));
     const smallSize = Math.round(Math.min(14, Math.max(9, rowMm * 3.78 * 0.5)));
@@ -288,17 +290,19 @@ export default function ClassRollBook() {
               </tr>
             ))}
             {signRow && list.length > 0 && (
-              <tr style={{ height: `${SIGN_MM}mm` }}>
-                <td colSpan={3} style={{ border: THIN, borderTop: THICK, textAlign: 'center', fontSize: 14, fontWeight: 600, padding: '0 4px' }}>
-                  <Dist text="任課教師簽名" />
-                </td>
-                {Array.from({ length: total }, (_, i) => (
-                  <td
-                    key={i}
-                    style={{ ...periodCell(i), borderTop: THICK }}
-                  ></td>
-                ))}
-              </tr>
+              <>
+                <tr style={{ height: `${rowMm}mm` }}>
+                  <td colSpan={3 + total} style={{ border: 'none', borderTop: THIN, padding: 0 }}></td>
+                </tr>
+                <tr style={{ height: `${rowMm * 2}mm` }}>
+                  <td colSpan={3} style={{ border: THIN, textAlign: 'center', fontSize: 14, fontWeight: 600, padding: '0 4px' }}>
+                    <Dist text="任課教師簽名" />
+                  </td>
+                  {Array.from({ length: total }, (_, i) => (
+                    <td key={i} style={{ ...periodCell(i), borderTop: THICK }}></td>
+                  ))}
+                </tr>
+              </>
             )}
             {list.length === 0 && (
               <tr>
