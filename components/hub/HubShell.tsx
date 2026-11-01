@@ -100,7 +100,7 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
   // ---- 功能頁面 ----
   const render = renderers[current.key];
   return (
-    <div style={{ maxWidth: 1180, margin: '0 auto', padding: '16px 12px' }}>
+    <div className="hub-content" style={{ maxWidth: 1180, margin: '0 auto', padding: '16px 12px' }}>
       <nav className="no-print" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, margin: '0 12px 6px', fontSize: 14 }}>
         {tabs.length > 1 ? (
           <Link href={hub.href} style={{ color: '#2C6E9E', textDecoration: 'none' }}>

@@ -351,7 +351,8 @@ export default function ClassRollBook() {
           .no-print { display: none !important; }
           .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 286mm; overflow: hidden; display: flex; flex-direction: column; }
           .rollbook-tablewrap { flex: 1; min-height: 0; }
-          main { padding: 0 !important; max-width: none !important; }
+          html { zoom: 1 !important; }
+          main, .hub-content { padding: 0 !important; max-width: none !important; margin: 0 !important; }
           .rollbook-sheet:last-child { page-break-after: auto; break-after: auto; }
           body { background: #fff !important; }
         }
