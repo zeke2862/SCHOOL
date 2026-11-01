@@ -72,6 +72,20 @@ function Dist({ text }: { text: string }) {
   );
 }
 
+// 姓名固定占「3 個字」的寬度，頭尾對齊：2 個字把中間撐開，3 個字照常，4 個字以上縮小字級擠進同樣寬度
+function NameBox({ text, size }: { text: string; size: number }) {
+  const chars = Array.from(text);
+  const n = chars.length;
+  const fs = n > 3 ? (size * 3) / n : size;
+  return (
+    <span style={{ display: 'flex', justifyContent: n <= 1 ? 'center' : 'space-between', width: `${size * 3}px`, margin: '0 auto', fontSize: fs, lineHeight: 1.1 }}>
+      {chars.map((ch, i) => (
+        <span key={i}>{ch}</span>
+      ))}
+    </span>
+  );
+}
+
 const THICK = '2px solid #000';
 const THIN = '1px solid #333';
 const DASH = '1px dashed #777';
@@ -220,7 +234,7 @@ export default function ClassRollBook() {
           <colgroup>
             <col style={{ width: '9mm' }} />
             <col style={{ width: '17mm' }} />
-            <col style={{ width: '27mm' }} />
+            <col style={{ width: '22mm' }} />
             {Array.from({ length: total }, (_, i) => (
               <col key={i} />
             ))}
@@ -264,7 +278,7 @@ export default function ClassRollBook() {
               <tr key={s.student_no} style={{ height: `${rowMm}mm` }}>
                 <td style={{ border: THIN, textAlign: 'center', fontSize: 12, padding: 0 }}>{s.seat_no}</td>
                 <td style={{ border: THIN, textAlign: 'center', fontSize: 11, padding: 0 }}>{s.student_no}</td>
-                <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden' }}><Dist text={s.name} /></td>
+                <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden' }}><NameBox text={s.name} size={15} /></td>
                 {Array.from({ length: total }, (_, i) => (
                   <td key={i} style={periodCell(i)}></td>
                 ))}
@@ -275,8 +289,11 @@ export default function ClassRollBook() {
                 <td colSpan={3} style={{ border: THIN, borderTop: THICK, textAlign: 'center', fontSize: 14, fontWeight: 600, padding: '0 4px' }}>
                   <Dist text="任課教師簽名" />
                 </td>
-                {dayPeriods.map((n, i) => (
-                  <td key={i} colSpan={n} style={{ borderTop: THICK, borderBottom: THIN, borderLeft: THICK, borderRight: i === 5 ? THICK : undefined, padding: 0 }}></td>
+                {Array.from({ length: total }, (_, i) => (
+                  <td
+                    key={i}
+                    style={{ ...periodCell(i), borderTop: THICK }}
+                  ></td>
                 ))}
               </tr>
             )}
