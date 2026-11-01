@@ -14,7 +14,7 @@ const CLASS_ORDER = ['忠', '孝', '仁', '愛'];
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 
 // A4 直式、邊界 5mm：可用高度 287mm。扣掉標題區與表頭後，剩下給學生列的高度（mm）
-const ROWS_AREA_MM = 246; // 略小於實際可用高度，剩下的由表格自動拉伸補滿（不同電腦字型高度略有差異也不會爆頁）
+const ROWS_AREA_MM = 236; // 略小於實際可用高度，剩下的由表格自動拉伸補滿（不同電腦字型高度略有差異也不會爆頁）
 const ROW_MAX_MM = 16;
 const ROW_MIN_MM = 4.6;
 // 各班簽名列固定用高三忠班（在學 18 人）排版時的簽名列高度：2 列高
@@ -290,17 +290,21 @@ export default function ClassRollBook() {
             </tr>
           </thead>
           <tbody>
-            {list.map((s) => (
+            {list.map((s, idx) => {
+              // 每 5 位學生用粗線隔開，方便對照
+              const bb: React.CSSProperties = (idx + 1) % 5 === 0 ? { borderBottom: THICK } : {};
+              return (
               <tr key={s.student_no} style={{ height: `${rowMm}mm` }}>
-                <td style={{ border: THIN, textAlign: 'center', fontSize: smallSize, padding: 0 }}>{s.seat_no}</td>
-                <td style={{ border: THIN, textAlign: 'center', fontSize: Math.max(9, smallSize - 1), padding: 0 }}>{s.student_no}</td>
-                <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: nameSize, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden' }}><NameBox text={s.name} size={nameSize} /></td>
+                <td style={{ border: THIN, textAlign: 'center', fontSize: smallSize, padding: 0, ...bb }}>{s.seat_no}</td>
+                <td style={{ border: THIN, textAlign: 'center', fontSize: Math.max(9, smallSize - 1), padding: 0, ...bb }}>{s.student_no}</td>
+                <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: nameSize, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', ...bb }}><NameBox text={s.name} size={nameSize} /></td>
                 {Array.from({ length: total }, (_, i) => (
-                  <td key={i} style={periodCell(i)}></td>
+                  <td key={i} style={{ ...periodCell(i), ...bb }}></td>
                 ))}
-                <td style={{ border: THIN, textAlign: 'center', fontSize: smallSize, padding: 0 }}>{s.seat_no}</td>
+                <td style={{ border: THIN, textAlign: 'center', fontSize: smallSize, padding: 0, ...bb }}>{s.seat_no}</td>
               </tr>
-            ))}
+              );
+            })}
             {signRow && list.length > 0 && (
               <>
                 <tr style={{ height: `${signMm}mm` }}>
