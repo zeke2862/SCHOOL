@@ -13,8 +13,8 @@ const GRADE_ORDER = ['幼乙', '幼甲', '1年', '2年', '3年', '4年', '5年',
 const CLASS_ORDER = ['忠', '孝', '仁', '愛'];
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 
-// A4 直式、邊界 8mm：可用高度 281mm。扣掉標題區與表頭後，剩下給學生列的高度（mm）
-const ROWS_AREA_MM = 230;
+// A4 直式、邊界 5mm：可用高度 287mm。扣掉標題區與表頭後，剩下給學生列的高度（mm）
+const ROWS_AREA_MM = 236;
 const ROW_MAX_MM = 10;
 const SIGN_MM = 11; // 任課教師簽名列的高度
 const ROW_MIN_MM = 4.6;
@@ -335,10 +335,10 @@ export default function ClassRollBook() {
   return (
     <main style={{ maxWidth: 1000, margin: '0 auto', padding: 16 }}>
       <style>{`
-        @page { size: A4 portrait; margin: 8mm; }
+        @page { size: A4 portrait; margin: 5mm; }
         @media print {
           .no-print { display: none !important; }
-          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 281mm; overflow: hidden; }
+          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 287mm; overflow: hidden; }
           .rollbook-sheet:last-child { page-break-after: auto; break-after: auto; }
           body { background: #fff !important; }
         }
