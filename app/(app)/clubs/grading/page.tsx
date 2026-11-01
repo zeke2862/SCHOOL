@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase, getCurrentTeacherId } from '@/lib/supabaseClient';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
+import { classSortKey, compareByClassThenSeat } from '@/lib/clubOrder';
 
 type ClubOption = { id: string; name: string };
 type ScoreRow = {
@@ -11,6 +12,7 @@ type ScoreRow = {
   name: string;
   class_label: string;
   seat_no: number | null;
+  sort_key: number;
   score_midterm: number | null;
   score_final: number | null;
   score_daily: number | null;
@@ -89,7 +91,7 @@ export default function ClubGradingPage() {
 
     const { data: memberRows, error: memberErr } = await supabase
       .from('club_members')
-      .select('student_no, students(name, enrollments(seat_no, term, is_current, classes(grade_level, class_name, academic_year)))')
+      .select('student_no, students(name, enrollments(seat_no, term, is_current, classes(department, grade_level, class_name, academic_year)))')
       .eq('club_id', clubId)
       .eq('status', '在社');
     if (memberErr) {
@@ -117,6 +119,7 @@ export default function ClubGradingPage() {
       return {
         student_no: r.student_no,
         name: r.students?.name ?? r.student_no,
+        sort_key: classSortKey(currentEnrollment?.classes?.department, currentEnrollment?.classes?.grade_level, currentEnrollment?.classes?.class_name),
         class_label: currentEnrollment ? `${currentEnrollment.classes?.grade_level ?? ''}${currentEnrollment.classes?.class_name ?? ''}` : '－',
         seat_no: currentEnrollment?.seat_no ?? null,
         score_midterm: existing?.score_midterm ?? null,
@@ -127,7 +130,7 @@ export default function ClubGradingPage() {
         daily_submitted: existing?.daily_submitted ?? false,
       };
     });
-    built.sort((a, b) => a.class_label.localeCompare(b.class_label) || (a.seat_no ?? 0) - (b.seat_no ?? 0));
+    built.sort((a, b) => compareByClassThenSeat(a, b));
     setRows(built);
     setLoading(false);
   }

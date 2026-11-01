@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
+import { classSortKey, compareByClassThenSeat } from '@/lib/clubOrder';
 import { useDepartmentPermissions } from '@/lib/useDepartmentPermissions';
 import { isDepartmentLead } from '@/lib/departments';
 
@@ -19,7 +20,7 @@ type Club = {
   is_active: boolean;
 };
 type TeacherOption = { id: string; name: string };
-type MemberRow = { id: string; student_no: string; status: string; name: string; class_label: string; seat_no: number | null };
+type MemberRow = { id: string; student_no: string; status: string; name: string; class_label: string; seat_no: number | null; sort_key: number };
 type SelectionWindow = {
   id: string;
   academic_year: number;
@@ -123,7 +124,7 @@ export default function AdminClubsPage() {
     setMemberError(null);
     const { data: memberRows, error: memberErr } = await supabase
       .from('club_members')
-      .select('id, student_no, status, students(name, enrollments(seat_no, term, is_current, classes(grade_level, class_name, academic_year)))')
+      .select('id, student_no, status, students(name, enrollments(seat_no, term, is_current, classes(department, grade_level, class_name, academic_year)))')
       .eq('club_id', clubId)
       .order('student_no');
     if (memberErr) {
@@ -144,10 +145,12 @@ export default function AdminClubsPage() {
         student_no: r.student_no,
         status: r.status,
         name: r.students?.name ?? r.student_no,
+        sort_key: classSortKey(currentEnrollment?.classes?.department, currentEnrollment?.classes?.grade_level, currentEnrollment?.classes?.class_name),
         class_label: currentEnrollment ? `${currentEnrollment.classes?.grade_level ?? ''}${currentEnrollment.classes?.class_name ?? ''}` : '（查無現行學籍）',
         seat_no: currentEnrollment?.seat_no ?? null,
       };
     });
+    rows.sort((a, b) => (a.status === b.status ? 0 : a.status === '在社' ? -1 : 1) || compareByClassThenSeat(a, b));
     setMembers(rows);
   }
 

@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { supabase, getCurrentTeacherId } from '@/lib/supabaseClient';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
+import { classSortKey, compareByClassThenSeat } from '@/lib/clubOrder';
 
 type ClubOption = { id: string; name: string };
-type MemberRow = { student_no: string; name: string; class_label: string; seat_no: number | null };
+type MemberRow = { student_no: string; name: string; class_label: string; seat_no: number | null; sort_key: number };
 
 const EXCEPTION_OPTIONS = ['曠課', '遲到', '病假', '事假', '公假'] as const;
 
@@ -80,7 +81,7 @@ export default function ClubRosterPage() {
     setSaveMsg(null);
     const { data: memberRows, error: memberErr } = await supabase
       .from('club_members')
-      .select('student_no, status, students(name, enrollments(seat_no, term, is_current, classes(grade_level, class_name, academic_year)))')
+      .select('student_no, status, students(name, enrollments(seat_no, term, is_current, classes(department, grade_level, class_name, academic_year)))')
       .eq('club_id', clubId)
       .eq('status', '在社');
     if (memberErr) {
@@ -100,11 +101,12 @@ export default function ClubRosterPage() {
       return {
         student_no: r.student_no,
         name: r.students?.name ?? r.student_no,
+        sort_key: classSortKey(currentEnrollment?.classes?.department, currentEnrollment?.classes?.grade_level, currentEnrollment?.classes?.class_name),
         class_label: currentEnrollment ? `${currentEnrollment.classes?.grade_level ?? ''}${currentEnrollment.classes?.class_name ?? ''}` : '－',
         seat_no: currentEnrollment?.seat_no ?? null,
       };
     });
-    rows.sort((a, b) => a.class_label.localeCompare(b.class_label) || (a.seat_no ?? 0) - (b.seat_no ?? 0));
+    rows.sort((a, b) => compareByClassThenSeat(a, b));
     setMembers(rows);
 
     const studentNos = rows.map((r) => r.student_no);

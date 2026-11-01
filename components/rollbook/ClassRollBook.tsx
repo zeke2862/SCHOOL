@@ -16,6 +16,7 @@ const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 // A4 直式、邊界 8mm：可用高度 281mm。扣掉標題區與表頭後，剩下給學生列的高度（mm）
 const ROWS_AREA_MM = 230;
 const ROW_MAX_MM = 10;
+const SIGN_MM = 11; // 任課教師簽名列的高度
 const ROW_MIN_MM = 4.6;
 
 const classLabel = (c: ClassRow) => `${c.grade_level}${c.class_name}班`;
@@ -97,6 +98,7 @@ export default function ClassRollBook() {
   const [term, setTerm] = useState<{ academic_year: number; term: string } | null>(null);
   const [dates, setDates] = useState<{ start: string; end: string } | null>(null);
   const [mode, setMode] = useState<Mode>('week');
+  const [signRow, setSignRow] = useState(true);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [students, setStudents] = useState<Record<string, Student[]>>({});
   const [loading, setLoading] = useState(true);
@@ -194,7 +196,7 @@ export default function ClassRollBook() {
     const list = students[c.id] ?? [];
     const dayPeriods = WEEKDAY_LABELS.map((_, i) => Math.max(1, periodsFor(c.department, i + 1)));
     const total = dayPeriods.reduce((a, b) => a + b, 0);
-    const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, ROWS_AREA_MM / Math.max(list.length, 1)));
+    const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, (ROWS_AREA_MM - (signRow ? SIGN_MM : 0)) / Math.max(list.length, 1)));
     const hdrMm = 6;
     const thCommon = { border: THIN, background: '#f3f3f3', padding: 0, textAlign: 'center' as const, fontSize: 12, height: `${hdrMm}mm`, fontWeight: 600 };
 
@@ -268,6 +270,16 @@ export default function ClassRollBook() {
                 ))}
               </tr>
             ))}
+            {signRow && list.length > 0 && (
+              <tr style={{ height: `${SIGN_MM}mm` }}>
+                <td colSpan={3} style={{ border: THIN, borderTop: THICK, textAlign: 'center', fontSize: 14, fontWeight: 600, padding: '0 4px' }}>
+                  <Dist text="任課教師簽名" />
+                </td>
+                {dayPeriods.map((n, i) => (
+                  <td key={i} colSpan={n} style={{ borderTop: THICK, borderBottom: THIN, borderLeft: THICK, borderRight: i === 5 ? THICK : undefined, padding: 0 }}></td>
+                ))}
+              </tr>
+            )}
             {list.length === 0 && (
               <tr>
                 <td colSpan={3 + total} style={{ border: THIN, textAlign: 'center', fontSize: 12, height: '10mm' }}>
@@ -367,6 +379,10 @@ export default function ClassRollBook() {
             </div>
           ))}
         </div>
+
+        <label style={{ display: 'block', fontSize: 13, marginBottom: 10 }}>
+          <input type="checkbox" checked={signRow} onChange={(e) => setSignRow(e.target.checked)} /> 在最後一號下面加印「任課教師簽名」欄
+        </label>
 
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
           <button
