@@ -208,7 +208,11 @@ export default function AdminClubsPage() {
     }
     const { error: insErr } = await supabase.from('club_members').insert({ club_id: selectedClubId, student_no: studentNo });
     if (insErr) {
-      setMemberError('加入名單失敗：' + insErr.message + '（可能這位學生已經在名單裡了）');
+      setMemberError(
+        insErr.message.includes('一人只能參加一個社團')
+          ? insErr.message
+          : '加入名單失敗：' + insErr.message + '（可能這位學生已經在名單裡了）'
+      );
       return;
     }
     setNewStudentNo('');
