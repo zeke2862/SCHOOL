@@ -14,8 +14,16 @@ type ScoreRow = {
   score_midterm: number | null;
   score_final: number | null;
   score_daily: number | null;
-  is_submitted: boolean;
+  midterm_submitted: boolean;
+  final_submitted: boolean;
+  daily_submitted: boolean;
 };
+type ItemKey = 'midterm' | 'final' | 'daily';
+const ITEMS: { key: ItemKey; label: string; scoreField: 'score_midterm' | 'score_final' | 'score_daily'; flagField: 'midterm_submitted' | 'final_submitted' | 'daily_submitted' }[] = [
+  { key: 'midterm', label: '期中考', scoreField: 'score_midterm', flagField: 'midterm_submitted' },
+  { key: 'final', label: '期末考', scoreField: 'score_final', flagField: 'final_submitted' },
+  { key: 'daily', label: '平時分', scoreField: 'score_daily', flagField: 'daily_submitted' },
+];
 type Weights = { midterm_weight: number; final_weight: number; daily_weight: number };
 
 // 社團成績輸入頁：欄位比照現有其他科目（期中考／期末考／平時分），不是另外發明的評分方式。
@@ -34,6 +42,7 @@ export default function ClubGradingPage() {
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [noAssignment, setNoAssignment] = useState(false);
   const [term, setTerm] = useState<{ academic_year: number; term: string } | null>(null);
+  const [itemKey, setItemKey] = useState<ItemKey>('midterm');
 
   useEffect(() => {
     (async () => {
@@ -91,7 +100,7 @@ export default function ClubGradingPage() {
 
     const { data: scoreRows } = await supabase
       .from('club_scores')
-      .select('student_no, score_midterm, score_final, score_daily, is_submitted')
+      .select('student_no, score_midterm, score_final, score_daily, midterm_submitted, final_submitted, daily_submitted')
       .eq('club_id', clubId);
     const scoreMap = new Map((scoreRows ?? []).map((s: any) => [s.student_no, s]));
 
@@ -113,7 +122,9 @@ export default function ClubGradingPage() {
         score_midterm: existing?.score_midterm ?? null,
         score_final: existing?.score_final ?? null,
         score_daily: existing?.score_daily ?? null,
-        is_submitted: existing?.is_submitted ?? false,
+        midterm_submitted: existing?.midterm_submitted ?? false,
+        final_submitted: existing?.final_submitted ?? false,
+        daily_submitted: existing?.daily_submitted ?? false,
       };
     });
     built.sort((a, b) => a.class_label.localeCompare(b.class_label) || (a.seat_no ?? 0) - (b.seat_no ?? 0));
@@ -130,53 +141,50 @@ export default function ClubGradingPage() {
     setRows((prev) => prev.map((r) => (r.student_no === studentNo ? { ...r, [field]: num } : r)));
   }
 
+  // 期中考／期末考／平時分各自獨立：老師先選要輸入哪一項，「暫存」只存在社團成績表，
+  // 「正式送出並鎖定」才把這一項回寫學期總成績的「才藝」科目；其他兩項不受影響。
   async function saveAll(submit: boolean) {
     setSaving(true);
     setError(null);
     setSaveMsg(null);
     const teacherId = await getCurrentTeacherId();
+    const item = ITEMS.find((i) => i.key === itemKey)!;
 
-    // 【2026-08-24 修正】原本這裡不管暫存還是正式送出，都把 rows 裡「所有」
-    // 學生（包含已經正式送出、被鎖定的）一起 upsert，且 is_submitted 統一
-    // 設成這次按鈕的 submit 參數——這表示點「暫存」時，會把已經送出鎖定的
-    // 學生的 is_submitted 從 true 又寫回 false，等於悄悄把鎖定解開；即使
-    // RLS（club_teacher_manage_scores）的 using 子句本來就只允許在
-    // is_submitted 還是 false 時才能更新，一般社團老師對已鎖定的列直接被
-    // RLS 擋下也只會讓整個 upsert 失敗或部分失敗，不是我們要的行為。正確
-    // 做法是从一開始就把已經送出鎖定的學生排除在外，不管暫存或正式送出，
-    // 都只處理「還沒送出」的那些列。
-    const editableRows = rows.filter((r) => !r.is_submitted);
-
+    // 只處理這一項還沒鎖定的學生，已鎖定的不動
+    const editableRows = rows.filter((r) => !r[item.flagField]);
     if (editableRows.length === 0) {
-      setSaveMsg('所有學生都已經正式送出鎖定，沒有可以更新的項目。');
+      setSaveMsg(`所有學生的${item.label}都已經正式送出鎖定，沒有可以更新的項目。`);
       setSaving(false);
       return;
     }
 
     if (submit) {
-      const incomplete = editableRows.filter((r) => r.score_midterm === null && r.score_final === null && r.score_daily === null);
+      const incomplete = editableRows.filter((r) => r[item.scoreField] === null);
       if (incomplete.length > 0) {
-        setError(`「${incomplete.map((r) => r.name).join('、')}」完全沒有輸入任何分數，無法正式送出`);
+        setError(`「${incomplete.map((r) => r.name).join('、')}」還沒有輸入${item.label}，無法正式送出（還沒輸入完請先按「暫存」）`);
+        setSaving(false);
+        return;
+      }
+      if (!window.confirm(`確定要把全部 ${editableRows.length} 位學生的「${item.label}」正式送出並鎖定嗎？送出後會寫入學期總成績，要修改需請教務處解鎖。`)) {
         setSaving(false);
         return;
       }
     }
 
+    const nowIso = new Date().toISOString();
     const upsertRows = editableRows.map((r) => ({
       club_id: selectedClubId,
       student_no: r.student_no,
-      score_midterm: r.score_midterm,
-      score_final: r.score_final,
-      score_daily: r.score_daily,
-      is_submitted: submit,
-      submitted_at: submit ? new Date().toISOString() : null,
+      [item.scoreField]: r[item.scoreField],
+      [item.flagField]: submit,
+      ...(submit ? { submitted_at: nowIso } : {}),
       recorded_by: teacherId,
     }));
     const { error: upsertErr } = await supabase.from('club_scores').upsert(upsertRows, { onConflict: 'club_id,student_no' });
     if (upsertErr) {
       setError((submit ? '正式送出' : '暫存') + '失敗：' + upsertErr.message);
     } else {
-      setSaveMsg(submit ? '已正式送出並鎖定，分數已同步回寫學期總成績「才藝」科目' : '已暫存，尚未正式送出');
+      setSaveMsg(submit ? `${item.label}已正式送出並鎖定，分數已同步回寫學期總成績「才藝」科目` : `${item.label}已暫存，尚未正式送出`);
       loadClubData(selectedClubId);
     }
     setSaving(false);
@@ -191,13 +199,15 @@ export default function ClubGradingPage() {
     );
   }
 
-  const anySubmitted = rows.some((r) => r.is_submitted);
+  const item = ITEMS.find((i) => i.key === itemKey)!;
+  const lockedCount = rows.filter((r) => r[item.flagField]).length;
+  const allLocked = rows.length > 0 && lockedCount === rows.length;
 
   return (
     <main style={{ maxWidth: 960, margin: '0 auto', padding: isMobile ? '16px 12px' : 24 }}>
       <h1 style={{ fontSize: isMobile ? 18 : 16, marginBottom: 4 }}>社團成績輸入</h1>
       <p style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
-        欄位跟其他科目一樣分「期中考／期末考／平時分」三段，哪幾項有上就填哪幾項。正式送出後鎖定，會自動回寫進學期總成績的「才藝」科目，如需修改請洽教務處協助解鎖。
+        請先選擇要輸入的項目（期中考／期末考／平時分），三項各自獨立。還沒打完先按「暫存」；確認無誤再按「正式送出並鎖定」，這一項才會回寫進學期總成績的「才藝」科目，其他兩項不受影響。如需修改已鎖定的成績請洽教務處協助解鎖。
       </p>
       {weights && (
         <p style={{ fontSize: 12, color: '#999', marginBottom: 16 }}>
@@ -216,6 +226,33 @@ export default function ClubGradingPage() {
         </select>
       )}
 
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {ITEMS.map((i) => {
+          const done = rows.length > 0 && rows.every((r) => r[i.flagField]);
+          return (
+            <button
+              key={i.key}
+              type="button"
+              onClick={() => {
+                setItemKey(i.key);
+                setSaveMsg(null);
+                setError(null);
+              }}
+              style={{
+                padding: isMobile ? '10px 16px' : '6px 16px',
+                borderRadius: 6,
+                border: '1px solid #ccc',
+                background: itemKey === i.key ? '#EAF3DE' : '#fff',
+                fontWeight: itemKey === i.key ? 600 : 400,
+              }}
+            >
+              {i.label}
+              {done ? '（已送出）' : ''}
+            </button>
+          );
+        })}
+      </div>
+
       {error && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{error}</p>}
       {saveMsg && <p style={{ fontSize: 13, color: '#2D7A3A', marginBottom: 12 }}>{saveMsg}</p>}
 
@@ -224,63 +261,42 @@ export default function ClubGradingPage() {
       ) : (
         <>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 16, minWidth: 640 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 16, minWidth: 480 }}>
               <thead>
                 <tr>
                   <th style={{ textAlign: 'left', padding: 6 }}>學號</th>
                   <th style={{ textAlign: 'left', padding: 6 }}>原班級</th>
                   <th style={{ textAlign: 'left', padding: 6 }}>姓名</th>
-                  <th style={{ textAlign: 'right', padding: 6 }}>期中考</th>
-                  <th style={{ textAlign: 'right', padding: 6 }}>期末考</th>
-                  <th style={{ textAlign: 'right', padding: 6 }}>平時分</th>
+                  <th style={{ textAlign: 'right', padding: 6 }}>{item.label}</th>
                   <th style={{ textAlign: 'center', padding: 6 }}>狀態</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
-                  <tr key={r.student_no} style={{ borderTop: '1px solid #eee' }}>
-                    <td style={{ padding: 6 }}>{r.student_no}</td>
-                    <td style={{ padding: 6 }}>{r.class_label}</td>
-                    <td style={{ padding: 6 }}>{r.name}</td>
-                    <td style={{ padding: 6, textAlign: 'right' }}>
-                      <input
-                        type="number"
-                        min={0}
-                        max={100}
-                        disabled={r.is_submitted}
-                        value={r.score_midterm ?? ''}
-                        onChange={(e) => updateScore(r.student_no, 'score_midterm', e.target.value)}
-                        style={{ width: 64, padding: 4, textAlign: 'right' }}
-                      />
-                    </td>
-                    <td style={{ padding: 6, textAlign: 'right' }}>
-                      <input
-                        type="number"
-                        min={0}
-                        max={100}
-                        disabled={r.is_submitted}
-                        value={r.score_final ?? ''}
-                        onChange={(e) => updateScore(r.student_no, 'score_final', e.target.value)}
-                        style={{ width: 64, padding: 4, textAlign: 'right' }}
-                      />
-                    </td>
-                    <td style={{ padding: 6, textAlign: 'right' }}>
-                      <input
-                        type="number"
-                        min={0}
-                        max={100}
-                        disabled={r.is_submitted}
-                        value={r.score_daily ?? ''}
-                        onChange={(e) => updateScore(r.student_no, 'score_daily', e.target.value)}
-                        style={{ width: 64, padding: 4, textAlign: 'right' }}
-                      />
-                    </td>
-                    <td style={{ padding: 6, textAlign: 'center', color: r.is_submitted ? '#2D7A3A' : '#999' }}>{r.is_submitted ? '已送出' : '未送出'}</td>
-                  </tr>
-                ))}
+                {rows.map((r) => {
+                  const locked = r[item.flagField];
+                  return (
+                    <tr key={r.student_no} style={{ borderTop: '1px solid #eee' }}>
+                      <td style={{ padding: 6 }}>{r.student_no}</td>
+                      <td style={{ padding: 6 }}>{r.class_label}</td>
+                      <td style={{ padding: 6 }}>{r.name}</td>
+                      <td style={{ padding: 6, textAlign: 'right' }}>
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          disabled={locked}
+                          value={r[item.scoreField] ?? ''}
+                          onChange={(e) => updateScore(r.student_no, item.scoreField, e.target.value)}
+                          style={{ width: 72, padding: 4, textAlign: 'right' }}
+                        />
+                      </td>
+                      <td style={{ padding: 6, textAlign: 'center', color: locked ? '#2D7A3A' : '#999' }}>{locked ? '已送出' : r[item.scoreField] === null ? '未輸入' : '暫存中'}</td>
+                    </tr>
+                  );
+                })}
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                    <td colSpan={5} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
                       這個社團目前沒有在社學生
                     </td>
                   </tr>
@@ -289,14 +305,14 @@ export default function ClubGradingPage() {
             </table>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button onClick={() => saveAll(false)} disabled={saving || rows.every((r) => r.is_submitted)} style={{ padding: '8px 20px' }}>
-              暫存
+            <button onClick={() => saveAll(false)} disabled={saving || rows.length === 0 || allLocked} style={{ padding: '8px 20px' }}>
+              暫存{item.label}
             </button>
-            <button onClick={() => saveAll(true)} disabled={saving || rows.every((r) => r.is_submitted)} style={{ padding: '8px 20px', fontWeight: 600 }}>
-              正式送出並鎖定
+            <button onClick={() => saveAll(true)} disabled={saving || rows.length === 0 || allLocked} style={{ padding: '8px 20px', fontWeight: 600 }}>
+              正式送出{item.label}並鎖定
             </button>
           </div>
-          {anySubmitted && <p style={{ fontSize: 12, color: '#999', marginTop: 8 }}>已送出的學生分數欄位會鎖定無法再自行修改，如需更正請洽教務處協助解鎖。</p>}
+          {lockedCount > 0 && <p style={{ fontSize: 12, color: '#999', marginTop: 8 }}>已送出的學生{item.label}會鎖定無法再自行修改，如需更正請洽教務處協助解鎖。</p>}
         </>
       )}
     </main>
