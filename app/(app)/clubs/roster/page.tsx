@@ -42,6 +42,7 @@ export default function ClubRosterPage() {
   const [error, setError] = useState<string | null>(null);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [noAssignment, setNoAssignment] = useState(false);
+  const [summary, setSummary] = useState<{ date: string; total: number; absent: (MemberRow & { status: string })[] } | null>(null);
   const [term, setTerm] = useState<{ academic_year: number; term: string } | null>(null);
 
   useEffect(() => {
@@ -141,6 +142,14 @@ export default function ClubRosterPage() {
       setError('點名紀錄儲存失敗：' + upsertErr.message);
     } else {
       setSaveMsg(`已儲存 ${recordDate} 的點名紀錄（共 ${rowsToUpsert.length} 位學生）`);
+      // 儲存成功後跳出確認視窗，讓老師看清楚誰沒有出席
+      setSummary({
+        date: recordDate,
+        total: rowsToUpsert.length,
+        absent: members
+          .filter((m) => (statusMap[m.student_no] ?? '出席') !== '出席')
+          .map((m) => ({ ...m, status: statusMap[m.student_no] })),
+      });
     }
     setSaving(false);
   }
@@ -242,6 +251,37 @@ export default function ClubRosterPage() {
             {saving ? '儲存中…' : '儲存點名'}
           </button>
         </>
+      )}
+
+      {summary && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}
+        >
+          <div style={{ background: '#fff', borderRadius: 8, padding: 24, width: '90%', maxWidth: 420, maxHeight: '80vh', overflowY: 'auto' }}>
+            <h2 style={{ fontSize: 16, marginBottom: 8 }}>點名已儲存，請確認</h2>
+            <p style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
+              {summary.date} 共 {summary.total} 人，出席 {summary.total - summary.absent.length} 人，未出席 {summary.absent.length} 人
+            </p>
+            {summary.absent.length === 0 ? (
+              <p style={{ fontSize: 14, color: '#2D7A3A', marginBottom: 16 }}>全部出席。</p>
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px', fontSize: 14 }}>
+                {summary.absent.map((a) => (
+                  <li key={a.student_no} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #eee' }}>
+                    <span>
+                      {a.name}
+                      <span style={{ color: '#999', marginLeft: 6, fontSize: 12 }}>{a.class_label}</span>
+                    </span>
+                    <span style={{ color: '#A32D2D' }}>{a.status}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button onClick={() => setSummary(null)} style={{ width: '100%', padding: 10, borderRadius: 8, background: '#2C2C2A', color: '#fff', border: 'none' }}>
+              確認
+            </button>
+          </div>
+        </div>
       )}
     </main>
   );
