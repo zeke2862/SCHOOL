@@ -16,7 +16,7 @@ const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 // A4 直式、邊界 5mm：可用高度 287mm。扣掉標題區與表頭後，剩下給學生列的高度（mm）
 const ROWS_AREA_MM = 236; // 略小於實際可用高度，剩下的由表格自動拉伸補滿（不同電腦字型高度略有差異也不會爆頁）
 const ROW_MAX_MM = 16;
-const ROW_MIN_MM = 4.6;
+const ROW_MIN_MM = 3.4;
 // 各班簽名列固定用高三忠班（在學 18 人）排版時的簽名列高度：2 列高
 const REF_CLASS_COUNT = 18;
 // 標題與「班級／導師」那一行之間的空隙：所有班固定
