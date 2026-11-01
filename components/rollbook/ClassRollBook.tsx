@@ -14,7 +14,7 @@ const CLASS_ORDER = ['忠', '孝', '仁', '愛'];
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 
 // A4 直式、邊界 8mm：可用高度 281mm。扣掉標題區與表頭後，剩下給學生列的高度（mm）
-const ROWS_AREA_MM = 238;
+const ROWS_AREA_MM = 230;
 const ROW_MAX_MM = 10;
 const ROW_MIN_MM = 4.6;
 
@@ -58,6 +58,19 @@ function buildWeeks(startStr: string, endStr: string): Date[][] {
 }
 
 // 同一天的節次格用虛線，換天用粗實線
+// 分散對齊 + 置中：每個字平均撒在格子寬度內（單字或數字就是置中）
+function Dist({ text }: { text: string }) {
+  const chars = Array.from(text);
+  if (chars.length <= 1) return <span>{text}</span>;
+  return (
+    <span style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
+      {chars.map((ch, i) => (
+        <span key={i}>{ch}</span>
+      ))}
+    </span>
+  );
+}
+
 const THICK = '2px solid #000';
 const THIN = '1px solid #333';
 const DASH = '1px dashed #777';
@@ -65,14 +78,14 @@ const DASH = '1px dashed #777';
 function SheetHeader({ title, cls, teacher, subtitle }: { title: string; cls: string; teacher: string; subtitle: string }) {
   return (
     <div style={{ marginBottom: 2 }}>
-      <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700 }}>{title}</div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginTop: 2 }}>
+      <div style={{ textAlign: 'center', fontSize: 24, fontWeight: 700 }}>{title}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 17, marginTop: 2 }}>
         <span>
           班級：<b>{cls}</b>　導師：<b>{teacher || '　　　'}</b>
         </span>
         <span>{subtitle}</span>
       </div>
-      <div style={{ fontSize: 11, color: '#333' }}>符號：曠課10　遲到1　病假2　事假3　公假4　早退5（出席不必記號）</div>
+      <div style={{ fontSize: 15, color: '#333' }}>符號：曠課10　遲到1　病假2　事假3　公假4　早退5（出席不必記號）</div>
     </div>
   );
 }
@@ -212,12 +225,12 @@ export default function ClassRollBook() {
           </colgroup>
           <thead>
             <tr>
-              <th rowSpan={3} style={thCommon}>座號</th>
-              <th rowSpan={3} style={thCommon}>學號</th>
-              <th rowSpan={3} style={thCommon}>姓名</th>
+              <th rowSpan={3} style={thCommon}><Dist text="座號" /></th>
+              <th rowSpan={3} style={thCommon}><Dist text="學號" /></th>
+              <th rowSpan={3} style={thCommon}><Dist text="姓名" /></th>
               {WEEKDAY_LABELS.map((w, i) => (
                 <th key={w} colSpan={dayPeriods[i]} style={{ ...thCommon, borderLeft: THICK, borderRight: i === 5 ? THICK : undefined }}>
-                  星期{w}
+                  <Dist text={`星期${w}`} />
                 </th>
               ))}
             </tr>
@@ -249,7 +262,7 @@ export default function ClassRollBook() {
               <tr key={s.student_no} style={{ height: `${rowMm}mm` }}>
                 <td style={{ border: THIN, textAlign: 'center', fontSize: 12, padding: 0 }}>{s.seat_no}</td>
                 <td style={{ border: THIN, textAlign: 'center', fontSize: 11, padding: 0 }}>{s.student_no}</td>
-                <td style={{ border: THIN, textAlign: 'left', paddingLeft: 4, fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden' }}>{s.name}</td>
+                <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden' }}><Dist text={s.name} /></td>
                 {Array.from({ length: total }, (_, i) => (
                   <td key={i} style={periodCell(i)}></td>
                 ))}

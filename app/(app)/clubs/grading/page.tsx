@@ -260,10 +260,12 @@ export default function ClubGradingPage() {
         <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
       ) : (
         <>
+          <p style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>在社共 {rows.length} 人</p>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 16, minWidth: 480 }}>
               <thead>
                 <tr>
+                  <th style={{ textAlign: 'left', padding: 6 }}>序號</th>
                   <th style={{ textAlign: 'left', padding: 6 }}>學號</th>
                   <th style={{ textAlign: 'left', padding: 6 }}>原班級</th>
                   <th style={{ textAlign: 'left', padding: 6 }}>姓名</th>
@@ -272,10 +274,11 @@ export default function ClubGradingPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => {
+                {rows.map((r, idx) => {
                   const locked = r[item.flagField];
                   return (
                     <tr key={r.student_no} style={{ borderTop: '1px solid #eee' }}>
+                      <td style={{ padding: 6 }}>{idx + 1}</td>
                       <td style={{ padding: 6 }}>{r.student_no}</td>
                       <td style={{ padding: 6 }}>{r.class_label}</td>
                       <td style={{ padding: 6 }}>{r.name}</td>
@@ -296,7 +299,7 @@ export default function ClubGradingPage() {
                 })}
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={5} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                    <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
                       這個社團目前沒有在社學生
                     </td>
                   </tr>
