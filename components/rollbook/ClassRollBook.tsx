@@ -14,11 +14,13 @@ const CLASS_ORDER = ['忠', '孝', '仁', '愛'];
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 
 // A4 直式、邊界 5mm：可用高度 287mm。扣掉標題區與表頭後，剩下給學生列的高度（mm）
-const ROWS_AREA_MM = 253;
+const ROWS_AREA_MM = 246; // 略小於實際可用高度，剩下的由表格自動拉伸補滿（不同電腦字型高度略有差異也不會爆頁）
 const ROW_MAX_MM = 16;
 const ROW_MIN_MM = 4.6;
 // 各班簽名列固定用高三忠班（在學 18 人）排版時的簽名列高度：2 列高
 const REF_CLASS_COUNT = 18;
+// 標題與「班級／導師」那一行之間的空隙：所有班固定
+const TITLE_GAP_MM = 6;
 
 const classLabel = (c: ClassRow) => `${c.grade_level}${c.class_name}班`;
 
@@ -97,12 +99,12 @@ function SheetHeader({ title, cls, teacher, subtitle, gapMm }: { title: string; 
     <div style={{ marginBottom: 2 }}>
       <div style={{ textAlign: 'center', fontSize: 24, fontWeight: 700, lineHeight: 1.2 }}>{title}</div>
       <div style={{ height: `${gapMm}mm` }}></div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', whiteSpace: 'nowrap', marginTop: 1 }}>
-        <span style={{ fontSize: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', whiteSpace: 'nowrap', marginTop: 1, gap: 8 }}>
+        <span style={{ fontSize: 15 }}>
           班級：<b>{cls}</b>　導師：<b>{teacher || '　　　'}</b>
         </span>
-        <span style={{ fontSize: 14, color: '#333' }}>符號：曠課10　遲到1　病假2　事假3　公假4　早退5</span>
-        <span style={{ fontSize: 14 }}>{subtitle}</span>
+        <span style={{ fontSize: 12, color: '#333' }}>符號：曠課10　遲到1　病假2　事假3　公假4　早退5</span>
+        <span style={{ fontSize: 12 }}>{subtitle}</span>
       </div>
     </div>
   );
@@ -213,11 +215,11 @@ export default function ClassRollBook() {
     const list = students[c.id] ?? [];
     const dayPeriods = WEEKDAY_LABELS.map((_, i) => Math.max(1, periodsFor(c.department, i + 1)));
     const total = dayPeriods.reduce((a, b) => a + b, 0);
-    // 簽名列高度固定（＝高三忠班排版時的 2 列高）；空 1 列＋學生 n 列平分剩下的高度，人數最多的班列高最小
+    // 標題區、簽名列的高度對所有班固定（簽名列＝高三忠班排版時的 2 列高）；學生列平分剩下的高度，人數最多的班列高最小
     const refRowMm = Math.min(ROW_MAX_MM, ROWS_AREA_MM / (REF_CLASS_COUNT + 3));
     const signMm = refRowMm * 2;
-    const units = Math.max(list.length, 1) + (signRow ? 1 : 0);
-    const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, (ROWS_AREA_MM - (signRow ? signMm : 0)) / units));
+    const gapMm = signRow ? TITLE_GAP_MM : 0;
+    const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, (ROWS_AREA_MM - (signRow ? signMm : 0) - gapMm) / Math.max(list.length, 1)));
     // 姓名字級隨列高自動放大／縮小（人少列高、字就大；人多列矮、字就小）
     const nameSize = Math.round(Math.min(30, Math.max(10, rowMm * 3.78 * 0.78)));
     const smallSize = Math.round(Math.min(16, Math.max(9, rowMm * 3.78 * 0.5)));
@@ -240,8 +242,9 @@ export default function ClassRollBook() {
 
     return (
       <div key={key} className="rollbook-sheet">
-        <SheetHeader title={termTitle} cls={classLabel(c)} teacher={teachers[c.homeroom_teacher_id ?? ''] ?? ''} subtitle={subtitle} gapMm={signRow && list.length > 0 ? rowMm : 0} />
-        <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed' }}>
+        <SheetHeader title={termTitle} cls={classLabel(c)} teacher={teachers[c.homeroom_teacher_id ?? ''] ?? ''} subtitle={subtitle} gapMm={gapMm} />
+        <div className="rollbook-tablewrap">
+        <table style={{ borderCollapse: 'collapse', width: '100%', height: '100%', tableLayout: 'fixed' }}>
           <colgroup>
             <col style={{ width: '9mm' }} />
             <col style={{ width: '17mm' }} />
@@ -316,6 +319,7 @@ export default function ClassRollBook() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     );
   }
@@ -345,7 +349,9 @@ export default function ClassRollBook() {
         @page { size: A4 portrait; margin: 5mm; }
         @media print {
           .no-print { display: none !important; }
-          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 287mm; overflow: hidden; }
+          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 286mm; overflow: hidden; display: flex; flex-direction: column; }
+          .rollbook-tablewrap { flex: 1; min-height: 0; }
+          main { padding: 0 !important; max-width: none !important; }
           .rollbook-sheet:last-child { page-break-after: auto; break-after: auto; }
           body { background: #fff !important; }
         }
