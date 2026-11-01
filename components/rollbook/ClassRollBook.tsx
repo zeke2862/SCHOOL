@@ -100,7 +100,7 @@ function SheetHeader({ title, cls, teacher, subtitle }: { title: string; cls: st
         </span>
         <span>{subtitle}</span>
       </div>
-      <div style={{ fontSize: 15, color: '#333' }}>符號：曠課10　遲到1　病假2　事假3　公假4　早退5（出席不必記號）</div>
+      <div style={{ fontSize: 15, color: '#333', textAlign: 'center' }}>符號：曠課10　遲到1　病假2　事假3　公假4　早退5</div>
     </div>
   );
 }
@@ -211,6 +211,9 @@ export default function ClassRollBook() {
     const dayPeriods = WEEKDAY_LABELS.map((_, i) => Math.max(1, periodsFor(c.department, i + 1)));
     const total = dayPeriods.reduce((a, b) => a + b, 0);
     const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, (ROWS_AREA_MM - (signRow ? SIGN_MM : 0)) / Math.max(list.length, 1)));
+    // 姓名字級隨列高自動放大／縮小（人少列高、字就大；人多列矮、字就小）
+    const nameSize = Math.round(Math.min(22, Math.max(10, rowMm * 3.78 * 0.62)));
+    const smallSize = Math.round(Math.min(14, Math.max(9, rowMm * 3.78 * 0.42)));
     const hdrMm = 6;
     const thCommon = { border: THIN, background: '#f3f3f3', padding: 0, textAlign: 'center' as const, fontSize: 12, height: `${hdrMm}mm`, fontWeight: 600 };
 
@@ -276,9 +279,9 @@ export default function ClassRollBook() {
           <tbody>
             {list.map((s) => (
               <tr key={s.student_no} style={{ height: `${rowMm}mm` }}>
-                <td style={{ border: THIN, textAlign: 'center', fontSize: 12, padding: 0 }}>{s.seat_no}</td>
-                <td style={{ border: THIN, textAlign: 'center', fontSize: 11, padding: 0 }}>{s.student_no}</td>
-                <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden' }}><NameBox text={s.name} size={15} /></td>
+                <td style={{ border: THIN, textAlign: 'center', fontSize: smallSize, padding: 0 }}>{s.seat_no}</td>
+                <td style={{ border: THIN, textAlign: 'center', fontSize: Math.max(9, smallSize - 1), padding: 0 }}>{s.student_no}</td>
+                <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: nameSize, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden' }}><NameBox text={s.name} size={nameSize} /></td>
                 {Array.from({ length: total }, (_, i) => (
                   <td key={i} style={periodCell(i)}></td>
                 ))}
