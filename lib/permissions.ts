@@ -205,6 +205,14 @@ export const HUBS: HubDef[] = [
     ],
   },
   {
+    key: 'rollbook',
+    href: '/rollbook',
+    label: '班級點名冊',
+    desc: '列印各班「一週」或「整學期」的空白點名冊',
+    group: 'teach',
+    tabs: [{ key: 'print', label: '班級點名冊', show: (c) => anyStaff(c) }],
+  },
+  {
     key: 'clock',
     href: '/clock',
     label: '教職員打卡',
