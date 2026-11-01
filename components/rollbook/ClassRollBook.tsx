@@ -252,6 +252,7 @@ export default function ClassRollBook() {
             {Array.from({ length: total }, (_, i) => (
               <col key={i} />
             ))}
+            <col style={{ width: '9mm' }} />
           </colgroup>
           <thead>
             <tr>
@@ -263,6 +264,7 @@ export default function ClassRollBook() {
                   <Dist text={`星期${w}`} />
                 </th>
               ))}
+              <th rowSpan={3} style={thCommon}><Dist text="座號" /></th>
             </tr>
             <tr>
               {WEEKDAY_LABELS.map((w, i) => (
@@ -296,23 +298,25 @@ export default function ClassRollBook() {
                 {Array.from({ length: total }, (_, i) => (
                   <td key={i} style={periodCell(i)}></td>
                 ))}
+                <td style={{ border: THIN, textAlign: 'center', fontSize: smallSize, padding: 0 }}>{s.seat_no}</td>
               </tr>
             ))}
             {signRow && list.length > 0 && (
               <>
                 <tr style={{ height: `${signMm}mm` }}>
-                  <td colSpan={3} style={{ border: THIN, textAlign: 'center', fontSize: 14, fontWeight: 600, padding: '0 4px' }}>
+                  <td colSpan={3} style={{ border: THIN, textAlign: 'center', fontSize: 22, fontWeight: 700, padding: '0 6px' }}>
                     <Dist text="任課教師簽名" />
                   </td>
                   {Array.from({ length: total }, (_, i) => (
                     <td key={i} style={{ ...periodCell(i), borderTop: THICK }}></td>
                   ))}
+                  <td style={{ border: THIN, borderTop: THICK }}></td>
                 </tr>
               </>
             )}
             {list.length === 0 && (
               <tr>
-                <td colSpan={3 + total} style={{ border: THIN, textAlign: 'center', fontSize: 12, height: '10mm' }}>
+                <td colSpan={4 + total} style={{ border: THIN, textAlign: 'center', fontSize: 12, height: '10mm' }}>
                   這個班目前沒有在學學生
                 </td>
               </tr>
@@ -346,10 +350,10 @@ export default function ClassRollBook() {
   return (
     <main style={{ maxWidth: 1000, margin: '0 auto', padding: 16 }}>
       <style>{`
-        @page { size: A4 portrait; margin: 5mm; }
+        @page { size: A4 portrait; margin: 0; }
         @media print {
           .no-print { display: none !important; }
-          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 286mm; overflow: hidden; display: flex; flex-direction: column; }
+          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 296.5mm; padding: 5mm !important; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
           .rollbook-tablewrap { flex: 1; min-height: 0; }
           html { zoom: 1 !important; }
           main, .hub-content { padding: 0 !important; max-width: none !important; margin: 0 !important; }
@@ -358,7 +362,7 @@ export default function ClassRollBook() {
         }
         .rollbook-sheet { background: #fff; padding: 8px; margin: 0 0 16px; border: 1px dashed #ccc; box-sizing: border-box; }
         .rollbook-blank { min-height: 40px; }
-        @media print { .rollbook-sheet { border: none; padding: 0; } }
+        @media print { .rollbook-sheet { border: none; } }
       `}</style>
 
       <div className="no-print">
