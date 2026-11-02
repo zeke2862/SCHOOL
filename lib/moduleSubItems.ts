@@ -58,7 +58,6 @@ export const MODULE_SUB_ITEMS: Record<string, ModuleSubItemsConfig> = {
       { key: 'dept-excel', label: '四部門 Excel 一鍵下載／上傳（教務／總務／訓導／開發人員）' },
       { key: 'backup-restore', label: '備份檔（JSON）下載與還原' },
       { key: 'other-uploads', label: '其他檔案上傳入口（排課、課表、成績單範本、打卡機…）' },
-      { key: 'teacher-letters', label: '聘書（歷年教師資料／自聘教師聘書／當年教師聘書／列印）' },
     ],
   },
   '/admin/scheduling-hub': {

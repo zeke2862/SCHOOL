@@ -235,6 +235,14 @@ export const HUBS: HubDef[] = [
     tabs: [{ key: 'hub', label: '排課與代課中心', show: (c) => c.academic }],
   },
   {
+    key: 'letters',
+    href: '/letters',
+    label: '聘書',
+    desc: '歷年教師資料、自聘教師聘書、當年教師聘書、列印',
+    group: 'manage',
+    tabs: [{ key: 'main', label: '聘書', show: (c) => c.academic }],
+  },
+  {
     key: 'review',
     href: '/review',
     label: '審核中心',

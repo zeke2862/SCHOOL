@@ -6,7 +6,6 @@ import BackupRestorePanel from '@/components/dev-tools/BackupRestorePanel';
 import BulkExcelPanel from '@/components/dev-tools/BulkExcelPanel';
 import DeptWorkbookPanel from '@/components/dev-tools/DeptWorkbookPanel';
 import Link from 'next/link';
-import TeacherLettersPanel from '@/components/dev-tools/TeacherLettersPanel';
 import PasswordPolicySettingsPanel from '@/components/dev-tools/PasswordPolicySettingsPanel';
 import TeacherLoginHomeSettingsPanel from '@/components/dev-tools/TeacherLoginHomeSettingsPanel';
 import AttendanceScoreExclusionPanel from '@/components/dev-tools/AttendanceScoreExclusionPanel';
@@ -41,7 +40,7 @@ export default function DevToolsPage() {
     <main style={{ maxWidth: 860, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>開發人員資料中心</h1>
       <p style={{ fontSize: 12, color: '#999', marginBottom: 12 }}>
-        跟系統維運相關的「下載／上傳／備份」全部集中在這一頁：四部門 Excel 一鍵下載／上傳、備份檔（JSON）下載／還原、聘書與教師歷年資料，
+        跟系統維運相關的「下載／上傳／備份」全部集中在這一頁：四部門 Excel 一鍵下載／上傳、備份檔（JSON）下載／還原，
         以及排課、課表、成績單範本、打卡機資料等專用上傳入口的快速連結。一般日常操作（登錄成績、點名、查詢學生等）請到首頁其他分類的功能卡片。
       </p>
 
@@ -50,9 +49,8 @@ export default function DevToolsPage() {
           ['#dept-excel', '① 四部門 Excel'],
           ['#backup-restore', '② 備份檔 JSON／還原'],
           ['#other-uploads', '③ 其他檔案上傳入口'],
-          ['#teacher-letters', '④ 聘書與教師歷年資料'],
-          ['#legacy-excel', '⑤ 舊版整批工具'],
-          ['#password-policy-settings', '⑥ 系統設定'],
+          ['#legacy-excel', '④ 舊版整批工具'],
+          ['#password-policy-settings', '⑤ 系統設定'],
         ].map(([href, label]) => (
           <a key={href} href={href} style={{ padding: '4px 10px', border: '1px solid #ccd', borderRadius: 14, color: '#2C6E9E', textDecoration: 'none' }}>
             {label}
@@ -108,17 +106,9 @@ export default function DevToolsPage() {
         </table>
       </section>
 
-      <section id="teacher-letters" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
-        <h2 style={{ fontSize: 14, marginBottom: 4 }}>④ 聘書（歷年教師資料／自聘教師聘書／當年教師聘書／列印）</h2>
-        <p style={{ fontSize: 12, color: '#999', marginBottom: 12 }}>
-          原本要開Excel用VBA巨集列印的「教師資料」，改成在這裡管理：可以下載範本、整批上傳、下載目前資料，也可以逐筆新增/編輯/刪除。
-        </p>
-        <TeacherLettersPanel userId={me?.id ?? null} />
-      </section>
-
       <section id="legacy-excel" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
         <details>
-          <summary style={{ cursor: 'pointer', fontSize: 14 }}>⑤ 舊版整批 Excel 工具（逐表格式；新版「四部門 Excel」已涵蓋全部資料表，只在需要舊格式範本時才用）</summary>
+          <summary style={{ cursor: 'pointer', fontSize: 14 }}>④ 舊版整批 Excel 工具（逐表格式；新版「四部門 Excel」已涵蓋全部資料表，只在需要舊格式範本時才用）</summary>
           <div style={{ marginTop: 12 }}>
             <BulkExcelPanel myRole={me?.role} />
           </div>

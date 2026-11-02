@@ -18,8 +18,7 @@ import { CertificateContent, AppointmentContent } from '@/lib/teacherLetterConte
 // 「伺服器端產生 PDF」的作法，順便解決「沒有直接列印功能」（原本永遠是強制下載
 // 一個檔案，不會在瀏覽器分頁裡開啟可以直接列印的PDF預覽）。
 //
-// 權限判斷比照 app/(app)/admin/dev-tools/page.tsx 頁面本身的判斷方式（只有系統管理員
-// 或「開發人員」部門的帳號能用這個功能）。
+// 權限：系統管理員S、管理員A、「教務處」或「開發人員」部門的帳號（聘書功能在【行政管理】的「聘書」入口）。
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
@@ -31,12 +30,13 @@ export async function POST(req: NextRequest) {
 
   const { data: appUserRaw } = await supabaseAdmin.from('app_users').select('role').eq('id', callerAuth.user.id).maybeSingle();
     const appUser = await withEffectiveRole(appUserRaw, callerAuth.user.id);
-  const isSystemAdmin = appUser?.role === 'system_admin_s';
+  const isSystemAdmin = appUser?.role === 'system_admin_s' || appUser?.role === 'admin_a';
   const { data: deptRow } = await supabaseAdmin
     .from('app_user_departments')
     .select('department')
     .eq('app_user_id', callerAuth.user.id)
-    .eq('department', 'dev')
+    .in('department', ['dev', 'academic'])
+    .limit(1)
     .maybeSingle();
   if (!isSystemAdmin && !deptRow) {
     return NextResponse.json({ error: '沒有權限使用這個功能' }, { status: 403 });
