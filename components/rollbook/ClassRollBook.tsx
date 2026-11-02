@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
+import RollBookCover from './RollBookCover';
 
 type ClassRow = { id: string; department: string; grade_level: string; class_name: string; homeroom_teacher_id: string | null };
 type Student = { seat_no: number; student_no: string; name: string; gender: string | null };
@@ -337,7 +338,16 @@ export default function ClassRollBook() {
   function renderClass(c: ClassRow) {
     if (mode === 'week') return renderSheet(c, c.id, null, '一週點名表（日期請手寫）');
     if (!dates) return null;
-    const sheets = weeks.map((w, wi) => renderSheet(c, `${c.id}-${wi}`, w, `整學期點名表　第 ${wi + 1}／${weeks.length} 週`));
+    const cover = (
+      <RollBookCover
+        key={`${c.id}-cover`}
+        termLine={term ? `佛曆 ${term.academic_year + 543} (${term.academic_year}) 學年度　${term.term === '上學期' ? '上' : '下'}　學期` : ''}
+        className={classLabel(c)}
+        teacher={teachers[c.homeroom_teacher_id ?? ''] ?? ''}
+        count={(students[c.id] ?? []).length}
+      />
+    );
+    const sheets = [cover, ...weeks.map((w, wi) => renderSheet(c, `${c.id}-${wi}`, w, `整學期點名表　第 ${wi + 1}／${weeks.length} 週`))];
     // 雙面列印：每個班的頁數補成偶數，下一個班才會從新的一張紙正面開始
     if (sheets.length % 2 === 1) {
       sheets.push(
@@ -396,7 +406,7 @@ export default function ClassRollBook() {
           ))}
           {mode === 'term' && (
             <span style={{ fontSize: 12, color: dates ? '#666' : '#A32D2D', alignSelf: 'center' }}>
-              {dates ? `期間：${dates.start} ～ ${dates.end}（共 ${weeks.length} 週，每班約 ${weeks.length + (weeks.length % 2)} 頁）` : '尚未設定本學期開學日／結束日，請洽教務處到「學年學期管理」填寫'}
+              {dates ? `期間：${dates.start} ～ ${dates.end}（共 ${weeks.length} 週，每班含封面約 ${weeks.length + 1 + ((weeks.length + 1) % 2)} 頁）` : '尚未設定本學期開學日／結束日，請洽教務處到「學年學期管理」填寫'}
             </span>
           )}
         </div>
