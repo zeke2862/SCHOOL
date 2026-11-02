@@ -36,20 +36,28 @@ export default function HomeroomAttendanceAssistPanel() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const { error } = await supabase
+    // 用 upsert 而不是 update：單例設定表如果還沒有那一列（例如資料庫重建後沒補種子資料），
+    // update 會「成功但 0 筆」，畫面勾起來、重新整理又變回沒勾。
+    const { data, error } = await supabase
       .from('homeroom_attendance_assist_settings')
-      .update({
+      .upsert({
+        id: true,
         allow_present_to_leave: next,
         updated_by: user?.id ?? null,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', true);
+      .select('allow_present_to_leave')
+      .maybeSingle();
     setSaving(false);
     if (error) {
       setError('更新失敗：' + error.message);
       return;
     }
-    setEnabled(next);
+    if (!data) {
+      setError('更新失敗：沒有權限修改這項設定（需要系統管理員S或開發人員部門）');
+      return;
+    }
+    setEnabled(data.allow_present_to_leave);
   }
 
   if (enabled === null && !error) return <p style={{ fontSize: 12, color: '#999' }}>載入中…</p>;
