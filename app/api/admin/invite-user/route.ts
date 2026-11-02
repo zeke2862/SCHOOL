@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
           .eq('id', bindTeacherId)
           .maybeSingle();
         if (pickedErr || !picked) {
-          return NextResponse.json({ error: '帳號已建立，但指定要綁定的教師資料找不到了，請重新整理後手動用「教師資料檢查／合併」處理' }, { status: 500 });
+          return NextResponse.json({ error: '帳號已建立，但指定要綁定的教師資料找不到了，請重新整理後手動到【系統管理 → 資料檢查（教師／班級）】處理' }, { status: 500 });
         }
         if (picked.app_user_id) {
           return NextResponse.json({ error: '帳號已建立，但這筆教師資料已經連結過其他帳號了，請重新整理後確認' }, { status: 500 });
