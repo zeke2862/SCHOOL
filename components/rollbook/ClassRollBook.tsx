@@ -406,10 +406,14 @@ export default function ClassRollBook() {
           .rollbook-sheet:last-child { page-break-after: auto; break-after: auto; }
           body { background: #fff !important; }
         }
-        .rollbook-sheet { background: #fff; padding: 8px; margin: 0 0 16px; border: 1px dashed #ccc; box-sizing: border-box; }
+        .rollbook-sheet { background: #fff; box-sizing: border-box; }
         .rollbook-blank { min-height: 40px; }
         /* 畫面預覽時封面與空白頁也要有一整張紙的高度，不然封面的內容會跟後面的點名表疊在一起 */
-        @media screen { .rollbook-cover, .rollbook-blank { height: 296.5mm; } }
+        /* 畫面預覽：每一頁就是一張 A4（210×297mm，內距 5mm），置中顯示，看起來跟列印出來一樣 */
+        @media screen {
+          .rollbook-sheet { width: 210mm; height: 297mm; padding: 5mm; margin: 0 auto 16px; border: 1px solid #ccc; box-shadow: 0 1px 6px rgba(0,0,0,0.12); overflow: hidden; display: flex; flex-direction: column; }
+          .rollbook-cover { display: block; }
+        }
         .rollbook-sheet { position: relative; }
         .rollbook-bind { position: absolute; left: 0; right: 0; top: 0.5mm; height: 4mm; pointer-events: none; z-index: 10; }
         @media print { .rollbook-sheet { border: none; } }
