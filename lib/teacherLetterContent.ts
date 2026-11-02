@@ -52,7 +52,8 @@ export function buildCertificateContent(cert: ServiceCertRow, settings: TeacherL
   if (cert.start_date_3) segments.push({ start: fmtDate(cert.start_date_3), end: cert.end_date_3 ? fmtDate(cert.end_date_3) : '至今' });
 
   return {
-    schoolTitle: `${settings.school_name_zh}任職證明書`,
+    // 已離職（歷年教師資料勾選離職）印「離職證明書」，仍在職印「在職證明書」
+    schoolTitle: `${settings.school_name_zh}${cert.resigned ? '離職' : '在職'}證明書`,
     principalName: settings.principal_name,
     name: cert.name,
     birthDate: fmtDate(cert.birth_date),
@@ -63,7 +64,7 @@ export function buildCertificateContent(cert: ServiceCertRow, settings: TeacherL
     serviceSegments: segments,
     serviceDurationLabel: `※服務年資共計：${duration.label}`,
     employmentStatusLabel: cert.resigned ? '(現已離職)' : '(現仍在職)',
-    note: '本證書旨在證明該員在本校服務',
+    note: cert.resigned ? '本證書旨在證明該員曾在本校服務' : '本證書旨在證明該員在本校服務',
     phone: settings.phone,
     address: settings.address,
     issueDateLabel: fmtDate(calcDate.toISOString().slice(0, 10)),

@@ -95,36 +95,30 @@ export function computeServiceDuration(
   },
   calcDate: Date
 ): { years: number; months: number; days: number; label: string } {
-  const s1 = cert.start_date_1 ? new Date(cert.start_date_1) : null;
-  const e1 = cert.end_date_1 ? new Date(cert.end_date_1) : null;
-  const s2 = cert.start_date_2 ? new Date(cert.start_date_2) : null;
-  const e2 = cert.end_date_2 ? new Date(cert.end_date_2) : null;
-  const s3 = cert.start_date_3 ? new Date(cert.start_date_3) : null;
+  const d = (v: string | null) => (v ? new Date(v) : null);
+  const s1 = d(cert.start_date_1);
   if (!s1) return { years: 0, months: 0, days: 0, label: '共 0年 0個月 0日' };
 
-  // 年／月的加總：依 s3、s2 是否存在決定要算幾段（跟原始公式的 N3>0／L3>0 判斷一致）
-  let ySum: number, ymSum: number;
-  if (s3) {
-    ySum = datedifY(s1, e1 ?? s1) + datedifY(s2 ?? s3, e2 ?? s3) + datedifY(s3, calcDate);
-    ymSum = datedifYM(s1, e1 ?? s1) + datedifYM(s2 ?? s3, e2 ?? s3) + datedifYM(s3, calcDate);
-  } else if (s2) {
-    ySum = datedifY(s1, e1 ?? s2) + datedifY(s2, calcDate);
-    ymSum = datedifYM(s1, e1 ?? s2) + datedifYM(s2, calcDate);
-  } else {
-    ySum = datedifY(s1, calcDate);
-    ymSum = datedifYM(s1, calcDate);
+  // 【離職證明修正】原始公式（上面的說明）把「最後一段」一律當成在職中、算到計算日期，離職
+  // 證明要的是實際在職到離職日期為止的年資，所以改成逐段計算：每一段的結束日 = 該段的離職日期，
+  // 沒填離職日期就接到下一段的任職日期，最後一段沒填就算到計算日期（仍在職）。
+  // 有填離職日期的前幾段，結果跟原始公式相同；只有「最後一段已有離職日期」的人（已離職）
+  // 會由原本算到今天，變成算到離職日。
+  const segs: [Date, Date][] = [];
+  const raw: [Date | null, Date | null][] = [
+    [s1, d(cert.end_date_1)],
+    [d(cert.start_date_2), d(cert.end_date_2)],
+    [d(cert.start_date_3), d(cert.end_date_3)],
+  ];
+  for (let i = 0; i < raw.length; i++) {
+    const [s, e] = raw[i];
+    if (!s) continue;
+    const nextStart = raw.slice(i + 1).find(([ns]) => ns)?.[0] ?? null;
+    segs.push([s, e ?? nextStart ?? calcDate]);
   }
-
-  // 日的加總：原始公式這段的分段判斷用的是「離職日期」(K3>0／M3>0)是否存在，
-  // 而不是任職日期——跟年/月的判斷條件不同，這裡忠實照抄。
-  let mdSum: number;
-  if (s3 && e2) {
-    mdSum = datedifMD(s1, e1 ?? s1) + datedifMD(s2 ?? s3, e2) + datedifMD(s3, calcDate);
-  } else if (e1) {
-    mdSum = datedifMD(s1, e1) + datedifMD(s2 ?? calcDate, calcDate);
-  } else {
-    mdSum = datedifMD(s1, calcDate);
-  }
+  const ySum = segs.reduce((a, [s, e]) => a + datedifY(s, e), 0);
+  const ymSum = segs.reduce((a, [s, e]) => a + datedifYM(s, e), 0);
+  const mdSum = segs.reduce((a, [s, e]) => a + datedifMD(s, e), 0);
 
   const years = ySum + (ymSum > 11 ? 1 : 0);
   const monthsBase = ymSum - (ymSum > 11 ? 12 : 0);

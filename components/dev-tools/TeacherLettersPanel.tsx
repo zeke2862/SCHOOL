@@ -452,7 +452,7 @@ function applyDefaultTermDates(row: MergedAppointmentRow): MergedAppointmentRow 
 }
 
 function PrintSection({ userId }: { userId: string | null }) {
-  const [category, setCategory] = useState<LetterCategory | '在職證明'>('在職證明');
+  const [category, setCategory] = useState<LetterCategory | '在/離職證明'>('在/離職證明');
   const [certRows, setCertRows] = useState<ServiceCertRow[]>([]);
   const [letterRows, setLetterRows] = useState<MergedAppointmentRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -470,7 +470,7 @@ function PrintSection({ userId }: { userId: string | null }) {
 
   async function reload() {
     setLoading(true);
-    if (category === '在職證明') setCertRows(await listServiceCertRows());
+    if (category === '在/離職證明') setCertRows(await listServiceCertRows());
     else setLetterRows(await listMergedAppointmentRows(category));
     setLoading(false);
   }
@@ -535,11 +535,16 @@ function PrintSection({ userId }: { userId: string | null }) {
       let pdfKind: 'certificate' | 'appointment' | null = null;
       let pdfContent: any = null;
 
-      if (category === '在職證明') {
+      if (category === '在/離職證明') {
         const row = certRows.find((r) => r.id === certId);
         if (!row) throw new Error('找不到選取的教師，請重新整理後再試');
+        // 離職證明要有離職日期：已勾離職、但最後一段任職沒有離職日期，印出來會變成「至今」，先擋下來
+        if (row.resigned) {
+          const lastOpen = row.start_date_3 ? !row.end_date_3 : row.start_date_2 ? !row.end_date_2 : !row.end_date_1;
+          if (lastOpen) throw new Error(`「${row.name}」已勾選離職，但最後一段任職沒有填離職日期，請先到「歷年教師資料」補上`);
+        }
         const content = buildCertificateContent(row, settings, calcDate);
-        fileBase = `在職證明_${row.name}`;
+        fileBase = `${row.resigned ? '離職' : '在職'}證明_${row.name}`;
         if (format === 'pdf') {
           pdfKind = 'certificate';
           pdfContent = content;
@@ -619,6 +624,7 @@ function PrintSection({ userId }: { userId: string | null }) {
     <div>
       <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
         文字內容比對「0808.xlsm」的「印在職證明」「印自聘教師聘書」「印當年聘書」逐條實作，直接產生 PDF 或 Word 檔（不是Excel），下載後就是完整格式，不需要再另外開Excel計算公式。
+        在/離職證明依「歷年教師資料」的離職勾選自動選擇：仍在職印「在職證明書」，已離職印「離職證明書」（需先填好離職日期）。
         人員資料請在「歷年教師資料」維護；這裡依「自聘」勾選與聘用結果自動列出該印聘書的人，聘期沒特別設定就用預設值。
       </p>
 
@@ -642,7 +648,7 @@ function PrintSection({ userId }: { userId: string | null }) {
       )}
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-        {(['在職證明', '自聘教師聘書', '當年教師聘書'] as const).map((c) => (
+        {(['在/離職證明', '自聘教師聘書', '當年教師聘書'] as const).map((c) => (
           <button
             key={c}
             type="button"
@@ -657,7 +663,7 @@ function PrintSection({ userId }: { userId: string | null }) {
         ))}
       </div>
 
-      {category !== '在職證明' && (
+      {category !== '在/離職證明' && (
         <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
           {isSelfHired
             ? '名單：「歷年教師資料」有勾選「自聘」、且聘用結果不是「不續聘」的教師。'
@@ -668,12 +674,12 @@ function PrintSection({ userId }: { userId: string | null }) {
 
       {loading ? (
         <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
-      ) : category === '在職證明' ? (
+      ) : category === '在/離職證明' ? (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', fontSize: 12, width: '100%' }}>
             <thead>
               <tr style={{ background: '#f5f5f5' }}>
-                {['序號', '姓名', '職稱', '狀態', '列印'].map((h) => (
+                {['序號', '姓名', '職稱', '狀態（印哪一種）', '列印'].map((h) => (
                   <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
                 ))}
               </tr>
@@ -684,7 +690,7 @@ function PrintSection({ userId }: { userId: string | null }) {
                   <td style={tdStyle}>{r.seq_no ?? ''}</td>
                   <td style={tdStyle}>{r.name}</td>
                   <td style={tdStyle}>{r.title}</td>
-                  <td style={tdStyle}>{r.resigned ? '已離職' : '在職'}</td>
+                  <td style={tdStyle}>{r.resigned ? '已離職 → 離職證明' : '在職 → 在職證明'}</td>
                   <td style={tdStyle}>{r.id && printButtons(r.id)}</td>
                 </tr>
               ))}
