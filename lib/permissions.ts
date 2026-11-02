@@ -210,7 +210,10 @@ export const HUBS: HubDef[] = [
     label: '班級點名冊',
     desc: '列印各班「一週」或「整學期」的空白點名冊',
     group: 'teach',
-    tabs: [{ key: 'print', label: '班級點名冊', show: (c) => anyStaff(c) }],
+    tabs: [
+      { key: 'print', label: '班級點名冊', show: (c) => anyStaff(c) },
+      { key: 'cover', label: '編輯封面', show: (c) => c.academic, hint: '調整整學期點名冊封面的文字與圖片位置' },
+    ],
   },
   {
     key: 'clock',

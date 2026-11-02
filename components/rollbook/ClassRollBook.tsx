@@ -4,6 +4,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
 import RollBookCover from './RollBookCover';
+import { CoverLayout, DEFAULT_COVER_LAYOUT, loadCoverLayout } from '@/lib/coverLayout';
 
 type ClassRow = { id: string; department: string; grade_level: string; class_name: string; homeroom_teacher_id: string | null };
 type Student = { seat_no: number; student_no: string; name: string; gender: string | null };
@@ -121,6 +122,7 @@ export default function ClassRollBook() {
   const [dates, setDates] = useState<{ start: string; end: string } | null>(null);
   const [mode, setMode] = useState<Mode>('week');
   const [signRow, setSignRow] = useState(true);
+  const [coverLayout, setCoverLayout] = useState<CoverLayout>(DEFAULT_COVER_LAYOUT);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [students, setStudents] = useState<Record<string, Student[]>>({});
   const [loading, setLoading] = useState(true);
@@ -154,6 +156,10 @@ export default function ClassRollBook() {
       if (tr?.term_start_date && tr?.term_end_date) setDates({ start: tr.term_start_date, end: tr.term_end_date });
       setLoading(false);
     })();
+  }, []);
+
+  useEffect(() => {
+    loadCoverLayout().then(setCoverLayout);
   }, []);
 
   const periodsFor = (dept: string, weekday: number) => periodCfg[dept]?.[weekday] ?? periodCfg['全校']?.[weekday] ?? (weekday === 6 ? 5 : 3);
@@ -341,10 +347,13 @@ export default function ClassRollBook() {
     const cover = (
       <RollBookCover
         key={`${c.id}-cover`}
-        termLine={term ? `佛曆 ${term.academic_year + 543} (${term.academic_year}) 學年度　${term.term === '上學期' ? '上' : '下'}　學期` : ''}
-        className={classLabel(c)}
-        teacher={teachers[c.homeroom_teacher_id ?? ''] ?? ''}
-        count={(students[c.id] ?? []).length}
+        layout={coverLayout}
+        data={{
+          term: term ? `佛曆 ${term.academic_year + 543} (${term.academic_year}) 學年度　${term.term === '上學期' ? '上' : '下'}　學期` : '',
+          className: classLabel(c),
+          teacher: teachers[c.homeroom_teacher_id ?? ''] ?? '',
+          count: (students[c.id] ?? []).length,
+        }}
       />
     );
     const sheets = [cover, ...weeks.map((w, wi) => renderSheet(c, `${c.id}-${wi}`, w, `整學期點名表　第 ${wi + 1}／${weeks.length} 週`))];
