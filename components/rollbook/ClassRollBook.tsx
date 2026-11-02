@@ -134,6 +134,8 @@ export default function ClassRollBook() {
   const [mode, setMode] = useState<Mode>('week');
   const [signRow, setSignRow] = useState(true);
   const [bindMarks, setBindMarks] = useState(true);
+  const [weekPages, setWeekPages] = useState(2); // 一週模式：每班連續列印幾頁
+  const [weekEven, setWeekEven] = useState(true); // 雙面列印：每班頁數補成偶數
   const [coverLayout, setCoverLayout] = useState<CoverLayout>(DEFAULT_COVER_LAYOUT);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [students, setStudents] = useState<Record<string, Student[]>>({});
@@ -355,7 +357,24 @@ export default function ClassRollBook() {
   }
 
   function renderClass(c: ClassRow) {
-    if (mode === 'week') return renderSheet(c, c.id, null, '一週點名表（日期請手寫）');
+    if (mode === 'week') {
+      // 同一個班的頁數連續排在一起（A班第1、2、3頁，再換B班），不會跟別班交錯
+      const n = Math.max(1, Math.min(60, Math.floor(weekPages) || 1));
+      const out = Array.from({ length: n }, (_, i) =>
+        renderSheet(c, `${c.id}-w${i}`, null, n > 1 ? `一週點名表（日期請手寫）　第 ${i + 1}／${n} 頁` : '一週點名表（日期請手寫）')
+      );
+      if (weekEven && out.length % 2 === 1) {
+        out.push(
+          <div key={`${c.id}-wblank`} className="rollbook-sheet rollbook-blank">
+            {bindMarks && <BindMarks />}
+            <span className="no-print" style={{ fontSize: 12, color: '#999' }}>
+              （{classLabel(c)} 補一頁空白，讓雙面列印時下一個班從新的一張紙開始；列印時此頁是空白）
+            </span>
+          </div>
+        );
+      }
+      return out;
+    }
     if (!dates) return null;
     const cover = (
       <RollBookCover
@@ -422,7 +441,7 @@ export default function ClassRollBook() {
       <div className="no-print">
         <h1 style={{ fontSize: 16, marginBottom: 4 }}>班級點名冊</h1>
         <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
-          選好班級與列印方式後按「列印」，A4 直式。「一週」不印日期；「整學期」從開學日印到期末考結束，一週一頁，每天印出日期，建議使用雙面列印（每班頁數會補成偶數）。節數依各部別的節次設定，名單只含在學學生（休學、轉學不會出現）。
+          選好班級與列印方式後按「列印」，A4 直式。「一週」不印日期，可設定每班連續列印幾頁（同一班的頁數會接在一起）；「整學期」從開學日印到期末考結束，一週一頁，每天印出日期，建議使用雙面列印（每班頁數會補成偶數）。節數依各部別的節次設定，名單只含在學學生（休學、轉學不會出現）。
         </p>
         {error && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 8 }}>{error}</p>}
 
@@ -442,6 +461,17 @@ export default function ClassRollBook() {
               {label}
             </button>
           ))}
+          {mode === 'week' && (
+            <span style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <label>
+                每班連續列印{' '}
+                <input type="number" min={1} max={60} value={weekPages} onChange={(e) => setWeekPages(Number(e.target.value))} style={{ width: 56, padding: 3 }} /> 頁
+              </label>
+              <label>
+                <input type="checkbox" checked={weekEven} onChange={(e) => setWeekEven(e.target.checked)} /> 雙面列印：每班頁數補成偶數
+              </label>
+            </span>
+          )}
           {mode === 'term' && (
             <span style={{ fontSize: 12, color: dates ? '#666' : '#A32D2D', alignSelf: 'center' }}>
               {dates ? `期間：${dates.start} ～ ${dates.end}（共 ${weeks.length} 週，每班含封面與空白頁約 ${weeks.length + 2 + ((weeks.length + 2) % 2)} 頁）` : '尚未設定本學期開學日／結束日，請洽教務處到「學年學期管理」填寫'}
