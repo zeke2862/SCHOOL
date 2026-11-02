@@ -25,6 +25,7 @@ import {
 } from '@/lib/teacherLetters';
 import { getTeacherLetterSettings, saveTeacherLetterSettings, TeacherLetterSettings } from '@/lib/teacherLetterSettings';
 import { buildCertificateContent, buildAppointmentContent } from '@/lib/teacherLetterContent';
+import { buildTeacherLetterCompareReport, CompareReport } from '@/lib/teacherLetterCompare';
 import { supabase } from '@/lib/supabaseClient';
 import { showPdfInWindow } from '@/lib/pdfPreview';
 
@@ -42,10 +43,13 @@ import { showPdfInWindow } from '@/lib/pdfPreview';
 // lib/teacherLetterContent.ts），校名/校長/董事長/電話/地址這些固定資料在「列印」分頁可以
 // 直接編輯、存進資料庫（見 lib/teacherLetterSettings.ts），不用再改程式碼。
 
-const CATEGORIES: { key: LetterCategory | '歷年教師資料' | '列印'; label: string }[] = [
+type PanelTab = LetterCategory | '歷年教師資料' | '比對報表' | '列印';
+
+const CATEGORIES: { key: PanelTab; label: string }[] = [
   { key: '歷年教師資料', label: '歷年教師資料' },
   { key: '自聘教師聘書', label: '自聘教師資料' },
   { key: '當年教師聘書', label: '當年教師資料' },
+  { key: '比對報表', label: '比對報表' },
   { key: '列印', label: '列印' },
 ];
 
@@ -66,7 +70,7 @@ async function readFirstSheetRows(file: File): Promise<any[][]> {
 }
 
 export default function TeacherLettersPanel({ userId }: { userId: string | null }) {
-  const [tab, setTab] = useState<LetterCategory | '歷年教師資料' | '列印'>('歷年教師資料');
+  const [tab, setTab] = useState<PanelTab>('歷年教師資料');
 
   return (
     <div>
@@ -93,10 +97,97 @@ export default function TeacherLettersPanel({ userId }: { userId: string | null 
 
       {tab === '歷年教師資料' ? (
         <ServiceCertSection userId={userId} />
+      ) : tab === '比對報表' ? (
+        <CompareSection />
       ) : tab === '列印' ? (
         <PrintSection userId={userId} />
       ) : (
         <AppointmentLetterSection category={tab} userId={userId} />
+      )}
+    </div>
+  );
+}
+
+/* ============================================================ */
+/* 比對報表：歷年教師資料 vs 帳號管理／教師名單／班級導師（只讀不寫，用姓名比對）   */
+/* ============================================================ */
+
+function CompareSection() {
+  const [report, setReport] = useState<CompareReport | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function run() {
+    setLoading(true);
+    setError('');
+    try {
+      setReport(await buildTeacherLetterCompareReport());
+    } catch (e: any) {
+      setError(e.message ?? String(e));
+    }
+    setLoading(false);
+  }
+  useEffect(() => {
+    run();
+  }, []);
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: '#666', marginTop: 0 }}>
+        聘書的歷年教師資料跟帳號管理、教師名單、班級導師之間沒有關聯欄位，系統不會自動同步。
+        這份報表用「姓名」逐一比對，只列出對不起來的地方，不會修改任何資料。
+      </p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <button type="button" onClick={run} disabled={loading} style={{ padding: '5px 14px', fontSize: 12, cursor: 'pointer' }}>
+          {loading ? '比對中…' : '重新比對'}
+        </button>
+        {report && report.issues.length > 0 && (
+          <button
+            type="button"
+            style={{ padding: '5px 14px', fontSize: 12, cursor: 'pointer' }}
+            onClick={() =>
+              downloadSheet({
+                name: '聘書比對報表',
+                aoa: [['類型', '姓名', '說明'], ...report.issues.map((i) => [i.kind, i.name, i.detail])],
+              })
+            }
+          >
+            下載 Excel
+          </button>
+        )}
+      </div>
+      {error && <p style={{ color: '#A32D2D', fontSize: 13 }}>比對失敗：{error}</p>}
+      {report && (
+        <>
+          <p style={{ fontSize: 13 }}>
+            歷年教師資料 {report.counts.certs} 筆（在職 {report.counts.activeCerts}）｜帳號 {report.counts.accounts} 個｜教師名單 {report.counts.teachers} 人｜
+            {report.academicYear ?? '—'} 學年導師 {report.counts.homerooms} 人
+          </p>
+          {report.issues.length === 0 ? (
+            <p style={{ color: '#2E7D32', fontSize: 13 }}>全部對得起來，沒有差異。</p>
+          ) : (
+            <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
+              <thead>
+                <tr style={{ background: '#f2f6fa' }}>
+                  <th style={{ textAlign: 'left', padding: 6, border: '1px solid #ddd' }}>類型</th>
+                  <th style={{ textAlign: 'left', padding: 6, border: '1px solid #ddd' }}>姓名</th>
+                  <th style={{ textAlign: 'left', padding: 6, border: '1px solid #ddd' }}>說明</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...report.issues]
+                  .sort((a, b) => a.kind.localeCompare(b.kind, 'zh-Hant') || a.name.localeCompare(b.name, 'zh-Hant'))
+                  .map((i, idx) => (
+                    <tr key={idx}>
+                      <td style={{ padding: 6, border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{i.kind}</td>
+                      <td style={{ padding: 6, border: '1px solid #ddd' }}>{i.name}</td>
+                      <td style={{ padding: 6, border: '1px solid #ddd' }}>{i.detail}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          )}
+        </>
       )}
     </div>
   );
