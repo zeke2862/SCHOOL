@@ -473,7 +473,7 @@ export default function ClassRollBook() {
         </div>
 
         <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>
-          <input type="checkbox" checked={bindMarks} onChange={(e) => setBindMarks(e.target.checked)} /> 上方印 3 條橫向裝訂線提示（預設上下翻，裝訂在上方；雙面列印請選「短邊翻轉」）
+          <input type="checkbox" checked={bindMarks} onChange={(e) => setBindMarks(e.target.checked)} /> 上方印 3 條橫向裝訂線提示（預設上下翻，裝訂在上方；雙面列印請選「長邊翻轉」）
         </label>
         <label style={{ display: 'block', fontSize: 13, marginBottom: 10 }}>
           <input type="checkbox" checked={signRow} onChange={(e) => setSignRow(e.target.checked)} /> 在最後一號下面加印「任課教師簽名」欄
