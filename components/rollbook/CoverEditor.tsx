@@ -20,6 +20,7 @@ const SCALE = 0.85; // 編輯畫面的縮放（1mm ≈ 3.78px × 0.85）
 const PX_PER_MM = 3.7795 * SCALE;
 const SAMPLE = { term: '佛曆 2569 (2026) 學年度　下　學期', className: '幼乙愛班', teacher: '何玉煥', count: 45 };
 
+const HISTORY_MAX = 5; // 最多記住最近 5 個動作
 const snap = (v: number) => Math.round(v * 2) / 2; // 0.5mm 為單位
 
 export default function CoverEditor() {
@@ -30,12 +31,54 @@ export default function CoverEditor() {
   const [saving, setSaving] = useState(false);
   const drag = useRef<{ id: string; mode: 'move' | 'resize'; sx: number; sy: number; ox: number; oy: number; ow: number; oh: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const history = useRef<CoverLayout[]>([]);
+  const lastPush = useRef<{ key: string; t: number }>({ key: '', t: 0 });
+  const [undoCount, setUndoCount] = useState(0);
 
   useEffect(() => {
     loadCoverLayout().then(setLayout);
   }, []);
 
+  // 改動前先把目前版面記下來；同一個元素連續的小動作（拖曳、打字）在 0.8 秒內只算一個動作
+  function pushHistory(key: string) {
+    if (!layout) return;
+    const now = Date.now();
+    if (lastPush.current.key === key && now - lastPush.current.t < 800) {
+      lastPush.current.t = now;
+      return;
+    }
+    lastPush.current = { key, t: now };
+    history.current = [...history.current.slice(-(HISTORY_MAX - 1)), layout];
+    setUndoCount(history.current.length);
+  }
+
+  function undo() {
+    const prev = history.current.pop();
+    if (!prev) return;
+    setUndoCount(history.current.length);
+    lastPush.current = { key: '', t: 0 };
+    setLayout(prev);
+    setSelectedId((id) => (id && prev.elements.some((e) => e.id === id) ? id : null));
+    setDirty(true);
+    setMsg(null);
+  }
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        const t = e.target as HTMLElement | null;
+        if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && (t as HTMLInputElement).type === 'text'))) return;
+        e.preventDefault();
+        undo();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+
   function update(id: string, patch: Partial<CoverElement>) {
+    pushHistory(id + ':' + Object.keys(patch).join(','));
     setLayout((prev) => (prev ? { ...prev, elements: prev.elements.map((e) => (e.id === id ? { ...e, ...patch } : e)) } : prev));
     setDirty(true);
     setMsg(null);
@@ -67,6 +110,7 @@ export default function CoverEditor() {
 
   function addText() {
     if (!layout) return;
+    pushHistory('struct:' + Math.random());
     const id = 't' + Date.now();
     setLayout({ ...layout, elements: [...layout.elements, { id, kind: 'text', x: 60, y: 120, w: 80, h: 16, z: maxZ + 1, text: '新文字', fontPt: 24, align: 'center', color: '#000000' }] });
     setSelectedId(id);
@@ -98,10 +142,12 @@ export default function CoverEditor() {
     if (!f || !layout) return;
     try {
       const src = await readImageFile(f);
+      pushHistory('struct:' + Math.random());
       if (selected?.kind === 'image') {
         update(selected.id, { src });
       } else {
-        const id = 'i' + Date.now();
+        pushHistory('struct:' + Math.random());
+    const id = 'i' + Date.now();
         setLayout({ ...layout, elements: [...layout.elements, { id, kind: 'image', x: 50, y: 100, w: 60, h: 45, z: maxZ + 1, src, fit: 'contain', opacity: 1 }] });
         setSelectedId(id);
         setDirty(true);
@@ -121,6 +167,7 @@ export default function CoverEditor() {
 
   function removeSelected() {
     if (!layout || !selected) return;
+    pushHistory('struct:' + Math.random());
     setLayout({ ...layout, elements: layout.elements.filter((e) => e.id !== selected.id) });
     setSelectedId(null);
     setDirty(true);
@@ -128,6 +175,7 @@ export default function CoverEditor() {
 
   function duplicateSelected() {
     if (!layout || !selected) return;
+    pushHistory('struct:' + Math.random());
     const id = 'd' + Date.now();
     setLayout({ ...layout, elements: [...layout.elements, { ...selected, id, x: selected.x + 5, y: selected.y + 5, z: maxZ + 1 }] });
     setSelectedId(id);
@@ -149,6 +197,7 @@ export default function CoverEditor() {
 
   function resetDefault() {
     if (!window.confirm('確定要還原成預設版面嗎？（按「儲存」之後才會正式生效）')) return;
+    pushHistory('struct:' + Math.random());
     setLayout(DEFAULT_COVER_LAYOUT);
     setSelectedId(null);
     setDirty(true);
@@ -174,6 +223,7 @@ export default function CoverEditor() {
       </p>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+        <button type="button" onClick={undo} disabled={undoCount === 0} title="復原上一個動作（Ctrl＋Z），最多可退回 5 步" style={{ padding: '5px 12px' }}>↶ 復原{undoCount > 0 ? `（${undoCount}）` : ''}</button>
         <button type="button" onClick={addText} style={{ padding: '5px 12px' }}>＋文字</button>
         <button type="button" onClick={() => fileRef.current?.click()} style={{ padding: '5px 12px' }}>＋上傳圖片{selected?.kind === 'image' ? '（取代選取的圖）' : ''}</button>
         <select

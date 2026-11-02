@@ -97,6 +97,17 @@ const THICK = '2px solid #000';
 const THIN = '1px solid #333';
 const DASH = '1px dashed #777';
 
+// 上方裝訂線提示：紙張上緣 3 條短直線（約在 1/5、1/2、4/5 寬度），釘書針或打孔時對準
+function BindMarks() {
+  return (
+    <div className="rollbook-bind" aria-hidden="true">
+      {['20%', '50%', '80%'].map((left) => (
+        <span key={left} style={{ position: 'absolute', left, top: 0, width: 0, height: '4mm', borderLeft: '0.4mm solid #000' }} />
+      ))}
+    </div>
+  );
+}
+
 function SheetHeader({ title, cls, teacher, subtitle, gapMm }: { title: string; cls: string; teacher: string; subtitle: string; gapMm: number }) {
   // 班級／導師、符號、週次放在同一行，省下一行高度給學生列
   return (
@@ -122,6 +133,7 @@ export default function ClassRollBook() {
   const [dates, setDates] = useState<{ start: string; end: string } | null>(null);
   const [mode, setMode] = useState<Mode>('week');
   const [signRow, setSignRow] = useState(true);
+  const [bindMarks, setBindMarks] = useState(true);
   const [coverLayout, setCoverLayout] = useState<CoverLayout>(DEFAULT_COVER_LAYOUT);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [students, setStudents] = useState<Record<string, Student[]>>({});
@@ -251,6 +263,7 @@ export default function ClassRollBook() {
 
     return (
       <div key={key} className="rollbook-sheet">
+        {bindMarks && <BindMarks />}
         <SheetHeader title={termTitle} cls={classLabel(c)} teacher={teachers[c.homeroom_teacher_id ?? ''] ?? ''} subtitle={subtitle} gapMm={gapMm} />
         <div className="rollbook-tablewrap">
         <table style={{ borderCollapse: 'collapse', width: '100%', height: '100%', tableLayout: 'fixed' }}>
@@ -348,6 +361,7 @@ export default function ClassRollBook() {
       <RollBookCover
         key={`${c.id}-cover`}
         layout={coverLayout}
+        bindMarks={bindMarks ? <BindMarks /> : null}
         data={{
           term: term ? `佛曆 ${term.academic_year + 543} (${term.academic_year}) 學年度　${term.term === '上學期' ? '上' : '下'}　學期` : '',
           className: classLabel(c),
@@ -356,7 +370,14 @@ export default function ClassRollBook() {
         }}
       />
     );
-    const sheets = [cover, ...weeks.map((w, wi) => renderSheet(c, `${c.id}-${wi}`, w, `整學期點名表　第 ${wi + 1}／${weeks.length} 週`))];
+    // 封面後面留一面空白頁（雙面列印時是封面的背面），第三頁才開始是點名表
+    const coverBack = (
+      <div key={`${c.id}-coverback`} className="rollbook-sheet rollbook-blank">
+        {bindMarks && <BindMarks />}
+        <span className="no-print" style={{ fontSize: 12, color: '#999' }}>（封面背面：列印時是空白頁）</span>
+      </div>
+    );
+    const sheets = [cover, coverBack, ...weeks.map((w, wi) => renderSheet(c, `${c.id}-${wi}`, w, `整學期點名表　第 ${wi + 1}／${weeks.length} 週`))];
     // 雙面列印：每個班的頁數補成偶數，下一個班才會從新的一張紙正面開始
     if (sheets.length % 2 === 1) {
       sheets.push(
@@ -387,6 +408,8 @@ export default function ClassRollBook() {
         }
         .rollbook-sheet { background: #fff; padding: 8px; margin: 0 0 16px; border: 1px dashed #ccc; box-sizing: border-box; }
         .rollbook-blank { min-height: 40px; }
+        .rollbook-sheet { position: relative; }
+        .rollbook-bind { position: absolute; left: 0; right: 0; top: 0.5mm; height: 4mm; pointer-events: none; z-index: 10; }
         @media print { .rollbook-sheet { border: none; } }
       `}</style>
 
@@ -415,7 +438,7 @@ export default function ClassRollBook() {
           ))}
           {mode === 'term' && (
             <span style={{ fontSize: 12, color: dates ? '#666' : '#A32D2D', alignSelf: 'center' }}>
-              {dates ? `期間：${dates.start} ～ ${dates.end}（共 ${weeks.length} 週，每班含封面約 ${weeks.length + 1 + ((weeks.length + 1) % 2)} 頁）` : '尚未設定本學期開學日／結束日，請洽教務處到「學年學期管理」填寫'}
+              {dates ? `期間：${dates.start} ～ ${dates.end}（共 ${weeks.length} 週，每班含封面與空白頁約 ${weeks.length + 2 + ((weeks.length + 2) % 2)} 頁）` : '尚未設定本學期開學日／結束日，請洽教務處到「學年學期管理」填寫'}
             </span>
           )}
         </div>
@@ -443,6 +466,9 @@ export default function ClassRollBook() {
           ))}
         </div>
 
+        <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>
+          <input type="checkbox" checked={bindMarks} onChange={(e) => setBindMarks(e.target.checked)} /> 上方印 3 條裝訂線提示（預設上下翻，裝訂在上方；雙面列印請選「短邊翻轉」）
+        </label>
         <label style={{ display: 'block', fontSize: 13, marginBottom: 10 }}>
           <input type="checkbox" checked={signRow} onChange={(e) => setSignRow(e.target.checked)} /> 在最後一號下面加印「任課教師簽名」欄
         </label>
