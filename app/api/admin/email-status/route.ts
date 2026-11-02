@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { flushOutbox, mailConfig } from '@/lib/outbox';
 import { sendMail } from '@/lib/mailer';
+import { withEffectiveRole } from '@/lib/effectiveRole';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,8 @@ async function requireAdmin(req: NextRequest) {
   if (!token) return { error: NextResponse.json({ error: '未登入' }, { status: 401 }) };
   const { data: auth, error } = await supabaseAdmin.auth.getUser(token);
   if (error || !auth.user) return { error: NextResponse.json({ error: '登入憑證無效' }, { status: 401 }) };
-  const { data: u } = await supabaseAdmin.from('app_users').select('role').eq('id', auth.user.id).maybeSingle();
+  const { data: uRaw } = await supabaseAdmin.from('app_users').select('role').eq('id', auth.user.id).maybeSingle();
+  const u = await withEffectiveRole(uRaw, auth.user.id); // 開發人員部門視同系統管理員S
   if (!u || !['system_admin_s', 'admin_a', 'admin_b'].includes(u.role)) {
     return { error: NextResponse.json({ error: '只有管理員可以使用' }, { status: 403 }) };
   }

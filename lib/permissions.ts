@@ -240,7 +240,7 @@ export const HUBS: HubDef[] = [
     label: '聘書',
     desc: '歷年教師資料、自聘教師聘書、當年教師聘書、列印',
     group: 'manage',
-    tabs: [{ key: 'main', label: '聘書', show: (c) => c.academic }],
+    tabs: [{ key: 'main', label: '聘書', show: (c) => c.academic || c.devDept }],
   },
   {
     key: 'review',
