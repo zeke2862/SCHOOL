@@ -1,17 +1,18 @@
 import { supabase } from './supabaseClient';
 import { listServiceCertRows } from './teacherLetters';
 
-// 開發人員區「聘書」→「比對報表」：歷年教師資料（聘書）跟帳號管理（app_users）、
-// 教師名單（teachers）、班級導師（classes.homeroom_teacher_id）之間沒有任何關聯欄位，
-// 只能用「姓名」比對。這裡只讀不寫，列出兩邊對不起來的地方給管理者人工確認。
+// 開發人員區「聘書」→「比對報表」：以歷年教師資料的 app_user_id／teacher_id（對應帳號管理、
+// 教師名單）為準逐一核對，只讀不寫。還沒對應的聘書資料會列為「未對應帳號」，
+// 在「歷年教師資料」編輯、選好「對應帳號」即可消除。
 
 export type CompareIssueKind =
-  | '在職但無帳號'
+  | '未對應帳號'
   | '離職但帳號仍在'
-  | '有教師帳號但聘書查無'
+  | '不續聘待停用帳號'
+  | '有教師帳號但聘書未對應'
+  | '姓名不一致'
   | '導師不在聘書'
-  | '導師已離職'
-  | '聘書姓名重複';
+  | '導師已離職或不續聘';
 
 export type CompareIssue = {
   kind: CompareIssueKind;
@@ -21,7 +22,7 @@ export type CompareIssue = {
 
 export type CompareReport = {
   issues: CompareIssue[];
-  counts: { certs: number; activeCerts: number; accounts: number; teachers: number; homerooms: number };
+  counts: { certs: number; activeCerts: number; linked: number; accounts: number; teachers: number; homerooms: number };
   academicYear: number | null;
 };
 
@@ -33,7 +34,6 @@ const ROLE_LABEL: Record<string, string> = {
   subject_teacher: '科任教師',
 };
 
-// 比對用：去掉所有空白（含全形），避免「王 小明」「王小明」被當成不同人
 function norm(s: string | null | undefined): string {
   return (s ?? '').replace(/[\s　]+/g, '');
 }
@@ -52,73 +52,69 @@ export async function buildTeacherLetterCompareReport(): Promise<CompareReport> 
   const teachers = (teachersRes.data ?? []) as { id: string; name: string; app_user_id: string | null }[];
   const classes = (classesRes.data ?? []) as { class_name: string; academic_year: number; homeroom_teacher_id: string | null }[];
 
+  const userById = new Map(users.map((u) => [u.id, u]));
+  const certByUser = new Map(certs.filter((c) => c.app_user_id).map((c) => [c.app_user_id as string, c]));
+  const certByTeacher = new Map(certs.filter((c) => c.teacher_id).map((c) => [c.teacher_id as string, c]));
+  const isLeaving = (c: { resigned: boolean; renewal_status: string }) => c.resigned || c.renewal_status === '不續聘';
+
   const issues: CompareIssue[] = [];
 
-  // 聘書姓名重複（聘書端本來就用姓名當鍵，同名會對到第一筆）
-  const certByName = new Map<string, typeof certs>();
   for (const c of certs) {
-    const k = norm(c.name);
-    certByName.set(k, [...(certByName.get(k) ?? []), c]);
-  }
-  for (const [, list] of certByName) {
-    if (list.length > 1) {
-      issues.push({ kind: '聘書姓名重複', name: list[0].name, detail: `歷年教師資料有 ${list.length} 筆同名（序號 ${list.map((c) => c.seq_no ?? '-').join('、')}）` });
+    const u = c.app_user_id ? userById.get(c.app_user_id) : undefined;
+    if (!u) {
+      // 已離職的人本來就不會有帳號，不列
+      if (!c.resigned) {
+        issues.push({ kind: '未對應帳號', name: c.name, detail: `${c.department ?? ''}${c.title ?? ''}｜聘用結果：${c.renewal_status}｜請在歷年教師資料選擇對應帳號` });
+      }
+      continue;
+    }
+    if (norm(u.name) !== norm(c.name)) {
+      issues.push({ kind: '姓名不一致', name: c.name, detail: `聘書「${c.name}」／帳號管理「${u.name}」` });
+    }
+    if (c.resigned) {
+      issues.push({ kind: '離職但帳號仍在', name: c.name, detail: `聘書已勾選離職，帳號角色：${ROLE_LABEL[u.role] ?? u.role}` });
+    } else if (c.renewal_status === '不續聘') {
+      issues.push({ kind: '不續聘待停用帳號', name: c.name, detail: `聘用結果為不續聘，聘期結束當天停用帳號｜帳號角色：${ROLE_LABEL[u.role] ?? u.role}` });
     }
   }
 
-  const activeCerts = certs.filter((c) => !c.resigned);
-  const activeNames = new Set(activeCerts.map((c) => norm(c.name)));
-  const resignedNames = new Set(certs.filter((c) => c.resigned).map((c) => norm(c.name)));
-  const userNames = new Set(users.map((u) => norm(u.name)));
-  const teacherNames = new Set(teachers.map((t) => norm(t.name)));
-
-  // 1. 聘書在職，但帳號與教師名單都找不到
-  for (const c of activeCerts) {
-    const k = norm(c.name);
-    if (!userNames.has(k) && !teacherNames.has(k)) {
-      issues.push({ kind: '在職但無帳號', name: c.name, detail: `${c.department ?? ''}${c.title ?? ''}｜帳號管理與教師名單都查無此姓名` });
-    }
-  }
-
-  // 2. 聘書已離職，但帳號仍在（且沒有同名在職者）
+  // 教師帳號（導師／科任）沒有任何聘書資料指到它
   for (const u of users) {
-    const k = norm(u.name);
-    if (resignedNames.has(k) && !activeNames.has(k)) {
-      issues.push({ kind: '離職但帳號仍在', name: u.name, detail: `聘書已勾選離職，帳號角色：${ROLE_LABEL[u.role] ?? u.role}` });
+    if ((u.role === 'homeroom_teacher' || u.role === 'subject_teacher') && !certByUser.has(u.id)) {
+      issues.push({ kind: '有教師帳號但聘書未對應', name: u.name, detail: `帳號角色：${ROLE_LABEL[u.role]}｜沒有任何歷年教師資料對應到這個帳號` });
     }
   }
 
-  // 3. 教師帳號（導師／科任）聘書查無
-  const allCertNames = new Set(certs.map((c) => norm(c.name)));
-  for (const u of users) {
-    if ((u.role === 'homeroom_teacher' || u.role === 'subject_teacher') && !allCertNames.has(norm(u.name))) {
-      issues.push({ kind: '有教師帳號但聘書查無', name: u.name, detail: `帳號角色：${ROLE_LABEL[u.role]}｜歷年教師資料沒有這個姓名` });
-    }
-  }
-
-  // 4. 現行學年班級導師：不在聘書或已離職
+  // 現行學年班級導師
   const academicYear = classes.length ? Math.max(...classes.map((c) => c.academic_year)) : null;
   const teacherById = new Map(teachers.map((t) => [t.id, t]));
-  const homeroomClasses = new Map<string, string[]>(); // 姓名 → 班級
+  const homeroomClasses = new Map<string, string[]>(); // teacher.id → 班級
   for (const cl of classes) {
     if (cl.academic_year !== academicYear || !cl.homeroom_teacher_id) continue;
-    const t = teacherById.get(cl.homeroom_teacher_id);
-    if (!t) continue;
-    homeroomClasses.set(t.name, [...(homeroomClasses.get(t.name) ?? []), cl.class_name]);
+    homeroomClasses.set(cl.homeroom_teacher_id, [...(homeroomClasses.get(cl.homeroom_teacher_id) ?? []), cl.class_name]);
   }
-  for (const [name, clsNames] of homeroomClasses) {
-    const k = norm(name);
+  for (const [tid, clsNames] of homeroomClasses) {
+    const t = teacherById.get(tid);
+    if (!t) continue;
     const where = `${academicYear} 學年 ${clsNames.join('、')} 導師`;
-    if (!allCertNames.has(k)) {
-      issues.push({ kind: '導師不在聘書', name, detail: `${where}｜歷年教師資料查無此姓名` });
-    } else if (!activeNames.has(k)) {
-      issues.push({ kind: '導師已離職', name, detail: `${where}｜聘書卻已勾選離職` });
+    const cert = certByTeacher.get(tid);
+    if (!cert) {
+      issues.push({ kind: '導師不在聘書', name: t.name, detail: `${where}｜沒有歷年教師資料對應到這位教師` });
+    } else if (isLeaving(cert)) {
+      issues.push({ kind: '導師已離職或不續聘', name: t.name, detail: `${where}｜聘書為${cert.resigned ? '離職' : '不續聘'}` });
     }
   }
 
   return {
     issues,
-    counts: { certs: certs.length, activeCerts: activeCerts.length, accounts: users.length, teachers: teachers.length, homerooms: homeroomClasses.size },
+    counts: {
+      certs: certs.length,
+      activeCerts: certs.filter((c) => !c.resigned).length,
+      linked: certs.filter((c) => c.app_user_id).length,
+      accounts: users.length,
+      teachers: teachers.length,
+      homerooms: homeroomClasses.size,
+    },
     academicYear,
   };
 }

@@ -7,6 +7,8 @@ import TemplateDownloadButton from '@/components/TemplateDownloadButton';
 import {
   LetterCategory,
   ServiceCertRow,
+  RENEWAL_STATUSES,
+  RenewalStatus,
   MergedAppointmentRow,
   downloadServiceCertTemplate,
   downloadAppointmentLetterTemplate,
@@ -134,8 +136,8 @@ function CompareSection() {
   return (
     <div>
       <p style={{ fontSize: 12, color: '#666', marginTop: 0 }}>
-        聘書的歷年教師資料跟帳號管理、教師名單、班級導師之間沒有關聯欄位，系統不會自動同步。
-        這份報表用「姓名」逐一比對，只列出對不起來的地方，不會修改任何資料。
+        以歷年教師資料的「對應帳號」為準，逐一核對帳號管理、教師名單、班級導師，只列出對不起來的地方，不會修改任何資料。
+        「未對應帳號」請到歷年教師資料編輯、選擇對應帳號即可消除。
       </p>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <button type="button" onClick={run} disabled={loading} style={{ padding: '5px 14px', fontSize: 12, cursor: 'pointer' }}>
@@ -160,7 +162,7 @@ function CompareSection() {
       {report && (
         <>
           <p style={{ fontSize: 13 }}>
-            歷年教師資料 {report.counts.certs} 筆（在職 {report.counts.activeCerts}）｜帳號 {report.counts.accounts} 個｜教師名單 {report.counts.teachers} 人｜
+            歷年教師資料 {report.counts.certs} 筆（在職 {report.counts.activeCerts}、已對應帳號 {report.counts.linked}）｜帳號 {report.counts.accounts} 個｜教師名單 {report.counts.teachers} 人｜
             {report.academicYear ?? '—'} 學年導師 {report.counts.homerooms} 人
           </p>
           {report.issues.length === 0 ? (
@@ -198,26 +200,45 @@ function CompareSection() {
 /* ============================================================ */
 
 const EMPTY_CERT: ServiceCertRow = {
+  app_user_id: null, teacher_id: null, email: null, renewal_status: '待定',
   seq_no: null, self_hired: false, resigned: false, name: '', birth_date: null, nationality: null,
   gender: null, department: null, title: null,
   start_date_1: null, end_date_1: null, start_date_2: null, end_date_2: null, start_date_3: null, end_date_3: null,
   note: null,
 };
 
+type AccountOption = { id: string; name: string; role: string };
+
 function ServiceCertSection({ userId }: { userId: string | null }) {
   const [rows, setRows] = useState<ServiceCertRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<ServiceCertRow | null>(null);
   const [adding, setAdding] = useState(false);
+  const [accounts, setAccounts] = useState<AccountOption[]>([]);
+  const [teacherByUser, setTeacherByUser] = useState<Map<string, string>>(new Map());
 
   async function reload() {
     setLoading(true);
-    setRows(await listServiceCertRows());
+    const [list, usersRes, teachersRes] = await Promise.all([
+      listServiceCertRows(),
+      supabase.from('app_users').select('id, name, role').order('name'),
+      supabase.from('teachers').select('id, app_user_id'),
+    ]);
+    setRows(list);
+    setAccounts((usersRes.data ?? []) as AccountOption[]);
+    setTeacherByUser(new Map(((teachersRes.data ?? []) as { id: string; app_user_id: string | null }[]).filter((t) => t.app_user_id).map((t) => [t.app_user_id as string, t.id])));
     setLoading(false);
   }
   useEffect(() => {
     reload();
   }, []);
+
+  const accountName = (id: string | null) => accounts.find((a) => a.id === id)?.name ?? '';
+  // 已經對應給其他聘書資料的帳號不能重複選（資料庫也有唯一限制）
+  const accountChoices = (selfId: string | undefined) => {
+    const used = new Set(rows.filter((r) => r.id !== selfId && r.app_user_id).map((r) => r.app_user_id as string));
+    return accounts.filter((a) => !used.has(a.id));
+  };
 
   async function handleUploadFile(file: File) {
     const rowsRaw = await readFirstSheetRows(file);
@@ -278,7 +299,7 @@ function ServiceCertSection({ userId }: { userId: string | null }) {
         </button>
 
         {adding && editing && (
-          <ServiceCertForm row={editing} onChange={setEditing} onSave={() => handleSave(editing)} onCancel={() => { setAdding(false); setEditing(null); }} />
+          <ServiceCertForm row={editing} accountChoices={accountChoices(undefined)} teacherByUser={teacherByUser} onChange={setEditing} onSave={() => handleSave(editing)} onCancel={() => { setAdding(false); setEditing(null); }} />
         )}
 
         {loading ? (
@@ -288,7 +309,7 @@ function ServiceCertSection({ userId }: { userId: string | null }) {
             <table style={{ borderCollapse: 'collapse', fontSize: 12, width: '100%' }}>
               <thead>
                 <tr style={{ background: '#f5f5f5' }}>
-                  {['序號', '自聘', '離職', '姓名', '國籍', '性別', '服務部門', '職稱', '任職期間', '在職時間', ''].map((h) => (
+                  {['序號', '自聘', '離職', '姓名', '國籍', '性別', '服務部門', '職稱', '任職期間', '在職時間', '聘用結果', '對應帳號', ''].map((h) => (
                     <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
                   ))}
                 </tr>
@@ -311,6 +332,17 @@ function ServiceCertSection({ userId }: { userId: string | null }) {
                         {r.start_date_3 ? `；${r.start_date_3} ~ ${r.end_date_3 ?? '(在職)'}` : ''}
                       </td>
                       <td style={tdStyle}>{computeServiceDuration(r, new Date()).label}</td>
+                      <td style={{ ...tdStyle, color: r.renewal_status === '不續聘' ? '#A32D2D' : r.renewal_status === '已發聘' ? '#2E7D32' : '#666' }}>{r.renewal_status}</td>
+                      <td style={tdStyle}>
+                        {r.app_user_id ? (
+                          <>
+                            {accountName(r.app_user_id)}
+                            {r.email && <div style={{ fontSize: 11, color: '#666' }}>{r.email}</div>}
+                          </>
+                        ) : (
+                          <span style={{ color: r.resigned ? '#999' : '#b26a00' }}>{r.resigned ? '—' : '未對應'}</span>
+                        )}
+                      </td>
                       <td style={tdStyle}>
                         <button
                           type="button"
@@ -326,8 +358,8 @@ function ServiceCertSection({ userId }: { userId: string | null }) {
                     </tr>
                     {!adding && editing?.id === r.id && (
                       <tr>
-                        <td colSpan={11}>
-                          <ServiceCertForm row={editing} onChange={setEditing} onSave={() => handleSave(editing)} onCancel={() => setEditing(null)} />
+                        <td colSpan={13}>
+                          <ServiceCertForm row={editing} accountChoices={accountChoices(editing.id)} teacherByUser={teacherByUser} onChange={setEditing} onSave={() => handleSave(editing)} onCancel={() => setEditing(null)} />
                         </td>
                       </tr>
                     )}
@@ -335,7 +367,7 @@ function ServiceCertSection({ userId }: { userId: string | null }) {
                 ))}
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={11} style={{ ...tdStyle, color: '#999', textAlign: 'center' }}>目前沒有資料</td>
+                    <td colSpan={13} style={{ ...tdStyle, color: '#999', textAlign: 'center' }}>目前沒有資料</td>
                   </tr>
                 )}
               </tbody>
@@ -351,9 +383,11 @@ const tdStyle: React.CSSProperties = { border: '1px solid #eee', padding: 6 };
 const inputStyle: React.CSSProperties = { padding: 4, fontSize: 12, width: '100%', boxSizing: 'border-box' };
 
 function ServiceCertForm({
-  row, onChange, onSave, onCancel,
+  row, accountChoices, teacherByUser, onChange, onSave, onCancel,
 }: {
   row: ServiceCertRow;
+  accountChoices: AccountOption[];
+  teacherByUser: Map<string, string>;
   onChange: (r: ServiceCertRow) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -369,6 +403,24 @@ function ServiceCertForm({
         <label>服務部門<input style={inputStyle} value={row.department ?? ''} onChange={(e) => set({ department: e.target.value || null })} /></label>
         <label>職稱<input style={inputStyle} value={row.title ?? ''} onChange={(e) => set({ title: e.target.value || null })} /></label>
         <label>出生日期<input style={inputStyle} type="date" value={row.birth_date ?? ''} onChange={(e) => set({ birth_date: e.target.value || null })} /></label>
+        <label>聘用結果
+          <select style={inputStyle} value={row.renewal_status} onChange={(e) => set({ renewal_status: e.target.value as RenewalStatus })}>
+            {RENEWAL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </label>
+        <label>對應帳號
+          <select
+            style={inputStyle}
+            value={row.app_user_id ?? ''}
+            onChange={(e) => {
+              const uid = e.target.value || null;
+              set({ app_user_id: uid, teacher_id: uid ? teacherByUser.get(uid) ?? null : null, email: uid === row.app_user_id ? row.email : null });
+            }}
+          >
+            <option value="">（未對應）</option>
+            {accountChoices.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
+        </label>
         <label>
           <input type="checkbox" checked={row.self_hired} onChange={(e) => set({ self_hired: e.target.checked })} /> 自聘
         </label>

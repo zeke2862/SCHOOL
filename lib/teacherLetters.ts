@@ -158,8 +158,19 @@ export async function downloadServiceCertTemplate() {
   download(XLSX, wb, '歷年教師資料_範本.xlsx');
 }
 
+export type RenewalStatus = '待定' | '已發聘' | '不續聘';
+export const RENEWAL_STATUSES: RenewalStatus[] = ['待定', '已發聘', '不續聘'];
+
 export type ServiceCertRow = {
   id?: string;
+  /** 對應帳號管理（app_users.id）；之後聘書與帳號、打卡的對應都以 id 為準，不靠姓名 */
+  app_user_id: string | null;
+  /** 對應教師名單（teachers.id） */
+  teacher_id: string | null;
+  /** 登入信箱，只供顯示核對（實際存在 auth，改信箱走帳號管理），儲存時不會寫回 */
+  email: string | null;
+  /** 聘用結果：確定「已發聘」或「不續聘」才會去調整帳號 */
+  renewal_status: RenewalStatus;
   seq_no: number | null;
   self_hired: boolean;
   resigned: boolean;
@@ -512,7 +523,7 @@ export async function fetchCurrentAppointmentLetterSheet(category: LetterCategor
 /* -------------------- 編輯／刪除（單筆，供列表頁「編輯」按鈕使用） -------------------- */
 
 export async function saveServiceCertRow(row: ServiceCertRow, createdBy?: string | null): Promise<{ error?: string }> {
-  const { id, ...fields } = row;
+  const { id, email: _email, ...fields } = row;
   const payload: any = { ...fields, updated_at: new Date().toISOString() };
   if (!id) payload.created_by = createdBy ?? null;
   const { error } = id
