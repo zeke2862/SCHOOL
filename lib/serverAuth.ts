@@ -6,13 +6,13 @@ import { withEffectiveRole } from '@/lib/effectiveRole';
 export type Caller = {
   userId: string;
   email: string | null;
-  role: string; // 有效角色（開發人員部門視同 system_admin_s）。代理只代理一線教學工作，不影響這裡的角色
+  role: string; // 有效角色（開發人員唯讀：opts.readOnly 才視同 system_admin_s，否則是 dev_readonly）。代理只代理一線教學工作，不影響這裡的角色
   isSD: boolean; // 系統管理員S 或 開發人員
   isA: boolean;
   hasAcademic: boolean;
 };
 
-export async function getCaller(req: NextRequest): Promise<Caller | { error: string; status: number }> {
+export async function getCaller(req: NextRequest, opts?: { readOnly?: boolean }): Promise<Caller | { error: string; status: number }> {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return { error: '未登入', status: 401 };
   const { data: auth, error } = await supabaseAdmin.auth.getUser(token);
@@ -22,8 +22,8 @@ export async function getCaller(req: NextRequest): Promise<Caller | { error: str
   if (profileRaw.account_expires_at && new Date(profileRaw.account_expires_at) <= new Date()) {
     return { error: '此帳號已到期', status: 403 };
   }
-  const profile = await withEffectiveRole(profileRaw, auth.user.id);
-  const { data: depts } = await supabaseAdmin.from('app_user_departments').select('department');
+  const profile = await withEffectiveRole(profileRaw, auth.user.id, opts);
+  const { data: depts } = await supabaseAdmin.from('app_user_departments').select('department').eq('app_user_id', auth.user.id);
   const hasAcademic = (depts ?? []).some((d: any) => d.department === 'academic');
   return {
     userId: auth.user.id,

@@ -37,7 +37,7 @@ export async function GET(req: NextRequest, { params }: { params: { enrollmentId
   // 印出他個人的成績單——這裡另外擋一次：非真管理員身分時，如果這位學生已經
   // 是隱藏名單，直接回絕。
   const { data: callerProfileRaw } = await supabaseAdmin.from('app_users').select('role').eq('id', callerAuth.user.id).maybeSingle();
-    const callerProfile = await withEffectiveRole(callerProfileRaw, callerAuth.user.id);
+    const callerProfile = await withEffectiveRole(callerProfileRaw, callerAuth.user.id, { readOnly: true });
   const isTrueAdmin = !!callerProfile && ['admin_a', 'admin_b', 'system_admin_s'].includes(callerProfile.role);
   if (!isTrueAdmin) {
     const { data: studentNoRow } = await supabaseAdmin.from('enrollments').select('student_no').eq('id', enrollmentId).maybeSingle();

@@ -306,6 +306,11 @@ export default function TopNav() {
         </button>
         )}
         <span style={{ color: '#666' }}>{me ? `${me.name}｜${ROLE_LABEL[me.role]}` : ''}</span>
+        {ident && ident.realRole !== 'system_admin_s' && ident.departments.some((d) => d.department === 'dev') && (
+          <span title="開發人員可以查看全部資料，但不能新增、修改或刪除；需要修改請由系統管理員S操作" style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#EEF3FA', color: '#2C5F8A', border: '1px solid #C9D9EC' }}>
+            開發人員（唯讀）
+          </span>
+        )}
         {ident?.acting && (
           <span title={`代理到 ${new Date(ident.acting.endAt).toLocaleString('zh-TW', { hour12: false })}`} style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#FDECEC', color: '#A32D2D', border: '1px solid #F2B8B8' }}>
             代理 {ident.acting.principalName} 中

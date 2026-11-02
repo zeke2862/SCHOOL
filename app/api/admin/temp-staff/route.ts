@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic';
 // 不能是管理員，也不能被指派部門；到期後權限自動失效（資料庫 current_role_name() 會回傳空），
 // 並由每日排程連登入一起停用。
 
-async function authorize(req: NextRequest) {
-  const c = await getCaller(req);
+async function authorize(req: NextRequest, readOnly = false) {
+  const c = await getCaller(req, { readOnly });
   if ('error' in c) return { err: NextResponse.json({ error: c.error }, { status: c.status }) };
   if (!(c.isSD || c.isA || c.hasAcademic)) {
     return { err: NextResponse.json({ error: '只有教務處、管理員A、系統管理員S／開發人員可以管理臨時教師' }, { status: 403 }) };
@@ -19,7 +19,7 @@ async function authorize(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const a = await authorize(req);
+  const a = await authorize(req, true);
   if (a.err) return a.err;
   const { data, error } = await supabaseAdmin
     .from('app_users')

@@ -22,7 +22,7 @@ async function requireAdmin(req: NextRequest): Promise<{ userId: string } | Next
   if (!callerAuth.user) return NextResponse.json({ error: '登入憑證無效' }, { status: 401 });
 
   const { data: callerProfileRaw } = await supabaseAdmin.from('app_users').select('role').eq('id', callerAuth.user.id).single();
-    const callerProfile = await withEffectiveRole(callerProfileRaw, callerAuth.user.id);
+    const callerProfile = await withEffectiveRole(callerProfileRaw, callerAuth.user.id, { readOnly: true });
   if (!callerProfile || !['system_admin_s', 'admin_a', 'admin_b'].includes(callerProfile.role)) {
     return NextResponse.json({ error: '只有管理員能管理成績單 Excel 範本' }, { status: 403 });
   }

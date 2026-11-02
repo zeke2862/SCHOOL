@@ -140,6 +140,7 @@ export async function POST(req: NextRequest) {
 
     // ---------- 寫入（新增＋更新，不刪除） ----------
     if (action === 'import') {
+      if (auth.devReadOnly) return NextResponse.json({ error: '開發人員是唯讀身分，不能上傳或匯入資料（請由系統管理員S操作）' }, { status: 403 });
       const def = DEF_BY_TABLE.get(String(body.table));
       if (!def) return NextResponse.json({ error: '不認得的資料表：' + body.table }, { status: 400 });
       if (def.mode !== 'normal') {

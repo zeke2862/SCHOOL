@@ -8,13 +8,13 @@ export const dynamic = 'force-dynamic';
 
 // 寄信設定頁用：看寄信是否設定好、佇列狀況，並可寄測試信、立即寄出待寄的信。
 // 只有系統管理員 S／管理員 A、B 可以用；不會回傳任何密碼或金鑰。
-async function requireAdmin(req: NextRequest) {
+async function requireAdmin(req: NextRequest, readOnly = false) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return { error: NextResponse.json({ error: '未登入' }, { status: 401 }) };
   const { data: auth, error } = await supabaseAdmin.auth.getUser(token);
   if (error || !auth.user) return { error: NextResponse.json({ error: '登入憑證無效' }, { status: 401 }) };
   const { data: uRaw } = await supabaseAdmin.from('app_users').select('role').eq('id', auth.user.id).maybeSingle();
-  const u = await withEffectiveRole(uRaw, auth.user.id); // 開發人員部門視同系統管理員S
+  const u = await withEffectiveRole(uRaw, auth.user.id, { readOnly }); // 開發人員（唯讀）只能看狀態，不能寄信
   if (!u || !['system_admin_s', 'admin_a', 'admin_b'].includes(u.role)) {
     return { error: NextResponse.json({ error: '只有管理員可以使用' }, { status: 403 }) };
   }
@@ -22,7 +22,7 @@ async function requireAdmin(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const a = await requireAdmin(req);
+  const a = await requireAdmin(req, true);
   if (a.error) return a.error;
   const { count: pending } = await supabaseAdmin.from('email_outbox').select('id', { count: 'exact', head: true }).is('sent_at', null);
   const { data: recent } = await supabaseAdmin

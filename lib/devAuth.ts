@@ -5,9 +5,10 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 // 檢查呼叫者是不是「系統管理員S」或「開發人員（dev）部門」成員——
 // 跟前端 /admin/dev-tools 頁的判斷規則一致（perms.isSystemAdmin || hasDepartment(dev)）。
 export type DevAuthResult =
-  | { ok: true; userId: string; role: string; email: string | null }
+  | { ok: true; userId: string; role: string; email: string | null; devReadOnly: boolean }
   | { ok: false; res: NextResponse };
 
+// 開發人員（非系統管理員S）是唯讀身分：回傳 devReadOnly=true，呼叫端遇到「寫入」動作要自己擋下（回 403）。
 export async function requireDevOrSystemAdmin(req: NextRequest): Promise<DevAuthResult> {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return { ok: false, res: NextResponse.json({ error: '未登入' }, { status: 401 }) };
@@ -19,7 +20,7 @@ export async function requireDevOrSystemAdmin(req: NextRequest): Promise<DevAuth
   if (!profile) return { ok: false, res: NextResponse.json({ error: '找不到帳號資料' }, { status: 403 }) };
 
   if (profile.role === 'system_admin_s') {
-    return { ok: true, userId: auth.user.id, role: profile.role, email: auth.user.email ?? null };
+    return { ok: true, userId: auth.user.id, role: profile.role, email: auth.user.email ?? null, devReadOnly: false };
   }
   const { data: dept } = await supabaseAdmin
     .from('app_user_departments')
@@ -30,5 +31,5 @@ export async function requireDevOrSystemAdmin(req: NextRequest): Promise<DevAuth
   if (!dept || dept.length === 0) {
     return { ok: false, res: NextResponse.json({ error: '只有系統管理員S或開發人員部門可以使用這個功能' }, { status: 403 }) };
   }
-  return { ok: true, userId: auth.user.id, role: profile.role, email: auth.user.email ?? null };
+  return { ok: true, userId: auth.user.id, role: profile.role, email: auth.user.email ?? null, devReadOnly: true };
 }

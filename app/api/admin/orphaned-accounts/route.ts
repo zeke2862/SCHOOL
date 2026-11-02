@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     if (callerAuthErr || !callerAuth.user) return NextResponse.json({ error: '登入憑證無效' }, { status: 401 });
 
     const { data: callerProfileRaw } = await supabaseAdmin.from('app_users').select('role').eq('id', callerAuth.user.id).single();
-    const callerProfile = await withEffectiveRole(callerProfileRaw, callerAuth.user.id);
+    const callerProfile = await withEffectiveRole(callerProfileRaw, callerAuth.user.id, { readOnly: true });
     if (callerProfile?.role !== 'system_admin_s') {
       return NextResponse.json({ error: '只有系統管理員S可以查看孤兒帳號' }, { status: 403 });
     }

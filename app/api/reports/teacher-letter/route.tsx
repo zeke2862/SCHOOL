@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   if (!callerAuth.user) return NextResponse.json({ error: '登入憑證無效' }, { status: 401 });
 
   const { data: appUserRaw } = await supabaseAdmin.from('app_users').select('role').eq('id', callerAuth.user.id).maybeSingle();
-    const appUser = await withEffectiveRole(appUserRaw, callerAuth.user.id);
+    const appUser = await withEffectiveRole(appUserRaw, callerAuth.user.id, { readOnly: true });
   const isSystemAdmin = appUser?.role === 'system_admin_s' || appUser?.role === 'admin_a';
   const { data: deptRow } = await supabaseAdmin
     .from('app_user_departments')

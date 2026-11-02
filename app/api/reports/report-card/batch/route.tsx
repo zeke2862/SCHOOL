@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   // 批次列印同樣要擋：非真管理員身分時，已經是隱藏名單的學生直接從這次要
   // 產出的名單裡拿掉，不會連他的成績單也一起批次印出來。
   const { data: callerProfileRaw } = await supabaseAdmin.from('app_users').select('role').eq('id', callerAuth.user.id).maybeSingle();
-    const callerProfile = await withEffectiveRole(callerProfileRaw, callerAuth.user.id);
+    const callerProfile = await withEffectiveRole(callerProfileRaw, callerAuth.user.id, { readOnly: true });
   const isTrueAdmin = !!callerProfile && ['admin_a', 'admin_b', 'system_admin_s'].includes(callerProfile.role);
   let enrollments = enrollmentsRaw;
   if (!isTrueAdmin) {

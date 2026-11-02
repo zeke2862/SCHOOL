@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === 'apply') {
+      if (auth.devReadOnly) return NextResponse.json({ error: '開發人員是唯讀身分，不能執行清理（請由系統管理員S操作）' }, { status: 403 });
       let deleted = 0;
       for (let i = 0; i < extraIds.length; i += 200) {
         const chunk = extraIds.slice(i, i + 200);

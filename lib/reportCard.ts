@@ -52,7 +52,7 @@ export async function getActiveReportCardStyle(): Promise<ReportCardStyleConfig>
 // access token 解出來的 callerAuth.user.id，用參數傳進來，不是靠資料庫 session）。
 export async function canAccessClass(userId: string, classId: string): Promise<boolean> {
   const { data: appUserRaw } = await supabaseAdmin.from('app_users').select('role').eq('id', userId).maybeSingle();
-  const appUser = await withEffectiveRole(appUserRaw, userId); // 開發人員部門視同系統管理員S
+  const appUser = await withEffectiveRole(appUserRaw, userId, { readOnly: true }); // 開發人員部門視同系統管理員S
   if (appUser && ['admin_a', 'admin_b', 'system_admin_s'].includes(appUser.role)) return true;
 
   const { data: teacher } = await supabaseAdmin.from('teachers').select('id').eq('app_user_id', userId).maybeSingle();
