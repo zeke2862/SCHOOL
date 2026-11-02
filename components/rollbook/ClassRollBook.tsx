@@ -97,12 +97,12 @@ const THICK = '2px solid #000';
 const THIN = '1px solid #333';
 const DASH = '1px dashed #777';
 
-// 上方裝訂線提示：紙張上緣 3 條短直線（約在 1/5、1/2、4/5 寬度），釘書針或打孔時對準
+// 上方裝訂線提示：紙張上緣 3 條短橫線（約在 1/5、1/2、4/5 寬度），釘書針或打孔時對準
 function BindMarks() {
   return (
     <div className="rollbook-bind" aria-hidden="true">
       {['20%', '50%', '80%'].map((left) => (
-        <span key={left} style={{ position: 'absolute', left, top: 0, width: 0, height: '4mm', borderLeft: '0.4mm solid #000' }} />
+        <span key={left} style={{ position: 'absolute', left, top: '1.5mm', width: '12mm', height: 0, transform: 'translateX(-50%)', borderTop: '0.4mm solid #000' }} />
       ))}
     </div>
   );
@@ -408,6 +408,8 @@ export default function ClassRollBook() {
         }
         .rollbook-sheet { background: #fff; padding: 8px; margin: 0 0 16px; border: 1px dashed #ccc; box-sizing: border-box; }
         .rollbook-blank { min-height: 40px; }
+        /* 畫面預覽時封面與空白頁也要有一整張紙的高度，不然封面的內容會跟後面的點名表疊在一起 */
+        @media screen { .rollbook-cover, .rollbook-blank { height: 296.5mm; } }
         .rollbook-sheet { position: relative; }
         .rollbook-bind { position: absolute; left: 0; right: 0; top: 0.5mm; height: 4mm; pointer-events: none; z-index: 10; }
         @media print { .rollbook-sheet { border: none; } }
@@ -467,7 +469,7 @@ export default function ClassRollBook() {
         </div>
 
         <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>
-          <input type="checkbox" checked={bindMarks} onChange={(e) => setBindMarks(e.target.checked)} /> 上方印 3 條裝訂線提示（預設上下翻，裝訂在上方；雙面列印請選「短邊翻轉」）
+          <input type="checkbox" checked={bindMarks} onChange={(e) => setBindMarks(e.target.checked)} /> 上方印 3 條橫向裝訂線提示（預設上下翻，裝訂在上方；雙面列印請選「短邊翻轉」）
         </label>
         <label style={{ display: 'block', fontSize: 13, marginBottom: 10 }}>
           <input type="checkbox" checked={signRow} onChange={(e) => setSignRow(e.target.checked)} /> 在最後一號下面加印「任課教師簽名」欄
