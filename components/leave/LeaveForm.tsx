@@ -26,6 +26,8 @@ type PeriodRow = {
 type DayBlock = { date: string; weekday: number; periods: PeriodRow[] };
 
 const WEEKDAY_LABEL = ['', '一', '二', '三', '四', '五', '六', '日'];
+// 暫時隱藏「改從全體老師選」：代課老師只能從空堂名單選。要重新開放時改成 true。
+const SHOW_PICK_ALL_TEACHERS = false;
 const LEAVE_TYPES = ['事假', '病假', '公假', '公出', '喪假', '婚假', '產假／陪產假', '其他'];
 
 function ymd(d: Date) {
@@ -262,7 +264,7 @@ export default function LeaveForm(props: {
                       ))}
                     </select>
                     {Array.isArray(opt) && opt.length === 0 && !showAll && <span style={{ fontSize: 11, color: '#A36A00' }}>這節查不到空堂老師</span>}
-                    {!showAll && (
+                    {SHOW_PICK_ALL_TEACHERS && !showAll && (
                       <button type="button" onClick={() => setShowAllFor((s) => ({ ...s, [p.key]: true }))} style={{ fontSize: 11, background: 'none', border: 'none', color: '#2C6E9E', cursor: 'pointer' }}>
                         改從全體老師選
                       </button>
