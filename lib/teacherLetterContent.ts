@@ -70,6 +70,14 @@ export function buildCertificateContent(cert: ServiceCertRow, settings: TeacherL
   };
 }
 
+/** 聘期年數沒填時，由起迄日期推算（例如 2027/5/1~2029/4/30 → 2 年）；日期不全就回傳 null。 */
+function termYearsFromDates(start: string | null, end: string | null): number | null {
+  if (!start || !end) return null;
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  if (!Number.isFinite(ms) || ms <= 0) return null;
+  return Math.max(1, Math.round(ms / (365.25 * 86400000)));
+}
+
 export type AppointmentContent = {
   category: LetterCategory;
   name: string;
@@ -88,7 +96,7 @@ export type AppointmentContent = {
  *  簽署人改成董事長，避免校長替自己簽聘書這種奇怪狀況)。 */
 export function buildAppointmentContent(row: MergedAppointmentRow, settings: TeacherLetterSettings, calcDate: Date): AppointmentContent {
   const genderTitle = row.gender === '女' ? '女士' : '先生';
-  const termYears = row.term_no ?? 1;
+  const termYears = row.term_no ?? termYearsFromDates(row.start_date, row.end_date) ?? 1;
   const positionLine = `擔任本校 ${row.department ?? ''}${row.title ?? ''}，聘期為${toChineseNumber(termYears)}年，`;
   const isPrincipalHerself = !!settings.principal_name && row.name === settings.principal_name;
   const signatureLine = isPrincipalHerself && settings.chairman_name ? `董事長 ${settings.chairman_name}` : `校長  ${settings.principal_name}`;

@@ -11,11 +11,8 @@ import {
   RenewalStatus,
   MergedAppointmentRow,
   downloadServiceCertTemplate,
-  downloadAppointmentLetterTemplate,
   uploadServiceCertSheet,
-  uploadAppointmentLetterSheet,
   fetchCurrentServiceCertSheet,
-  fetchCurrentAppointmentLetterSheet,
   listServiceCertRows,
   listMergedAppointmentRows,
   saveServiceCertRow,
@@ -45,12 +42,10 @@ import { showPdfInWindow } from '@/lib/pdfPreview';
 // lib/teacherLetterContent.ts），校名/校長/董事長/電話/地址這些固定資料在「列印」分頁可以
 // 直接編輯、存進資料庫（見 lib/teacherLetterSettings.ts），不用再改程式碼。
 
-type PanelTab = LetterCategory | '歷年教師資料' | '比對報表' | '列印';
+type PanelTab = '歷年教師資料' | '比對報表' | '列印';
 
 const CATEGORIES: { key: PanelTab; label: string }[] = [
   { key: '歷年教師資料', label: '歷年教師資料' },
-  { key: '自聘教師聘書', label: '自聘教師資料' },
-  { key: '當年教師聘書', label: '當年教師資料' },
   { key: '比對報表', label: '比對報表' },
   { key: '列印', label: '列印' },
 ];
@@ -101,10 +96,8 @@ export default function TeacherLettersPanel({ userId }: { userId: string | null 
         <ServiceCertSection userId={userId} />
       ) : tab === '比對報表' ? (
         <CompareSection />
-      ) : tab === '列印' ? (
-        <PrintSection userId={userId} />
       ) : (
-        <AppointmentLetterSection category={tab} userId={userId} />
+        <PrintSection userId={userId} />
       )}
     </div>
   );
@@ -444,167 +437,29 @@ function ServiceCertForm({
 }
 
 /* ============================================================ */
-/* 自聘教師聘書 ／ 當年教師聘書                                        */
+/* 聘書聘期（自聘教師聘書 ／ 當年教師聘書）                              */
 /* ============================================================ */
 
-// 聘期預設值套用邏輯（自聘＝下一年1/1~12/31；當年＝今年5/1~明年4/30）已經統一放在
+// 【改版】原本的「自聘教師資料」「當年教師資料」兩個分頁已拿掉：名單本來就是從歷年教師資料
+// 推出來的，聘期／起迄／發聘時間這些聘書專屬欄位改成直接在「列印」分頁每一列編輯，
+// 沒編輯過就用預設值。資料表（teacher_appointment_letters）沒有動。
+// 聘期預設值（自聘＝下一年1/1~12/31；當年＝今年5/1~明年4/30）統一放在
 // lib/teacherLetters.ts 的 defaultTermDatesForCategory()（批次上傳沒填起迄時也是用同一套），
-// 這裡只負責「使用者點開編輯、尚未填過聘期資料時」把預設值先帶進表單，不會覆蓋已填的資料。
+// 這裡的 applyDefaultTermDates 只在起迄都沒填時套用預設值，不會覆蓋已填的資料。
 function applyDefaultTermDates(row: MergedAppointmentRow): MergedAppointmentRow {
   if (row.start_date || row.end_date) return { ...row };
   return { ...row, ...defaultTermDatesForCategory(row.category) };
 }
 
-function AppointmentLetterSection({ category, userId }: { category: LetterCategory; userId: string | null }) {
-  const [rows, setRows] = useState<MergedAppointmentRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editingName, setEditingName] = useState<string | null>(null);
-  const [editingRow, setEditingRow] = useState<MergedAppointmentRow | null>(null);
-  const eligibleLabel = category === '自聘教師聘書' ? '自聘' : '未離職（當年，含自聘）';
-
-  async function reload() {
-    setLoading(true);
-    setRows(await listMergedAppointmentRows(category));
-    setLoading(false);
-  }
-  useEffect(() => {
-    reload();
-    setEditingName(null);
-    setEditingRow(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category]);
-
-  async function handleUploadFile(file: File) {
-    const rowsRaw = await readFirstSheetRows(file);
-    const result = await uploadAppointmentLetterSheet(rowsRaw, category, userId);
-    reload();
-    return result;
-  }
-
-  async function handleDownloadCurrent() {
-    const sheet = await fetchCurrentAppointmentLetterSheet(category);
-    downloadSheet(sheet);
-  }
-
-  async function handleSave(row: MergedAppointmentRow) {
-    const { error } = await saveMergedAppointmentRow(row, userId);
-    if (error) {
-      alert('儲存失敗：' + error);
-      return;
-    }
-    setEditingName(null);
-    setEditingRow(null);
-    reload();
-  }
-
-  async function handleDeleteLetterData(row: MergedAppointmentRow) {
-    if (!row.letter_id) return;
-    if (!confirm(`確定要清除「${row.name}」的聘期/起迄資料嗎？（不會刪除「歷年教師資料」裡的教師本身，這位教師還是會留在這份清單裡，只是聘書欄位變空白）`)) return;
-    const { error } = await deleteAppointmentLetterRow(row.letter_id);
-    if (error) alert('清除失敗：' + error);
-    reload();
-  }
-
-  return (
-    <div>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
-        這份名單直接來自「歷年教師資料」勾選「自聘」的結果（{category === '自聘教師聘書' ? '有勾選自聘' : '沒有勾選自聘'}的教師才會出現在這裡），姓名/職位/性別/離職狀態都以「歷年教師資料」為準；這裡只需要補聘期/起迄{category === '自聘教師聘書' ? '/發聘時間' : ''}這些聘書專屬欄位，不用重新輸入一次姓名資料。
-        如果少了應該出現的人，請先到「歷年教師資料」確認該教師的「自聘」勾選狀態。
-      </p>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-        <TemplateDownloadButton label={`下載${category === '自聘教師聘書' ? '自聘教師資料' : '當年教師資料'}範本`} onClick={() => downloadAppointmentLetterTemplate(category)} />
-        <TemplateDownloadButton label="下載目前資料(現況)" onClick={handleDownloadCurrent} />
-      </div>
-      <ExcelUploadButton label={`批次上傳／修正${category === '自聘教師聘書' ? '自聘教師資料' : '當年教師資料'}（聘期/起迄${category === '自聘教師聘書' ? '/發聘時間' : ''}）`} onFile={handleUploadFile} />
-
-      <div style={{ marginTop: 16 }}>
-        {loading ? (
-          <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ borderCollapse: 'collapse', fontSize: 12, width: '100%' }}>
-              <thead>
-                <tr style={{ background: '#f5f5f5' }}>
-                  {['序號', '姓名', '職位', '性別', '聘期', '起', '迄', ...(category === '自聘教師聘書' ? ['離職', '發聘時間'] : []), ''].map((h) => (
-                    <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <Fragment key={r.cert_id}>
-                    <tr>
-                      <td style={tdStyle}>{r.seq_no ?? ''}</td>
-                      <td style={tdStyle}>{r.name}</td>
-                      <td style={tdStyle}>{r.title}</td>
-                      <td style={tdStyle}>{r.gender}</td>
-                      <td style={tdStyle}>{r.term_no ?? ''}</td>
-                      <td style={tdStyle}>{r.start_date}</td>
-                      <td style={tdStyle}>{r.end_date}</td>
-                      {category === '自聘教師聘書' && <td style={tdStyle}>{r.resigned ? 'V' : ''}</td>}
-                      {category === '自聘教師聘書' && <td style={tdStyle}>{r.issued_date}</td>}
-                      <td style={tdStyle}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (editingName === r.name) {
-                              setEditingName(null);
-                              setEditingRow(null);
-                            } else {
-                              setEditingName(r.name);
-                              setEditingRow(applyDefaultTermDates(r));
-                            }
-                          }}
-                          style={{ fontSize: 12, marginRight: 6, cursor: 'pointer' }}
-                        >
-                          {editingName === r.name ? '取消' : '編輯聘期'}
-                        </button>
-                        {r.letter_id && (
-                          <button type="button" onClick={() => handleDeleteLetterData(r)} style={{ fontSize: 12, color: '#A32D2D', cursor: 'pointer' }}>
-                            清除聘期資料
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                    {editingName === r.name && editingRow && (
-                      <tr>
-                        <td colSpan={category === '自聘教師聘書' ? 10 : 8}>
-                          <AppointmentLetterForm
-                            row={editingRow}
-                            showSelfHiredFields={category === '自聘教師聘書'}
-                            onChange={setEditingRow}
-                            onSave={() => handleSave(editingRow)}
-                            onCancel={() => { setEditingName(null); setEditingRow(null); }}
-                          />
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                ))}
-                {rows.length === 0 && (
-                  <tr>
-                    <td colSpan={category === '自聘教師聘書' ? 10 : 8} style={{ ...tdStyle, color: '#999', textAlign: 'center' }}>
-                      「歷年教師資料」目前沒有{eligibleLabel}的教師
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function PrintSection({ userId }: { userId: string | null }) {
   const [category, setCategory] = useState<LetterCategory | '在職證明'>('在職證明');
-  const [certOptions, setCertOptions] = useState<ServiceCertRow[]>([]);
-  const [letterOptions, setLetterOptions] = useState<MergedAppointmentRow[]>([]);
-  // 選單一律用 cert_id（歷年教師資料每一筆保證唯一的主鍵）當value，不要用姓名或序號
-  // ——序號可能是null、也可能重複，用它當value之前發生過選A印出B（或印出空白）的問題。
-  const [selectedCertId, setSelectedCertId] = useState('');
-  const [generating, setGenerating] = useState<'' | 'pdf' | 'docx'>('');
+  const [certRows, setCertRows] = useState<ServiceCertRow[]>([]);
+  const [letterRows, setLetterRows] = useState<MergedAppointmentRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  // 正在產生的檔案（`${歷年教師資料id}:${格式}`），同一時間只允許產生一份
+  const [generating, setGenerating] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingRow, setEditingRow] = useState<MergedAppointmentRow | null>(null);
 
   const [settings, setSettings] = useState<TeacherLetterSettings | null>(null);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -613,18 +468,17 @@ function PrintSection({ userId }: { userId: string | null }) {
     getTeacherLetterSettings().then(setSettings);
   }, []);
 
+  async function reload() {
+    setLoading(true);
+    if (category === '在職證明') setCertRows(await listServiceCertRows());
+    else setLetterRows(await listMergedAppointmentRows(category));
+    setLoading(false);
+  }
   useEffect(() => {
-    (async () => {
-      if (category === '在職證明') {
-        const rows = await listServiceCertRows();
-        setCertOptions(rows);
-        setSelectedCertId(rows[0]?.id ?? '');
-      } else {
-        const rows = await listMergedAppointmentRows(category);
-        setLetterOptions(rows);
-        setSelectedCertId(rows[0]?.cert_id ?? '');
-      }
-    })();
+    setEditingId(null);
+    setEditingRow(null);
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
   async function handleSaveSettings() {
@@ -635,9 +489,28 @@ function PrintSection({ userId }: { userId: string | null }) {
     if (error) alert('儲存失敗：' + error);
   }
 
-  async function handleGenerate(format: 'pdf' | 'docx') {
-    if (!selectedCertId || !settings) {
-      alert('請選擇要列印的教師');
+  async function handleSaveLetter(row: MergedAppointmentRow) {
+    const { error } = await saveMergedAppointmentRow(row, userId);
+    if (error) {
+      alert('儲存失敗：' + error);
+      return;
+    }
+    setEditingId(null);
+    setEditingRow(null);
+    reload();
+  }
+
+  async function handleClearLetter(row: MergedAppointmentRow) {
+    if (!row.letter_id) return;
+    if (!confirm(`確定要清除「${row.name}」自訂的聘期/起迄資料嗎？（教師本身不會被刪除，清除後列印會改用預設值）`)) return;
+    const { error } = await deleteAppointmentLetterRow(row.letter_id);
+    if (error) alert('清除失敗：' + error);
+    reload();
+  }
+
+  async function handleGenerate(format: 'pdf' | 'docx', certId: string) {
+    if (!settings) {
+      alert('學校固定資料還在載入，請稍後再試');
       return;
     }
     // 【2026-08-19】PDF 改成呼叫伺服器端 API（見 app/api/reports/teacher-letter/route.tsx
@@ -654,7 +527,7 @@ function PrintSection({ userId }: { userId: string | null }) {
     if (printWindow) {
       printWindow.document.write('<p style="font-family:sans-serif;padding:24px">正在產生 PDF，請稍候…</p>');
     }
-    setGenerating(format);
+    setGenerating(`${certId}:${format}`);
     try {
       const calcDate = new Date();
       let fileBase = '';
@@ -663,8 +536,8 @@ function PrintSection({ userId }: { userId: string | null }) {
       let pdfContent: any = null;
 
       if (category === '在職證明') {
-        const row = certOptions.find((r) => r.id === selectedCertId);
-        if (!row) throw new Error('找不到選取的教師，請重新選擇');
+        const row = certRows.find((r) => r.id === certId);
+        if (!row) throw new Error('找不到選取的教師，請重新整理後再試');
         const content = buildCertificateContent(row, settings, calcDate);
         fileBase = `在職證明_${row.name}`;
         if (format === 'pdf') {
@@ -675,11 +548,10 @@ function PrintSection({ userId }: { userId: string | null }) {
           blob = await buildCertificateDocxBlob(content);
         }
       } else {
-        const row = letterOptions.find((r) => r.cert_id === selectedCertId);
-        if (!row) throw new Error('找不到選取的教師，請重新選擇');
-        if (!row.start_date || !row.end_date) {
-          throw new Error(`「${row.name}」還沒有聘期起迄，請先到「${category === '自聘教師聘書' ? '自聘教師資料' : '當年教師資料'}」分頁編輯聘期`);
-        }
+        const found = letterRows.find((r) => r.cert_id === certId);
+        if (!found) throw new Error('找不到選取的教師，請重新整理後再試');
+        // 起迄都沒填過就套用預設值（跟編輯表單、批次上傳是同一套預設）
+        const row = applyDefaultTermDates(found);
         const content = buildAppointmentContent(row, settings, calcDate);
         fileBase = `${category}_${row.name}`;
         if (format === 'pdf') {
@@ -731,10 +603,23 @@ function PrintSection({ userId }: { userId: string | null }) {
     }
   }
 
+  const isSelfHired = category === '自聘教師聘書';
+  const printButtons = (certId: string) => (
+    <>
+      <button type="button" onClick={() => handleGenerate('pdf', certId)} disabled={generating !== ''} style={{ fontSize: 12, marginRight: 6, cursor: 'pointer' }}>
+        {generating === `${certId}:pdf` ? '產生中…' : 'PDF'}
+      </button>
+      <button type="button" onClick={() => handleGenerate('docx', certId)} disabled={generating !== ''} style={{ fontSize: 12, marginRight: 6, cursor: 'pointer' }}>
+        {generating === `${certId}:docx` ? '產生中…' : 'Word'}
+      </button>
+    </>
+  );
+
   return (
     <div>
       <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
         文字內容比對「0808.xlsm」的「印在職證明」「印自聘教師聘書」「印當年聘書」逐條實作，直接產生 PDF 或 Word 檔（不是Excel），下載後就是完整格式，不需要再另外開Excel計算公式。
+        人員資料請在「歷年教師資料」維護；這裡依「自聘」勾選與聘用結果自動列出該印聘書的人，聘期沒特別設定就用預設值。
       </p>
 
       {settings && (
@@ -772,34 +657,117 @@ function PrintSection({ userId }: { userId: string | null }) {
         ))}
       </div>
 
-      {category === '在職證明' ? (
-        <label style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
-          選擇要列印的教師
-          <select value={selectedCertId} onChange={(e) => setSelectedCertId(e.target.value)} style={{ ...inputStyle, width: 260 }}>
-            {certOptions.map((r) => (
-              <option key={r.id} value={r.id}>{r.name}（{r.title ?? ''}）</option>
-            ))}
-          </select>
-        </label>
-      ) : (
-        <label style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
-          選擇要列印的教師
-          <select value={selectedCertId} onChange={(e) => setSelectedCertId(e.target.value)} style={{ ...inputStyle, width: 260 }}>
-            {letterOptions.map((r) => (
-              <option key={r.cert_id} value={r.cert_id}>{r.seq_no ?? '(尚無序號)'}　{r.name}（{r.title ?? ''}）</option>
-            ))}
-          </select>
-        </label>
+      {category !== '在職證明' && (
+        <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+          {isSelfHired
+            ? '名單：「歷年教師資料」有勾選「自聘」、且聘用結果不是「不續聘」的教師。'
+            : '名單：「歷年教師資料」尚未離職、且聘用結果不是「不續聘」的教師（自聘教師也算在內）。'}
+          少了應該出現的人，請先到「歷年教師資料」確認勾選與聘用結果。
+        </p>
       )}
 
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button type="button" onClick={() => handleGenerate('pdf')} disabled={generating !== ''} style={{ padding: '7px 16px', fontSize: 13, cursor: 'pointer' }}>
-          {generating === 'pdf' ? '產生中…' : '下載 PDF'}
-        </button>
-        <button type="button" onClick={() => handleGenerate('docx')} disabled={generating !== ''} style={{ padding: '7px 16px', fontSize: 13, cursor: 'pointer' }}>
-          {generating === 'docx' ? '產生中…' : '下載 Word'}
-        </button>
-      </div>
+      {loading ? (
+        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+      ) : category === '在職證明' ? (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ borderCollapse: 'collapse', fontSize: 12, width: '100%' }}>
+            <thead>
+              <tr style={{ background: '#f5f5f5' }}>
+                {['序號', '姓名', '職稱', '狀態', '列印'].map((h) => (
+                  <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {certRows.map((r) => (
+                <tr key={r.id}>
+                  <td style={tdStyle}>{r.seq_no ?? ''}</td>
+                  <td style={tdStyle}>{r.name}</td>
+                  <td style={tdStyle}>{r.title}</td>
+                  <td style={tdStyle}>{r.resigned ? '已離職' : '在職'}</td>
+                  <td style={tdStyle}>{r.id && printButtons(r.id)}</td>
+                </tr>
+              ))}
+              {certRows.length === 0 && (
+                <tr><td colSpan={5} style={{ ...tdStyle, color: '#999', textAlign: 'center' }}>「歷年教師資料」目前沒有資料</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ borderCollapse: 'collapse', fontSize: 12, width: '100%' }}>
+            <thead>
+              <tr style={{ background: '#f5f5f5' }}>
+                {['序號', '姓名', '職稱', '聘期(年)', '起', '迄', ...(isSelfHired ? ['發聘時間'] : []), '列印／編輯'].map((h) => (
+                  <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {letterRows.map((r) => {
+                const eff = applyDefaultTermDates(r);
+                const usingDefault = !r.start_date && !r.end_date;
+                return (
+                  <Fragment key={r.cert_id}>
+                    <tr>
+                      <td style={tdStyle}>{r.seq_no ?? ''}</td>
+                      <td style={tdStyle}>{r.name}</td>
+                      <td style={tdStyle}>{r.title}</td>
+                      <td style={tdStyle}>{r.term_no ?? ''}</td>
+                      <td style={{ ...tdStyle, color: usingDefault ? '#999' : undefined }}>{eff.start_date}</td>
+                      <td style={{ ...tdStyle, color: usingDefault ? '#999' : undefined }}>{eff.end_date}</td>
+                      {isSelfHired && <td style={tdStyle}>{r.issued_date}</td>}
+                      <td style={tdStyle}>
+                        {printButtons(r.cert_id)}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (editingId === r.cert_id) {
+                              setEditingId(null);
+                              setEditingRow(null);
+                            } else {
+                              setEditingId(r.cert_id);
+                              setEditingRow(applyDefaultTermDates(r));
+                            }
+                          }}
+                          style={{ fontSize: 12, marginRight: 6, cursor: 'pointer' }}
+                        >
+                          {editingId === r.cert_id ? '取消' : '編輯聘期'}
+                        </button>
+                        {r.letter_id && (
+                          <button type="button" onClick={() => handleClearLetter(r)} style={{ fontSize: 12, color: '#A32D2D', cursor: 'pointer' }}>
+                            還原預設
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {editingId === r.cert_id && editingRow && (
+                      <tr>
+                        <td colSpan={isSelfHired ? 8 : 7}>
+                          <AppointmentLetterForm
+                            row={editingRow}
+                            showSelfHiredFields={isSelfHired}
+                            onChange={setEditingRow}
+                            onSave={() => handleSaveLetter(editingRow)}
+                            onCancel={() => { setEditingId(null); setEditingRow(null); }}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+              {letterRows.length === 0 && (
+                <tr>
+                  <td colSpan={isSelfHired ? 8 : 7} style={{ ...tdStyle, color: '#999', textAlign: 'center' }}>目前沒有符合條件的教師</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          <p style={{ fontSize: 11, color: '#999', marginTop: 6 }}>灰色的起迄日期是預設值（尚未自訂）；列印會直接使用。</p>
+        </div>
+      )}
     </div>
   );
 }

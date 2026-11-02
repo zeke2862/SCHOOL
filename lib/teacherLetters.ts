@@ -316,7 +316,8 @@ export function defaultTermDatesForCategory(category: LetterCategory): { start_d
  *    自聘教師也要能同時出現在「自聘教師資料」與「當年教師資料」兩份名單裡，只有已離職
  *    的教師才要從當年教師資料排除。 */
 export async function listEligibleCertRows(category: LetterCategory): Promise<ServiceCertRow[]> {
-  let query = supabase.from('teacher_service_certificates').select('*');
+  // 聘用結果「不續聘」的人兩種聘書都不印
+  let query = supabase.from('teacher_service_certificates').select('*').neq('renewal_status', '不續聘');
   if (category === '自聘教師聘書') {
     query = query.eq('self_hired', true);
   } else {
