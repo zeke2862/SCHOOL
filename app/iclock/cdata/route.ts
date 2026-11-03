@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   const sn = serialOf(req);
   if (!allowedSerial(sn)) return textRes('FORBIDDEN', 403);
+  console.log(`[adms] 機器 ${sn} 來要設定`);
   return textRes(
     [`GET OPTION FROM: ${sn}`, 'ErrorDelay=60', 'Delay=30', 'TransTimes=00:00;12:00', 'TransInterval=1', 'TransFlag=TransData AttLog', 'Realtime=1', 'Encrypt=0'].join('\n')
   );
@@ -18,9 +19,12 @@ export async function POST(req: NextRequest) {
   if (!allowedSerial(sn)) return textRes('FORBIDDEN', 403);
   const table = new URL(req.url).searchParams.get('table');
   const body = await req.text();
+  console.log(`[adms] 收到 table=${table} 長度=${body.length} 內容前 200 字：${body.slice(0, 200).replace(/	/g, '|').replace(/?
+/g, ' / ')}`);
   if (table !== 'ATTLOG') return textRes('OK'); // 操作紀錄、人員資料等不處理，回 OK 讓機器不要重送
   try {
     const r = await saveAttlog(body);
+    console.log(`[adms] 打卡 解析 ${r.received} 筆，新增 ${r.inserted} 筆`);
     return textRes(`OK: ${r.received}`);
   } catch (e: any) {
     console.error('[adms] 寫入失敗', e?.message ?? e);
