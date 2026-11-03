@@ -184,6 +184,12 @@ export default function CoverEditor() {
 
   async function save() {
     if (!layout) return;
+    // 班級／班主任／人數這三格如果被改成固定文字（沒有 {{…}} 欄位），每個班的封面都會印成同一個班
+    const fixedText = layout.elements.filter((e) => ['v-class', 'v-teacher', 'v-count'].includes(e.id) && e.kind === 'text' && !/\{\{.+\}\}/.test(e.text ?? ''));
+    if (fixedText.length > 0) {
+      const names = fixedText.map((e) => `「${e.text}」`).join('、');
+      if (!window.confirm(`${names} 是固定文字，不是 {{班級}}／{{班主任}}／{{人數}} 欄位，儲存後所有班級的封面都會印成一樣的內容。\n\n確定要這樣儲存嗎？（按「取消」回去修改）`)) return;
+    }
     setSaving(true);
     const me = await getCurrentAppUser();
     const { error } = await saveCoverLayout(layout, me?.id ?? null);
