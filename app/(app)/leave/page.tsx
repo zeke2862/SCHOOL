@@ -24,7 +24,7 @@ export default function LeavePage() {
       }
       const [{ data: t }, { data: all }, cur] = await Promise.all([
         supabase.from('teachers').select('id, name').eq('app_user_id', uid).maybeSingle(),
-        supabase.from('teachers').select('id, name').order('name'),
+        supabase.from('teachers').select('id, name').eq('active', true).order('name'),
         resolveCurrentTerm(),
       ]);
       setMe({ userId: uid, teacherId: t?.id ?? null, name: t?.name ?? '' });

@@ -111,7 +111,7 @@ export default function SubstituteTeachingPage() {
     // effectiveYear/effectiveTerm guard）——這就是「完全無法進行代課安排」的根因。
     // 改用 resolveCurrentTerm()，查無「目前生效」時會自動退回最合理的一筆。
     const [{ data: teacherData }, currentTermResolved, { data: assignmentData, error }] = await Promise.all([
-      supabase.from('teachers').select('id, name').order('name'),
+      supabase.from('teachers').select('id, name').eq('active', true).order('name'),
       resolveCurrentTerm(),
       supabase
         .from('substitute_assignments')
