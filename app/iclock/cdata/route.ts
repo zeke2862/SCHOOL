@@ -19,8 +19,7 @@ export async function POST(req: NextRequest) {
   if (!allowedSerial(sn)) return textRes('FORBIDDEN', 403);
   const table = new URL(req.url).searchParams.get('table');
   const body = await req.text();
-  console.log(`[adms] 收到 table=${table} 長度=${body.length} 內容前 200 字：${body.slice(0, 200).replace(/	/g, '|').replace(/?
-/g, ' / ')}`);
+  console.log(`[adms] 收到 table=${table} 長度=${body.length} 內容前 200 字：${JSON.stringify(body.slice(0, 200))}`);
   if (table !== 'ATTLOG') return textRes('OK'); // 操作紀錄、人員資料等不處理，回 OK 讓機器不要重送
   try {
     const r = await saveAttlog(body);
