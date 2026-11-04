@@ -16,7 +16,7 @@ const CLASS_ORDER = ['忠', '孝', '仁', '愛'];
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 
 // A4 直式、邊界 5mm：可用高度 287mm。扣掉標題區與表頭後，剩下給學生列的高度（mm）
-const ROWS_AREA_MM = 236; // 略小於實際可用高度，剩下的由表格自動拉伸補滿（不同電腦字型高度略有差異也不會爆頁）
+const ROWS_AREA_MM = 242; // 略小於實際可用高度，剩下的由表格自動拉伸補滿（不同電腦字型高度略有差異也不會爆頁）
 const ROW_MAX_MM = 16;
 const ROW_MIN_MM = 3.4;
 // 列高只設成預估值的 85% 當「最小值」，實際高度由表格依真正的頁面高度自動拉伸補滿（紙張、邊界、字型不同都能自適應）
@@ -246,9 +246,13 @@ export default function ClassRollBook() {
     // 姓名字級隨列高自動放大／縮小（人少列高、字就大；人多列矮、字就小）
     const nameSize = Math.round(Math.min(30, Math.max(10, rowMm * 3.78 * 0.78)));
     const smallSize = Math.round(Math.min(16, Math.max(9, rowMm * 3.78 * 0.5)));
+    // 學號字級也隨列高放大，欄寬依最長學號的字數自動加寬
+    const noSize = Math.round(Math.min(20, Math.max(10, rowMm * 3.78 * 0.6)));
+    const maxNoLen = Math.max(6, ...list.map((x) => String(x.student_no ?? '').length));
+    const noColMm = Math.max(17, Math.ceil((maxNoLen * noSize * 0.62 + 8) / 3.78));
     const nameColMm = Math.max(22, Math.ceil((nameSize * 3 + 12) / 3.78));
-    const hdrMm = 6;
-    const thCommon = { border: THIN, background: '#f3f3f3', padding: 0, textAlign: 'center' as const, fontSize: 12, height: `${hdrMm}mm`, fontWeight: 600 };
+    const hdrMm = 4;
+    const thCommon = { border: THIN, background: '#f3f3f3', padding: 0, textAlign: 'center' as const, fontSize: 11, height: `${hdrMm}mm`, fontWeight: 600 };
 
     // 一天的第一格左邊用粗線，最右邊整張表的外框用粗線
     const dayStart: boolean[] = [];
@@ -271,7 +275,7 @@ export default function ClassRollBook() {
         <table style={{ borderCollapse: 'collapse', width: '100%', height: '100%', tableLayout: 'fixed' }}>
           <colgroup>
             <col style={{ width: '9mm' }} />
-            <col style={{ width: '17mm' }} />
+            <col style={{ width: `${noColMm}mm` }} />
             <col style={{ width: `${nameColMm}mm` }} />
             {Array.from({ length: total }, (_, i) => (
               <col key={i} />
@@ -320,7 +324,7 @@ export default function ClassRollBook() {
               return (
               <tr key={s.student_no} style={{ height: `${rowMm * ROW_BASE}mm` }}>
                 <td style={{ border: THIN, textAlign: 'center', fontSize: smallSize, padding: 0, ...bb }}>{s.seat_no}</td>
-                <td style={{ border: THIN, textAlign: 'center', fontSize: Math.max(9, smallSize - 1), padding: 0, ...bb }}>{s.student_no}</td>
+                <td style={{ border: THIN, textAlign: 'center', fontSize: noSize, fontWeight: 600, whiteSpace: 'nowrap', padding: 0, ...bb }}>{s.student_no}</td>
                 <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: nameSize, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', ...bb }}><NameBox text={s.name} size={nameSize} /></td>
                 {Array.from({ length: total }, (_, i) => (
                   <td key={i} style={{ ...periodCell(i), ...bb }}></td>
