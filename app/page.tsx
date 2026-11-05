@@ -183,7 +183,7 @@ export default function LoginPage() {
         <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 32, textAlign: 'center' }}>請選擇登入方式</p>
         <BulletinBoard />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {CARDS.map((c, i) => (
+          {CARDS.map((c) => (
             <button
               key={c.key}
               className="tile"
@@ -198,7 +198,6 @@ export default function LoginPage() {
                 background: 'var(--surface)',
                 cursor: 'pointer',
                 textAlign: 'left',
-                ['--tile-accent' as any]: ['var(--a1)', 'var(--a2)', 'var(--a3)'][i % 3],
               }}
             >
               <span style={{ fontSize: 28 }}>{c.emoji}</span>

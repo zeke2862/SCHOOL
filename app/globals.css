@@ -31,7 +31,7 @@ html[data-theme='mint'] {
 }
 body { background: var(--bg) !important; color: var(--ink); }
 /* 功能方塊：滑過去會浮起來，有一點活力 */
-.tile { transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; border-top: 4px solid var(--tile-accent, var(--primary)) !important; }
+.tile { transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; border-top: 4px solid var(--primary) !important; }
 .tile:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color: var(--primary) !important; }
 @media (prefers-reduced-motion: reduce) { .tile, .tile:hover { transition: none; transform: none; } }
 

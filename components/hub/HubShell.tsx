@@ -61,7 +61,7 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
           請選擇要使用的功能
         </p>
         <div className="no-print" style={{ display: 'grid', gridTemplateColumns: `repeat(${tm.cols}, minmax(0, 1fr))`, gap: tm.gap }}>
-          {tabs.map((t, i) => (
+          {tabs.map((t) => (
             <button
               key={t.key}
               type="button"
@@ -74,7 +74,6 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
                 border: '1px solid var(--line)',
                 borderRadius: 12,
                 color: 'var(--ink)',
-                ['--tile-accent' as any]: ['var(--a1)', 'var(--a2)', 'var(--a3)', 'var(--primary)'][i % 4],
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',

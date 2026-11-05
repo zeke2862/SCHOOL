@@ -58,7 +58,7 @@ function HubCard({ hub, count, label, desc, titleLines, tm }: { hub: HubDef; cou
     <Link
       href={hub.href}
       className="tile"
-      style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: tm.tileH, padding: 12, overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, color: 'var(--ink)', textAlign: 'center', alignItems: 'center', ['--tile-accent' as any]: ['var(--a1)', 'var(--a2)', 'var(--a3)', 'var(--primary)'][[...hub.key].reduce((a, c) => a + c.charCodeAt(0), 0) % 4] }}
+      style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: tm.tileH, padding: 12, overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, color: 'var(--ink)', textAlign: 'center', alignItems: 'center' }}
     >
       {/* 標題區高度統一（以行數最多的標題為準），所有按鈕的說明才會對齊 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: Math.round(titleLines * tm.titleSize * 1.3), fontSize: tm.titleSize, fontWeight: 700, lineHeight: 1.3 }}>{label}</div>
