@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { loadSiteContentCached, SITE_CONTENT_DEFAULTS, hubLabelKey, hubDescKey, extraLabelKey } from '@/lib/siteContent';
+import { loadSiteContentCached, SITE_CONTENT_DEFAULTS, hubLabelKey, hubDescKey, extraLabelKey, tabLabelKey } from '@/lib/siteContent';
 import { BulletinPost, getPublishedPosts } from '@/lib/bulletin';
 import { useCaps } from '@/lib/useCaps';
 import { visibleHubs, hubVisibleTabs, type HubDef } from '@/lib/permissions';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { useTileMetrics, maxTitleLines, TileMetrics } from '@/lib/useTileMetrics';
+import { useFeatureUsage, recordUse, hubUse, levelOf, shadeBg, topSchool } from '@/lib/featureUsage';
 
 // 布告欄關卡：有新公告時，先看過按「我知道」才放行（用 localStorage 記看到哪一篇）。
 const BULLETIN_ACK_KEY = 'admin_bulletin_ack_published_at';
@@ -53,13 +54,15 @@ function BulletinGate({ posts, onAck }: { posts: BulletinPost[]; onAck: () => vo
 
 // 首頁：登入後依「身分」自動列出能用的入口，沒權限的根本不會出現。
 // 「教學作業」預設展開；「行政管理」對有授課的人預設收合（只是畫面整理，不是權限開關，想看隨時點開）。
-function HubCard({ hub, count, label, desc, titleLines, tm }: { hub: HubDef; count: number; label: string; desc: string; titleLines: number; tm: TileMetrics }) {
+function HubCard({ hub, count, label, desc, titleLines, tm, level, popular }: { hub: HubDef; count: number; label: string; desc: string; titleLines: number; tm: TileMetrics; level: number; popular: boolean }) {
   return (
     <Link
       href={hub.href}
       className="tile"
-      style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: tm.tileH, padding: 12, overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, color: 'var(--ink)', textAlign: 'center', alignItems: 'center' }}
+      onClick={() => recordUse(`hub:${hub.key}`)}
+      style={{ position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: tm.tileH, padding: 12, overflow: 'hidden', background: shadeBg(level), border: '1px solid var(--line)', borderRadius: 12, color: 'var(--ink)', textAlign: 'center', alignItems: 'center' }}
     >
+      {popular && <span title="全校老師常用" style={{ position: 'absolute', top: 6, right: 8, fontSize: 11, color: 'var(--primary-ink)' }}>★ 全校常用</span>}
       {/* 標題區高度統一（以行數最多的標題為準），所有按鈕的說明才會對齊 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: Math.round(titleLines * tm.titleSize * 1.3), fontSize: tm.titleSize, fontWeight: 700, lineHeight: 1.3 }}>{label}</div>
       {tm.tileH >= 110 + (titleLines - 1) * tm.titleSize && <div style={{ fontSize: tm.descSize, color: 'var(--sub)', marginTop: 4, lineHeight: 1.35 }}>{desc}</div>}
@@ -75,6 +78,7 @@ export default function AdminHomePage() {
   const [bulletinPosts, setBulletinPosts] = useState<BulletinPost[]>([]);
   const [bulletinAcked, setBulletinAcked] = useState(true);
   const [manageOpen, setManageOpen] = useState<boolean | null>(null);
+  const usage = useFeatureUsage();
   // 方形按鈕自動大小：按鈕少就大、按鈕多（管理職）就自動縮小，整體約佔畫面高度的 2/3
   const allHubs = caps ? visibleHubs(caps).filter((h) => h.key !== 'clock') : [];
   const tileTotal =
@@ -114,6 +118,19 @@ export default function AdminHomePage() {
   const titleLines = maxTitleLines([...teach, ...(open ? manage : [])].map(label), tm);
   const grid: React.CSSProperties = { display: 'grid', gridTemplateColumns: `repeat(${tm.cols}, minmax(0, 1fr))`, gap: tm.gap };
 
+  // ----- 使用統計：個人用量決定方塊底色深淺；全校用過人數最多的前 3 個入口標「全校常用」；個人最常用的功能放「我的常用」 -----
+  const hubUseMap: Record<string, number> = {};
+  for (const h of hubs) hubUseMap[h.key] = hubUse(usage.mine, h.key);
+  const maxHubUse = Math.max(0, ...Object.values(hubUseMap));
+  const levelOfHub = (h: HubDef) => levelOf(hubUseMap[h.key] ?? 0, maxHubUse);
+  const popularHubs = topSchool(usage.school, hubs.map((h) => `hub:${h.key}`));
+  const favs = hubs
+    .flatMap((h) => hubVisibleTabs(h, caps).map((t) => ({ h, t, n: usage.mine[`tab:${h.key}/${t.key}`] ?? 0 })))
+    .filter((x) => x.n >= 3)
+    .sort((x, y) => y.n - x.n)
+    .slice(0, 4);
+  const hasUsageHint = maxHubUse > 0 || popularHubs.size > 0;
+
   const extras: { id: string; href: string; label: string; show: boolean }[] = [
     { id: 'clock', href: '/clock', label: '教職員打卡', show: hubs.some((h) => h.key === 'clock') },
     { id: 'notifications', href: '/notifications', label: '通知', show: true },
@@ -137,10 +154,33 @@ export default function AdminHomePage() {
         </div>
       )}
 
+      {favs.length > 0 && (
+        <section style={{ marginBottom: 20 }}>
+          <h2 style={{ color: 'var(--primary)', margin: '0 0 8px' }}>我的常用</h2>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {favs.map(({ h, t }) => (
+              <Link
+                key={`${h.key}/${t.key}`}
+                href={`${h.href}?tab=${t.key}`}
+                onClick={() => recordUse(`tab:${h.key}/${t.key}`)}
+                style={{ padding: isMobile ? '10px 16px' : '8px 14px', background: 'var(--primary-soft)', border: '1px solid var(--primary)', borderRadius: 999, fontSize: isMobile ? 16 : 14, color: 'var(--primary-ink)', fontWeight: 600 }}
+              >
+                {label(h)} › {siteContent[tabLabelKey(h.key, t.key)] || t.label}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+      {hasUsageHint && (
+        <p style={{ fontSize: 12, color: 'var(--sub)', margin: '0 0 12px' }}>
+          方塊底色越深，代表您越常用{popularHubs.size > 0 ? '；「★ 全校常用」是全校老師用得最多的功能' : ''}。
+        </p>
+      )}
+
       {teach.length > 0 && (
         <section style={{ marginBottom: 24 }}>
           <h2 style={{ color: 'var(--primary)', margin: '0 0 10px' }}>教學作業</h2>
-          <div style={grid}>{teach.map((h) => <HubCard key={h.key} hub={h} count={hubVisibleTabs(h, caps).length} label={label(h)} desc={descOf(h)} titleLines={titleLines} tm={tm} />)}</div>
+          <div style={grid}>{teach.map((h) => <HubCard key={h.key} hub={h} count={hubVisibleTabs(h, caps).length} label={label(h)} desc={descOf(h)} titleLines={titleLines} tm={tm} level={levelOfHub(h)} popular={popularHubs.has(`hub:${h.key}`)} />)}</div>
         </section>
       )}
 
@@ -152,7 +192,7 @@ export default function AdminHomePage() {
           >
             {open ? '▼' : '▶'} 行政管理（{manage.length}）
           </button>
-          {open && <div style={grid}>{manage.map((h) => <HubCard key={h.key} hub={h} count={hubVisibleTabs(h, caps).length} label={label(h)} desc={descOf(h)} titleLines={titleLines} tm={tm} />)}</div>}
+          {open && <div style={grid}>{manage.map((h) => <HubCard key={h.key} hub={h} count={hubVisibleTabs(h, caps).length} label={label(h)} desc={descOf(h)} titleLines={titleLines} tm={tm} level={levelOfHub(h)} popular={popularHubs.has(`hub:${h.key}`)} />)}</div>}
         </section>
       )}
 
@@ -160,7 +200,7 @@ export default function AdminHomePage() {
         <h2 style={{ color: 'var(--sub)', margin: '0 0 8px' }}>其他</h2>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {extras.filter((e) => e.show).map((e) => (
-            <Link key={e.href} href={e.href} style={{ padding: isMobile ? '12px 18px' : '10px 16px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, fontSize: isMobile ? 17 : 15, fontWeight: 600, color: 'var(--ink)' }}>{siteContent[extraLabelKey(e.id)] || e.label}</Link>
+            <Link key={e.href} href={e.href} onClick={() => recordUse(`extra:${e.id}`)} style={{ padding: isMobile ? '12px 18px' : '10px 16px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, fontSize: isMobile ? 17 : 15, fontWeight: 600, color: 'var(--ink)' }}>{siteContent[extraLabelKey(e.id)] || e.label}</Link>
           ))}
         </div>
       </section>

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { getHub, hubVisibleTabs } from '@/lib/permissions';
 import { useCaps } from '@/lib/useCaps';
 import { useTileMetrics, maxTitleLines } from '@/lib/useTileMetrics';
+import { useFeatureUsage, recordUse, levelOf, shadeBg, topSchool } from '@/lib/featureUsage';
 import { loadSiteContentCached, SITE_CONTENT_DEFAULTS, hubLabelKey, tabLabelKey, tabHintKey } from '@/lib/siteContent';
 
 // 整合入口的共用外殼：
@@ -34,6 +35,10 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
   const tabName = (k: string, fallback: string) => texts[tabLabelKey(hubKey, k)] || fallback;
   const tabHint = (k: string, fallback?: string) => texts[tabHintKey(hubKey, k)] ?? fallback ?? '';
   const titleLines = maxTitleLines(tabs.map((t) => tabName(t.key, t.label)), tm);
+  const usage = useFeatureUsage();
+  const tabKeys = tabs.map((t) => `tab:${hubKey}/${t.key}`);
+  const maxTab = Math.max(0, ...tabKeys.map((k) => usage.mine[k] ?? 0));
+  const popularTabs = topSchool(usage.school, tabKeys, 2);
 
   if (loading) return <p style={{ padding: 24, fontSize: 13, color: 'var(--sub)' }}>載入中…</p>;
 
@@ -66,11 +71,12 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
               key={t.key}
               type="button"
               className="tile"
-              onClick={() => router.push(`${hub.href}?tab=${t.key}`)}
+              onClick={() => { recordUse(`tab:${hubKey}/${t.key}`); router.push(`${hub.href}?tab=${t.key}`); }}
               style={{
+                position: 'relative',
                 height: tm.tileH,
                 padding: 12,
-                background: 'var(--surface)',
+                background: shadeBg(levelOf(usage.mine[`tab:${hubKey}/${t.key}`] ?? 0, maxTab)),
                 border: '1px solid var(--line)',
                 borderRadius: 12,
                 color: 'var(--ink)',
@@ -84,6 +90,7 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
                 font: 'inherit',
               }}
             >
+              {popularTabs.has(`tab:${hubKey}/${t.key}`) && <span title="全校老師常用" style={{ position: 'absolute', top: 6, right: 8, fontSize: 11, color: 'var(--primary-ink)' }}>★ 全校常用</span>}
               {/* 標題區高度統一：以字最多（行數最多）的那顆為準，所有按鈕的說明才會對齊 */}
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: Math.round(titleLines * tm.titleSize * 1.3), fontSize: tm.titleSize, fontWeight: 700, lineHeight: 1.3 }}>
                 {tabName(t.key, t.label)}
@@ -121,7 +128,7 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
               <button
                 key={t.key}
                 type="button"
-                onClick={() => router.push(`${hub.href}?tab=${t.key}`)}
+                onClick={() => { recordUse(`tab:${hubKey}/${t.key}`); router.push(`${hub.href}?tab=${t.key}`); }}
                 style={{ padding: '3px 10px', fontSize: 12, border: '1px solid var(--line)', background: 'var(--primary-soft)', borderRadius: 999, color: '#6b6b66', cursor: 'pointer' }}
               >
                 {tabName(t.key, t.label)}
