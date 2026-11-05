@@ -13,5 +13,5 @@ export default function BulkImportRedirectPage() {
   useEffect(() => {
     router.replace('/admin/dev-tools#dept-excel');
   }, [router]);
-  return <p style={{ padding: 24, fontSize: 13, color: '#999' }}>已併入「開發人員資料中心」，正在跳轉…</p>;
+  return <p style={{ padding: 24, fontSize: 13, color: 'var(--sub)' }}>已併入「開發人員資料中心」，正在跳轉…</p>;
 }

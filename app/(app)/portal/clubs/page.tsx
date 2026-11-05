@@ -181,7 +181,7 @@ export default function StudentClubSelectionPage() {
     return (
       <main style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16 }}>社團／才藝課選社</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>這個功能只開放給「學生本人」帳號使用，請用學生本人的登入代碼登入後再回來這裡。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>這個功能只開放給「學生本人」帳號使用，請用學生本人的登入代碼登入後再回來這裡。</p>
       </main>
     );
   }
@@ -197,24 +197,24 @@ export default function StudentClubSelectionPage() {
         </p>
       )}
 
-      {!win && <p style={{ fontSize: 13, color: '#999' }}>教務處尚未開放這學期的選社作業，請稍後再回來查看。</p>}
+      {!win && <p style={{ fontSize: 13, color: 'var(--sub)' }}>教務處尚未開放這學期的選社作業，請稍後再回來查看。</p>}
 
       {win && !myMembership && (
         <>
-          <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
             這學期選社方式：{win.method === '即時搶選' ? '即時搶選（先搶先贏）' : win.method === '志願序_第一志願優先' ? '志願序抽籤（第一志願優先法）' : '志願序抽籤（隨機亂數法）'}
             {win.opens_at && `，開放時間 ${new Date(win.opens_at).toLocaleString('zh-TW')}`}
             {win.closes_at && ` ～ ${new Date(win.closes_at).toLocaleString('zh-TW')}`}
           </p>
 
-          {!isOpen() && !win.is_finalized && <p style={{ fontSize: 13, color: '#999', marginBottom: 16 }}>目前不在開放時間內。</p>}
-          {win.is_finalized && win.method !== '即時搶選' && <p style={{ fontSize: 13, color: '#999', marginBottom: 16 }}>電腦抽籤已經執行完畢，如果上面沒有顯示您分發到的社團，請洽教務處確認。</p>}
+          {!isOpen() && !win.is_finalized && <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 16 }}>目前不在開放時間內。</p>}
+          {win.is_finalized && win.method !== '即時搶選' && <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 16 }}>電腦抽籤已經執行完畢，如果上面沒有顯示您分發到的社團，請洽教務處確認。</p>}
 
           {msg && <p style={{ fontSize: 13, color: msg.includes('失敗') ? '#A32D2D' : '#2D7A3A', marginBottom: 12 }}>{msg}</p>}
 
           {win.method.startsWith('志願序_') && isOpen() && !win.is_finalized && (
             <div style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>請依喜好程度依序選填志願（志願一最優先），可以不用填滿：</p>
+              <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>請依喜好程度依序選填志願（志願一最優先），可以不用填滿：</p>
               {choices.map((val, idx) => (
                 <div key={idx} style={{ marginBottom: 8 }}>
                   <label style={{ fontSize: 12 }}>
@@ -250,10 +250,10 @@ export default function StudentClubSelectionPage() {
               {clubs.map((c) => {
                 const full = c.capacity != null && (counts[c.id] ?? 0) >= c.capacity;
                 return (
-                  <div key={c.id} style={{ border: '1px solid #eee', borderRadius: 8, padding: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={c.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 600 }}>{c.name}</div>
-                      <div style={{ fontSize: 12, color: '#999' }}>
+                      <div style={{ fontSize: 12, color: 'var(--sub)' }}>
                         {c.capacity != null ? `已報名 ${counts[c.id] ?? 0} / ${c.capacity}` : `已報名 ${counts[c.id] ?? 0} 人（不限名額）`}
                       </div>
                     </div>

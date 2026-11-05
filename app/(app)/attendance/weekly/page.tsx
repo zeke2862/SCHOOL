@@ -1404,7 +1404,7 @@ function WeeklyAttendancePageInner() {
     return (
       <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 4 }}>學生出缺席登錄（一週）</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>目前沒有可查看的班級（本頁僅提供導師與管理員使用）。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有可查看的班級（本頁僅提供導師與管理員使用）。</p>
       </main>
     );
   }
@@ -1418,9 +1418,9 @@ function WeeklyAttendancePageInner() {
         // 這頁是「一週整表」的檢視/補登，橫向表格在手機上本來就會需要左右滑動；
         // 平常每天登錄出缺勤，手機用「出缺勤登錄」那頁會更順手，這裡先給個提示連過去，
         // 這頁本身仍保留給補登整週紀錄／查看整週狀況用。
-        <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
           手機上如果只是要登錄「今天」的出缺勤，建議改用{' '}
-          <Link href="/attendance/mobile" style={{ color: '#2C2C2A', textDecoration: 'underline' }}>
+          <Link href="/attendance/mobile" style={{ color: 'var(--ink)', textDecoration: 'underline' }}>
             出缺勤登錄
           </Link>{' '}
           頁比較好操作；這頁適合查看／補登整週紀錄，表格較寬需要左右滑動。
@@ -1445,7 +1445,7 @@ function WeeklyAttendancePageInner() {
         <button onClick={() => setPivotDate((d) => addDays(d, -7))} style={{ padding: '4px 10px' }}>
           ← 上一週
         </button>
-        <span style={{ fontSize: 13, color: '#666' }}>
+        <span style={{ fontSize: 13, color: 'var(--sub)' }}>
           {toDateStr(weekDates[0])} ～ {toDateStr(weekDates[5])}
         </span>
         <button onClick={() => setPivotDate((d) => addDays(d, 7))} style={{ padding: '4px 10px' }}>
@@ -1456,7 +1456,7 @@ function WeeklyAttendancePageInner() {
             回到本週
           </button>
         )}
-        <label style={{ fontSize: 12, color: '#666', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <label style={{ fontSize: 12, color: 'var(--sub)', display: 'flex', alignItems: 'center', gap: 4 }}>
           直接選擇日期：
           <input
             type="date"
@@ -1478,7 +1478,7 @@ function WeeklyAttendancePageInner() {
               fontSize: 12,
               borderRadius: 6,
               border: '1px solid #A36A2D',
-              background: corrMode ? '#A36A2D' : '#fff',
+              background: corrMode ? '#A36A2D' : 'var(--surface)',
               color: corrMode ? '#fff' : '#A36A2D',
             }}
           >
@@ -1488,7 +1488,7 @@ function WeeklyAttendancePageInner() {
         {classId && (
           <Link
             href={`/attendance/report?classId=${classId}`}
-            style={{ padding: '4px 10px', fontSize: 12, border: '1px solid #2C2C2A', borderRadius: 6, color: '#2C2C2A' }}
+            style={{ padding: '4px 10px', fontSize: 12, border: '1px solid var(--primary)', borderRadius: 6, color: 'var(--ink)' }}
           >
             查看學生出席紀錄（月報／學期）
           </Link>
@@ -1505,17 +1505,17 @@ function WeeklyAttendancePageInner() {
       )}
 
       {((isAdmin && (!locked || isSysAdmin)) || (isHomeroom && !locked)) && students.length > 0 && (
-        <div style={{ padding: 10, background: '#F5F5F3', borderRadius: 6, marginBottom: 12 }}>
+        <div style={{ padding: 10, background: 'var(--primary-soft)', borderRadius: 6, marginBottom: 12 }}>
           {isMobile ? (
             <details style={{ marginBottom: 6 }}>
-              <summary style={{ fontSize: 12, color: '#666', cursor: 'pointer' }}>批次登錄說明</summary>
-              <p style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+              <summary style={{ fontSize: 12, color: 'var(--sub)', cursor: 'pointer' }}>批次登錄說明</summary>
+              <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 4 }}>
                 勾選學生、勾選日期，再選擇出席狀況一起套用（會套用到該天所有節次）。
                 {!isAdmin && '非任教科目的節次，只有目前是「曠課」改成事假/病假/公假、或（開啟導師協助點名時）目前是「出席」改成事假/病假/公假/遲到/曠課，才會套用，其他節次會自動略過。'}
               </p>
             </details>
           ) : (
-            <p style={{ fontSize: 12, color: '#666', marginBottom: 6 }}>
+            <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 6 }}>
               批次登錄：勾選學生、勾選日期，再選擇出席狀況一起套用（會套用到該天所有節次）。
               {!isAdmin && '非任教科目的節次，只有目前是「曠課」改成事假/病假/公假、或（開啟導師協助點名時）目前是「出席」改成事假/病假/公假/遲到/曠課，才會套用，其他節次會自動略過。'}
             </p>
@@ -1550,7 +1550,7 @@ function WeeklyAttendancePageInner() {
             <button
               onClick={handleApplyBatchStatus}
               disabled={batchBusy || selectedStudents.size === 0 || selectedDates.size === 0}
-              style={{ padding: '4px 12px', fontSize: 12, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}
+              style={{ padding: '4px 12px', fontSize: 12, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}
             >
               {batchBusy ? '套用中…' : '套用'}
             </button>
@@ -1558,20 +1558,20 @@ function WeeklyAttendancePageInner() {
         </div>
       )}
 
-      <h2 style={{ fontSize: 13, color: '#666', marginBottom: 4 }}>批次上傳（格式同「成績、出缺輸入表」工作表）</h2>
+      <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 4 }}>批次上傳（格式同「成績、出缺輸入表」工作表）</h2>
       <TemplateDownloadButton label="下載出缺席輸入範本" onClick={handleDownloadTemplate} />
       {isAdmin && (
         <TemplateDownloadButton label="下載全校出缺席輸入表（一班一分頁）" onClick={handleDownloadAllClassesTemplate} />
       )}
       <ExcelUploadButton onFile={handleUploadFile} />
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         {isAdmin
           ? '管理員可直接登錄／修改任一班級任一天的出缺勤紀錄，不受鎖定與週次限制；上傳整批檔案時，會處理檔案裡「所有」分頁（一分頁一班），且空白儲存格會直接覆蓋成「出席」，整份檔案即為該班這段期間出缺勤唯一的真實來源。'
           : `導師可直接補登最近 ${backdateGraceDays} 天內的紀錄；超過 ${backdateGraceDays} 天的紀錄、或非自己任教節次的紀錄，請按上方「修正申請模式」整週修改後送出，交由訓導處承辦人審核。`}
       </p>
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <>
           {/* 【本輪新增】反映事項「請增加儲存鍵，讓教師能直接做一週個別學生出缺記錄，
@@ -1624,7 +1624,7 @@ function WeeklyAttendancePageInner() {
                   if (confirm('確定要放棄目前尚未儲存的變更嗎？')) setPendingChanges({});
                 }}
                 disabled={savingPending}
-                style={{ padding: '4px 14px', fontSize: 12, background: '#fff', color: '#666', border: '1px solid #ccc', borderRadius: 6 }}
+                style={{ padding: '4px 14px', fontSize: 12, background: 'var(--surface)', color: 'var(--sub)', border: '1px solid var(--line-strong)', borderRadius: 6 }}
               >
                 放棄變更
               </button>
@@ -1642,7 +1642,7 @@ function WeeklyAttendancePageInner() {
             <tr>
               <th
                 rowSpan={2}
-                style={{ textAlign: 'left', padding: 6, position: 'sticky', left: 0, top: 0, background: '#fff', zIndex: 4 }}
+                style={{ textAlign: 'left', padding: 6, position: 'sticky', left: 0, top: 0, background: 'var(--surface)', zIndex: 4 }}
               >
                 學生
               </th>
@@ -1650,7 +1650,7 @@ function WeeklyAttendancePageInner() {
                 <th
                   key={i}
                   colSpan={Math.max(periodCounts[i], 1)}
-                  style={{ padding: 6, borderLeft: DAY_DIVIDER, position: 'sticky', top: 0, background: '#fff', zIndex: 3 }}
+                  style={{ padding: 6, borderLeft: DAY_DIVIDER, position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 3 }}
                 >
                   星期{WEEKDAY_LABELS[i]}　{toDateStr(d).slice(5)}
                 </th>
@@ -1665,11 +1665,11 @@ function WeeklyAttendancePageInner() {
                       style={{
                         padding: '2px 4px',
                         fontSize: 11,
-                        color: '#999',
+                        color: 'var(--sub)',
                         borderLeft: p === 0 ? DAY_DIVIDER : undefined,
                         position: 'sticky',
                         top: HEADER_ROW1_HEIGHT,
-                        background: '#fff',
+                        background: 'var(--surface)',
                         zIndex: 3,
                       }}
                     >
@@ -1679,7 +1679,7 @@ function WeeklyAttendancePageInner() {
                 ) : (
                   <th
                     key={`${i}-none`}
-                    style={{ padding: '2px 4px', fontSize: 11, color: '#999', position: 'sticky', top: HEADER_ROW1_HEIGHT, background: '#fff', zIndex: 3 }}
+                    style={{ padding: '2px 4px', fontSize: 11, color: 'var(--sub)', position: 'sticky', top: HEADER_ROW1_HEIGHT, background: 'var(--surface)', zIndex: 3 }}
                   >
                     —
                   </th>
@@ -1692,8 +1692,8 @@ function WeeklyAttendancePageInner() {
                 const rowHighlighted = s.student_no === focusStudentNo || s.student_no === activeRowStudentNo;
                 const rowBg = rowHighlighted ? '#FFF6D9' : undefined;
                 return (
-              <tr key={s.student_no} style={{ borderTop: '1px solid #eee', background: rowBg }}>
-                <td style={{ padding: 6, position: 'sticky', left: 0, zIndex: 1, background: rowHighlighted ? '#FFF6D9' : '#fff', whiteSpace: 'nowrap' }}>
+              <tr key={s.student_no} style={{ borderTop: '1px solid var(--line)', background: rowBg }}>
+                <td style={{ padding: 6, position: 'sticky', left: 0, zIndex: 1, background: rowHighlighted ? '#FFF6D9' : 'var(--surface)', whiteSpace: 'nowrap' }}>
                   {s.seat_no} {s.name}
                 </td>
                 {weekDates.map((d, i) => {
@@ -1737,7 +1737,7 @@ function WeeklyAttendancePageInner() {
                               border: changed ? '2px solid #A36A2D' : '1px dashed #A36A2D',
                               borderRadius: 4,
                               color: corrStatus === '出席' ? '#3B6D11' : '#A36A2D',
-                              background: changed ? '#FBEFE9' : '#fff',
+                              background: changed ? '#FBEFE9' : 'var(--surface)',
                             }}
                           >
                             {STATUS_OPTIONS.map((opt) => (
@@ -1758,7 +1758,7 @@ function WeeklyAttendancePageInner() {
                               ? '非任教科目：「曠課」的學生能改成事假／病假／公假；「出席」的學生能改成事假／病假／公假／遲到／曠課，其他狀態請洽該科任課教師'
                               : '非任教科目：只有「曠課」的學生能改成事假／病假／公假，其他狀態請洽該科任課教師'
                           }
-                          style={{ padding: 4, textAlign: 'center', color: '#999', borderLeft: p === 0 ? DAY_DIVIDER : undefined }}
+                          style={{ padding: 4, textAlign: 'center', color: 'var(--sub)', borderLeft: p === 0 ? DAY_DIVIDER : undefined }}
                         >
                           {status}
                         </td>
@@ -1799,7 +1799,7 @@ function WeeklyAttendancePageInner() {
                               border: hasPending ? '2px solid #D9A400' : '1px solid #639922',
                               borderRadius: 4,
                               color: status === '出席' ? '#3B6D11' : '#A36A2D',
-                              background: hasPending ? '#FFF6D9' : '#fff',
+                              background: hasPending ? '#FFF6D9' : 'var(--surface)',
                             }}
                           >
                             {options.map((opt) => (
@@ -1829,7 +1829,7 @@ function WeeklyAttendancePageInner() {
                         style={{
                           padding: 4,
                           textAlign: 'center',
-                          color: '#999',
+                          color: 'var(--sub)',
                           borderLeft: p === 0 ? DAY_DIVIDER : undefined,
                         }}
                       >
@@ -1889,7 +1889,7 @@ function WeeklyAttendancePageInner() {
           </div>
         )}
         {myBatches.length > 0 && !isAdmin && (
-          <div style={{ marginTop: 12, fontSize: 12, color: '#666' }}>
+          <div style={{ marginTop: 12, fontSize: 12, color: 'var(--sub)' }}>
             <p style={{ marginBottom: 4 }}>最近的修正申請：</p>
             {myBatches.map((b) => (
               <p key={b.id} style={{ margin: '2px 0' }}>
@@ -1903,7 +1903,7 @@ function WeeklyAttendancePageInner() {
       )}
 
       {requestCell && (
-        <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #eee', fontSize: 13, maxWidth: 420 }}>
+        <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--line)', fontSize: 13, maxWidth: 420 }}>
           <p style={{ marginBottom: 8 }}>
             送出修正申請：{requestCell.name}　{requestCell.dateStr}　第{requestCell.period}節
           </p>
@@ -1914,7 +1914,7 @@ function WeeklyAttendancePageInner() {
             style={{ width: '100%', padding: 8, marginBottom: 8 }}
             rows={2}
           />
-          <button onClick={handleSubmitCorrectionRequest} style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, marginRight: 8 }}>
+          <button onClick={handleSubmitCorrectionRequest} style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, marginRight: 8 }}>
             送出申請
           </button>
           <button onClick={() => setRequestCell(null)} style={{ padding: '6px 14px' }}>
@@ -1934,17 +1934,17 @@ function WeeklyAttendancePageInner() {
             zIndex: 50,
           }}
         >
-          <div style={{ background: '#fff', borderRadius: 8, padding: 24, width: 360, maxWidth: '92vw', boxSizing: 'border-box' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 8, padding: 24, width: 360, maxWidth: '92vw', boxSizing: 'border-box' }}>
             <h2 style={{ fontSize: 15, marginBottom: 8 }}>出缺席示警</h2>
             <p style={{ fontSize: 13, marginBottom: 16 }}>
               <b>{notifyPrompt.name}</b> 事假＋病假＋曠課累計已達 <b>{notifyPrompt.count}</b> 節（門檻 {alertThreshold} 節），是否寄送通知信給家長？
-              {notifyQueue.length > 1 && <span style={{ color: '#999' }}>（還有 {notifyQueue.length - 1} 位待處理）</span>}
+              {notifyQueue.length > 1 && <span style={{ color: 'var(--sub)' }}>（還有 {notifyQueue.length - 1} 位待處理）</span>}
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 onClick={() => handleDecideNotify('已寄送')}
                 disabled={notifyBusy}
-                style={{ flex: 1, padding: 10, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}
+                style={{ flex: 1, padding: 10, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}
               >
                 寄送通知信
               </button>

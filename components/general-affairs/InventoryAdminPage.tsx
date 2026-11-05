@@ -133,7 +133,7 @@ export default function InventoryAdminPage({ category, title, hint }: { category
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>{title}</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>{hint}</p>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>{hint}</p>
       {loadError && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{loadError}</p>}
 
       {!canWriteDirect && perms.userId && (
@@ -148,19 +148,19 @@ export default function InventoryAdminPage({ category, title, hint }: { category
         onReviewed={load}
       />
 
-      <h2 style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>新增品項</h2>
+      <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 6 }}>新增品項</h2>
       <form onSubmit={handleAddItem} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
         <input placeholder="品名" value={itemForm.name} onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })} style={{ padding: 6, width: 140 }} required />
         <input placeholder="規格（選填）" value={itemForm.spec} onChange={(e) => setItemForm({ ...itemForm, spec: e.target.value })} style={{ padding: 6, width: 140 }} />
         <input placeholder="單位" value={itemForm.unit} onChange={(e) => setItemForm({ ...itemForm, unit: e.target.value })} style={{ padding: 6, width: 70 }} />
         <input type="number" step="0.01" placeholder="單價（選填）" value={itemForm.unit_price} onChange={(e) => setItemForm({ ...itemForm, unit_price: e.target.value })} style={{ padding: 6, width: 100 }} />
         <input placeholder="備註" value={itemForm.note} onChange={(e) => setItemForm({ ...itemForm, note: e.target.value })} style={{ padding: 6, width: 120 }} />
-        <button type="submit" style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+        <button type="submit" style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
           {canWriteDirect ? '新增品項' : '送出新增申請'}
         </button>
       </form>
 
-      <h2 style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>
+      <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 6 }}>
         登記{dirs.in}／{dirs.out}
       </h2>
       <form onSubmit={handleAddTransaction} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
@@ -182,7 +182,7 @@ export default function InventoryAdminPage({ category, title, hint }: { category
         <input type="number" min={1} placeholder="數量" value={txForm.quantity} onChange={(e) => setTxForm({ ...txForm, quantity: e.target.value })} style={{ padding: 6, width: 70 }} required />
         <input placeholder={category === '書庫' ? '借閱人（選填）' : '買家（選填）'} value={txForm.counterparty} onChange={(e) => setTxForm({ ...txForm, counterparty: e.target.value })} style={{ padding: 6, width: 130 }} />
         <input placeholder="備註" value={txForm.note} onChange={(e) => setTxForm({ ...txForm, note: e.target.value })} style={{ padding: 6, width: 120 }} />
-        <button type="submit" style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+        <button type="submit" style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
           {canWriteDirect ? '登記' : '送出登記申請'}
         </button>
       </form>
@@ -207,7 +207,7 @@ export default function InventoryAdminPage({ category, title, hint }: { category
         </thead>
         <tbody>
           {items.map((i) => (
-            <tr key={i.id} style={{ borderTop: '1px solid #eee', background: i.quantity_on_hand <= 0 ? '#FBEFE9' : undefined }}>
+            <tr key={i.id} style={{ borderTop: '1px solid var(--line)', background: i.quantity_on_hand <= 0 ? '#FBEFE9' : undefined }}>
               <td style={{ padding: 6 }}>{i.name}</td>
               <td style={{ padding: 6 }}>{i.spec ?? '—'}</td>
               <td style={{ padding: 6, textAlign: 'right', fontWeight: i.quantity_on_hand <= 0 ? 700 : 400 }}>
@@ -225,7 +225,7 @@ export default function InventoryAdminPage({ category, title, hint }: { category
           ))}
           {items.length === 0 && (
             <tr>
-              <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+              <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                 目前沒有品項，請先在上面新增。
               </td>
             </tr>

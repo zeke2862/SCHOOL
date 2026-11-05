@@ -31,9 +31,9 @@ const DEPT_DESC: Record<DeptKey, string> = {
 
 const btn = (primary = false): React.CSSProperties => ({
   padding: '8px 16px',
-  background: primary ? '#2C6E9E' : '#fff',
-  color: primary ? '#fff' : '#2C6E9E',
-  border: '1px solid #2C6E9E',
+  background: primary ? 'var(--primary)' : 'var(--surface)',
+  color: primary ? '#fff' : 'var(--primary-ink)',
+  border: '1px solid var(--primary)',
   borderRadius: 6,
   fontSize: 13,
   cursor: 'pointer',
@@ -149,7 +149,7 @@ export default function DeptWorkbookPanel() {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: 1.7 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12, lineHeight: 1.7 }}>
         把系統裡「所有資料」依部門分成 <b>教務、總務、訓導、開發人員</b> 四個 Excel（每張資料表一個分頁）。
         可以一鍵全部下載，改完後也可以一次把四個檔案（或一個 ZIP）全部上傳回來。
         上傳是「新增＋更新」，不會刪除 Excel 裡沒有的資料；寫入前還會先自動備份一份，改錯了隨時能還原。
@@ -167,18 +167,18 @@ export default function DeptWorkbookPanel() {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10, marginBottom: 12 }}>
         {DEPTS.map((d) => (
-          <div key={d} style={{ border: '1px solid #e3e3e3', borderRadius: 8, padding: 10 }}>
+          <div key={d} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 10 }}>
             <div style={{ fontWeight: 'bold', fontSize: 13, marginBottom: 4 }}>
               {DEPT_LABEL[d]}（{defsOfDept(d).length} 張資料表）
             </div>
-            <div style={{ fontSize: 11, color: '#777', minHeight: 48, lineHeight: 1.5 }}>{DEPT_DESC[d]}</div>
+            <div style={{ fontSize: 11, color: 'var(--sub)', minHeight: 48, lineHeight: 1.5 }}>{DEPT_DESC[d]}</div>
             <button type="button" style={{ ...btn(), marginTop: 6, padding: '6px 12px' }} disabled={busy} onClick={() => downloadOne(d)}>
               ↓ 只下載{DEPT_LABEL[d]}
             </button>
           </div>
         ))}
       </div>
-      <p style={{ fontSize: 11, color: '#999', lineHeight: 1.6, marginBottom: 6 }}>
+      <p style={{ fontSize: 11, color: 'var(--sub)', lineHeight: 1.6, marginBottom: 6 }}>
         出缺勤只放遲到／曠課／請假等「非出席」紀錄，另附「點名完成」分頁（attendance_roll_calls，每班每天每節一筆）：
         有點名、又沒有非出席紀錄＝全員出席；沒有點名紀錄＝還沒點名。檔案只有完整版的約 2～3%。JSON 備份也是同樣做法。
         上傳時要把某節改回出席，請在 attendance 分頁明確寫「出席」。極少數情況真的需要舊格式（含每一筆出席）時：
@@ -190,12 +190,12 @@ export default function DeptWorkbookPanel() {
       {/* ---------------- 上傳 ---------------- */}
       <h3 style={{ fontSize: 13, margin: '20px 0 8px' }}>② 上傳（四個檔案一次選，或選一個 ZIP）</h3>
       <input ref={fileRef} type="file" accept=".xlsx,.zip" multiple onChange={handleFiles} disabled={busy} style={{ fontSize: 13 }} />
-      <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>
+      <p style={{ fontSize: 11, color: 'var(--sub)', marginTop: 4 }}>
         選好檔案後會先「檢查」（不會寫入），看過結果再按確認。帳號名單、稽核紀錄這類「只供下載」的分頁會自動略過。
       </p>
 
       {busy && (
-        <p style={{ fontSize: 12, color: '#2C6E9E', marginTop: 10 }}>
+        <p style={{ fontSize: 12, color: 'var(--primary-ink)', marginTop: 10 }}>
           處理中…{progress ? ' ' + progress : ''}（資料量大時要等一下，請不要關掉這個頁面）
         </p>
       )}
@@ -209,10 +209,10 @@ export default function DeptWorkbookPanel() {
           </p>
           {planByDept.map(({ dept, sheets }) => (
             <div key={dept} style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 'bold', color: '#2C6E9E', marginBottom: 2 }}>{DEPT_LABEL[dept]}</div>
+              <div style={{ fontSize: 12, fontWeight: 'bold', color: 'var(--primary-ink)', marginBottom: 2 }}>{DEPT_LABEL[dept]}</div>
               <table style={{ fontSize: 12, borderCollapse: 'collapse', width: '100%' }}>
                 <thead>
-                  <tr style={{ textAlign: 'left', color: '#666' }}>
+                  <tr style={{ textAlign: 'left', color: 'var(--sub)' }}>
                     <th style={{ padding: '2px 6px' }}>資料表</th>
                     <th style={{ padding: '2px 6px' }}>可寫入列數</th>
                     <th style={{ padding: '2px 6px' }}>其中新增</th>
@@ -223,7 +223,7 @@ export default function DeptWorkbookPanel() {
                   {sheets.map((s) => (
                     <tr key={s.table} style={{ borderTop: '1px solid #e6eef5' }}>
                       <td style={{ padding: '2px 6px' }}>
-                        {s.label} <span style={{ color: '#aaa' }}>({s.table})</span>
+                        {s.label} <span style={{ color: 'var(--sub)' }}>({s.table})</span>
                       </td>
                       <td style={{ padding: '2px 6px' }}>{s.rows.length}</td>
                       <td style={{ padding: '2px 6px' }}>{s.newRows}</td>
@@ -235,7 +235,7 @@ export default function DeptWorkbookPanel() {
             </div>
           ))}
           {plan.ignored.length > 0 && (
-            <p style={{ fontSize: 11, color: '#888', marginBottom: 6 }}>
+            <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 6 }}>
               已略過：{plan.ignored.map((i) => `${i.sheet}（${i.reason}）`).join('；')}
             </p>
           )}
@@ -280,8 +280,8 @@ export default function DeptWorkbookPanel() {
             寫入完成：成功 {results.reduce((n, r) => n + r.ok, 0)} 列，失敗 {results.reduce((n, r) => n + r.failed, 0)} 列
           </p>
           {results.map((r, i) => (
-            <div key={r.table + i} style={{ marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid #eee' }}>
-              <b>{r.label}</b> <span style={{ color: '#aaa' }}>({r.table})</span>：
+            <div key={r.table + i} style={{ marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid var(--line)' }}>
+              <b>{r.label}</b> <span style={{ color: 'var(--sub)' }}>({r.table})</span>：
               <span style={{ color: '#3B6D11' }}> 成功 {r.ok}</span>
               {r.failed > 0 && <span style={{ color: '#A32D2D' }}>，失敗 {r.failed}</span>}
               {r.errors.length > 0 && (
@@ -298,7 +298,7 @@ export default function DeptWorkbookPanel() {
       )}
 
       {lastExport && (
-        <details style={{ marginTop: 14, fontSize: 12, color: '#555' }}>
+        <details style={{ marginTop: 14, fontSize: 12, color: 'var(--sub)' }}>
           <summary style={{ cursor: 'pointer' }}>剛剛下載的內容明細</summary>
           {lastExport.map((r) => (
             <div key={r.fileName} style={{ marginTop: 6 }}>

@@ -24,15 +24,15 @@ export default function DataCheckPanel() {
             type="button"
             onClick={() => setSection(s.key)}
             style={{
-              padding: '5px 12px', borderRadius: 6, border: '1px solid #2C6E9E', fontSize: 13, cursor: 'pointer',
-              background: section === s.key ? '#2C6E9E' : '#fff', color: section === s.key ? '#fff' : '#2C6E9E',
+              padding: '5px 12px', borderRadius: 6, border: '1px solid var(--primary)', fontSize: 13, cursor: 'pointer',
+              background: section === s.key ? 'var(--primary)' : 'var(--surface)', color: section === s.key ? '#fff' : 'var(--primary-ink)',
             }}
           >
             {s.label}
           </button>
         ))}
       </div>
-      <p style={{ fontSize: 12, color: '#666', margin: '0 0 12px' }}>{SECTIONS.find((s) => s.key === section)?.hint}</p>
+      <p style={{ fontSize: 12, color: 'var(--sub)', margin: '0 0 12px' }}>{SECTIONS.find((s) => s.key === section)?.hint}</p>
       {section === 'teacher' ? <TeacherAccountsPage /> : <ClassAccountsPage />}
     </div>
   );

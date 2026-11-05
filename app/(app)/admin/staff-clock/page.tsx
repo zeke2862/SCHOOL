@@ -60,13 +60,13 @@ export default function AdminStaffClockPage() {
     if (ready && canManage) reload();
   }, [ready, canManage, reload]);
 
-  if (!ready) return <main style={{ padding: 24 }}><p style={{ fontSize: 13, color: '#999' }}>載入中…</p></main>;
+  if (!ready) return <main style={{ padding: 24 }}><p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p></main>;
 
   if (!canManage) {
     return (
       <main style={{ maxWidth: 480, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 8 }}>沒有權限</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>
           教職員打卡管理只開放給系統管理員S、系統管理員A與教務處成員。想查自己的打卡紀錄，請到「我的打卡紀錄」。
         </p>
       </main>
@@ -78,14 +78,14 @@ export default function AdminStaffClockPage() {
   return (
     <main style={{ maxWidth: 1180, margin: '0 auto', padding: 16 }}>
       <h1 style={{ fontSize: 18, marginBottom: 4 }}>教職員打卡管理</h1>
-      <p style={{ fontSize: 12, color: '#888', marginTop: 0 }}>查詢全校教職員出席、設定班別、對照打卡機人員、補卡更正、匯入打卡資料。</p>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 0 }}>查詢全校教職員出席、設定班別、對照打卡機人員、補卡更正、匯入打卡資料。</p>
 
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '12px 0 16px', borderBottom: '1px solid #ddd', paddingBottom: 8 }}>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '12px 0 16px', borderBottom: '1px solid var(--line-strong)', paddingBottom: 8 }}>
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            style={{ ...btn, background: tab === t.key ? '#2C2C2A' : '#fff', color: tab === t.key ? '#fff' : '#222', border: '1px solid #2C2C2A' }}
+            style={{ ...btn, background: tab === t.key ? 'var(--primary)' : 'var(--surface)', color: tab === t.key ? '#fff' : 'var(--ink)', border: '1px solid var(--primary)' }}
           >
             {t.label}
           </button>
@@ -93,7 +93,7 @@ export default function AdminStaffClockPage() {
       </div>
 
       {error && <p style={{ fontSize: 13, color: '#c00' }}>{error}（若是第一次使用，請先在 Supabase 執行 sql/104staff_clock.sql）</p>}
-      {!loaded && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+      {!loaded && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
 
       {loaded && !error && (
         <>

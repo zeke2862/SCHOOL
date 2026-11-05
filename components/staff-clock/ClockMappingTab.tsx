@@ -119,7 +119,7 @@ export default function ClockMappingTab({ employees, teachers, shifts, onChanged
 
   return (
     <div>
-      <p style={{ fontSize: 13, color: '#555', marginTop: 0 }}>
+      <p style={{ fontSize: 13, color: 'var(--sub)', marginTop: 0 }}>
         共 {employees.length} 個打卡機號；<b style={{ color: unmapped ? '#b26a00' : undefined }}>{unmapped}</b> 個在職機號尚未對應教師帳號（對應後這個人才查得到自己的打卡）、
         <b style={{ color: noShift ? '#b26a00' : undefined }}>{noShift}</b> 個尚未設定班別（沒設班別就不會判斷遲到／缺勤）。
       </p>
@@ -210,7 +210,7 @@ export default function ClockMappingTab({ employees, teachers, shifts, onChanged
             })}
             {list.length === 0 && (
               <tr>
-                <td style={{ ...td, color: '#999' }} colSpan={9}>
+                <td style={{ ...td, color: 'var(--sub)' }} colSpan={9}>
                   沒有資料。匯入打卡機 CSV 後，機號會自動出現在這裡。
                 </td>
               </tr>

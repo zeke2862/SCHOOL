@@ -159,7 +159,7 @@ ${event.title}`);
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {EVENT_STATUS_ORDER.map((s, i) => (
             <button key={s} onClick={() => s !== event.status && setStatus(s)} disabled={s === event.status}
-              style={{ ...btn, ...(s === event.status ? { background: '#1f4e79', color: '#fff', borderColor: '#1f4e79' } : {}), ...(i === nextIdx + 1 ? { borderColor: '#1f4e79' } : {}) }}>
+              style={{ ...btn, ...(s === event.status ? { background: 'var(--primary)', color: '#fff', borderColor: 'var(--primary)' } : {}), ...(i === nextIdx + 1 ? { borderColor: 'var(--primary)' } : {}) }}>
               {EVENT_STATUS_LABEL[s].split('（')[0]}
             </button>
           ))}
@@ -243,7 +243,7 @@ function GroupBox({ event, group, items, groups, reload, flash }: { event: CompE
   const dirty = name !== group.name || teacherOnly !== group.teacher_only || grades.join() !== group.grade_levels.join();
 
   return (
-    <div style={{ border: '1px solid #e5e5e5', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+    <div style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12, marginBottom: 12 }}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <b style={{ fontSize: 13 }}>{group.code}</b>
         <input value={name} onChange={(e) => setName(e.target.value)} style={{ ...smallInput, width: 160 }} aria-label="組別名稱" />
@@ -254,7 +254,7 @@ function GroupBox({ event, group, items, groups, reload, flash }: { event: CompE
       {!teacherOnly && (
         <div style={{ marginTop: 8, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {GRADE_CHOICES.map((g) => (
-            <label key={g} style={{ fontSize: 12, border: '1px solid #ddd', borderRadius: 12, padding: '2px 8px', background: grades.includes(g) ? '#e8f0fa' : '#fff' }}>
+            <label key={g} style={{ fontSize: 12, border: '1px solid var(--line-strong)', borderRadius: 12, padding: '2px 8px', background: grades.includes(g) ? '#e8f0fa' : 'var(--surface)' }}>
               <input type="checkbox" checked={grades.includes(g)} onChange={(e) => setGrades(e.target.checked ? [...grades, g] : grades.filter((x) => x !== g))} /> {g}
             </label>
           ))}
@@ -308,16 +308,16 @@ function ItemRow({ item, reload, flash }: { item: CompItem; reload: () => Promis
   }
 
   return (
-    <div style={{ borderTop: '1px solid #f0f0f0', padding: '6px 0' }}>
+    <div style={{ borderTop: '1px solid var(--line)', padding: '6px 0' }}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', fontSize: 13 }}>
-        <span style={{ color: '#888', width: 36 }}>{item.code}</span>
+        <span style={{ color: 'var(--sub)', width: 36 }}>{item.code}</span>
         <b>{item.name}</b>
         <span style={hint}>{SCORE_TYPE_LABEL[item.score_type]}{item.quota ? `・限 ${item.quota} 人` : ''}</span>
         {locked && <span style={{ ...hint, color: '#2d6a2d' }}>已公布</span>}
         <button onClick={() => setOpen(!open)} style={{ ...btn, marginLeft: 'auto' }}>{open ? '收合' : '設定'}</button>
       </div>
       {open && (
-        <div style={{ background: '#fafafa', padding: 10, borderRadius: 6, marginTop: 6 }}>
+        <div style={{ background: 'var(--primary-soft)', padding: 10, borderRadius: 6, marginTop: 6 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
             <label style={{ fontSize: 12 }}>項目名稱<input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} style={inputStyle} /></label>
             <label style={{ fontSize: 12 }}>項目代碼（匯入名單用）<input value={f.code} onChange={(e) => setF({ ...f, code: e.target.value })} style={inputStyle} /></label>

@@ -232,7 +232,7 @@ export default function GradingRulesAdminPage() {
         onReviewed={load}
       />
 
-      <h2 style={{ fontSize: 13, color: '#666', marginBottom: 4 }}>批次上傳（格式同「整體佔比與加扣分規則」工作表）</h2>
+      <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 4 }}>批次上傳（格式同「整體佔比與加扣分規則」工作表）</h2>
       <TemplateDownloadButton label="下載整體佔比與加扣分規則範本" onClick={downloadGradingRulesTemplate} />
       <ExcelUploadButton onFile={handleUploadFile} />
 
@@ -274,7 +274,7 @@ export default function GradingRulesAdminPage() {
             style={{ width: 80, padding: 6 }}
             title="平時比重"
           />
-          <button type="submit" style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+          <button type="submit" style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
             {canWriteDirect ? '儲存' : '送出申請'}
           </button>
         </form>
@@ -290,7 +290,7 @@ export default function GradingRulesAdminPage() {
           </thead>
           <tbody>
             {rules.map((r) => (
-              <tr key={`${r.academic_year}-${r.term}`} style={{ borderTop: '1px solid #eee' }}>
+              <tr key={`${r.academic_year}-${r.term}`} style={{ borderTop: '1px solid var(--line)' }}>
                 <td style={{ padding: 6 }}>{r.academic_year} {r.term}</td>
                 <td style={{ padding: 6, textAlign: 'right' }}>{r.midterm_weight}</td>
                 <td style={{ padding: 6, textAlign: 'right' }}>{r.final_weight}</td>
@@ -330,13 +330,13 @@ export default function GradingRulesAdminPage() {
             style={{ width: 140, padding: 6 }}
             required
           />
-          <button type="submit" style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+          <button type="submit" style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
             新增規則
           </button>
         </form>
         {selectedAdj.size > 0 && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, padding: 8, background: '#F5F5F3', borderRadius: 6 }}>
-            <span style={{ fontSize: 12, color: '#666' }}>已選取 {selectedAdj.size} 筆</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, padding: 8, background: 'var(--primary-soft)', borderRadius: 6 }}>
+            <span style={{ fontSize: 12, color: 'var(--sub)' }}>已選取 {selectedAdj.size} 筆</span>
             {!armedDeleteAdj ? (
               <>
                 <button onClick={() => handleBatchToggleAdj(true)} style={{ fontSize: 12, padding: '4px 10px' }}>
@@ -379,7 +379,7 @@ export default function GradingRulesAdminPage() {
           </thead>
           <tbody>
             {adjustments.map((a) => (
-              <tr key={a.id} style={{ borderTop: '1px solid #eee' }}>
+              <tr key={a.id} style={{ borderTop: '1px solid var(--line)' }}>
                 <td style={{ padding: 6 }}>
                   <input type="checkbox" checked={selectedAdj.has(a.id)} onChange={() => toggleSelectAdj(a.id)} />
                 </td>
@@ -397,7 +397,7 @@ export default function GradingRulesAdminPage() {
 
       <section style={{ marginTop: 32 }}>
         <h2 style={{ fontSize: 14, marginBottom: 8 }}>出缺勤/獎懲加扣分規則（曠課、遲到、事假…等每一項的扣分／加分點數）</h2>
-        <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
           這裡的數字會自動套用到總成績：學生只要有曠課／遲到／事假／病假等紀錄，「出缺席」分數＝
           100 加上下面對應項目的點數（負數＝倒扣）加總；獎懲事件（嘉獎/小功/大功/警告/小過/大過）的
           點數則加減到操行成績。改這裡的數字，之後新產生的成績單/總分排名會立刻套用新的點數；
@@ -421,7 +421,7 @@ export default function GradingRulesAdminPage() {
               const edited = editedConductPoints[c.item] ?? String(c.points);
               const dirty = editedConductPoints[c.item] !== undefined && Number(editedConductPoints[c.item]) !== c.points;
               return (
-                <tr key={c.item} style={{ borderTop: '1px solid #eee' }}>
+                <tr key={c.item} style={{ borderTop: '1px solid var(--line)' }}>
                   <td style={{ padding: 6 }}>{c.item}</td>
                   <td style={{ padding: 6, textAlign: 'right' }}>
                     <input
@@ -451,7 +451,7 @@ export default function GradingRulesAdminPage() {
 
       <section style={{ marginTop: 32 }}>
         <h2 style={{ fontSize: 14, marginBottom: 8 }}>出缺席佔比（%）目前設定值</h2>
-        <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
           「全勤」的加分比重（例如 3% → 全勤學生出缺席分數多 3 分）不是在這一頁設定，
           而是跟其他科目一樣，在「科目與比重設定」頁新增/編輯一個科目名稱為「全勤」或
           「出缺席」的列（依年級各自設定）。這裡列出目前資料庫裡已經有的設定值方便對照；
@@ -474,7 +474,7 @@ export default function GradingRulesAdminPage() {
             </thead>
             <tbody>
               {attendanceWeights.map((w, i) => (
-                <tr key={i} style={{ borderTop: '1px solid #eee' }}>
+                <tr key={i} style={{ borderTop: '1px solid var(--line)' }}>
                   <td style={{ padding: 6 }}>{w.academic_year} {w.term}</td>
                   <td style={{ padding: 6 }}>{w.grade_level}</td>
                   <td style={{ padding: 6 }}>{w.subject}</td>

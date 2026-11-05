@@ -66,7 +66,7 @@ export default function GradeProgressionPage() {
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>年級升級對照表</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         設定每個部別/年級，升級後會變成哪個部別/年級（例如：國小5年 → 國小6年，國小6年 → 國中1年）。「升級作業」會照這張表自動算出每個學生升級後該去的年級。
       </p>
 
@@ -88,7 +88,7 @@ export default function GradeProgressionPage() {
         <span style={{ padding: 6 }}>→</span>
         <input placeholder="升級後部別" value={form.next_department} onChange={(e) => setForm({ ...form, next_department: e.target.value })} style={{ padding: 6, width: 100 }} required />
         <input placeholder="升級後年級" value={form.next_grade_level} onChange={(e) => setForm({ ...form, next_grade_level: e.target.value })} style={{ padding: 6, width: 100 }} required />
-        <button type="submit" style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+        <button type="submit" style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
           {canWriteDirect ? '新增／更新' : '送出申請'}
         </button>
       </form>
@@ -104,7 +104,7 @@ export default function GradeProgressionPage() {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={`${r.department}-${r.grade_level}`} style={{ borderTop: '1px solid #eee' }}>
+            <tr key={`${r.department}-${r.grade_level}`} style={{ borderTop: '1px solid var(--line)' }}>
               <td style={{ padding: 6 }}>{r.department} {r.grade_level}</td>
               <td style={{ padding: 6 }}>{r.next_department} {r.next_grade_level}</td>
             </tr>

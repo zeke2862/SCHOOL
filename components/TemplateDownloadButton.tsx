@@ -13,9 +13,9 @@ export default function TemplateDownloadButton({
       onClick={onClick}
       style={{
         padding: '6px 14px',
-        background: '#fff',
-        color: '#2C6E9E',
-        border: '1px solid #2C6E9E',
+        background: 'var(--surface)',
+        color: 'var(--primary-ink)',
+        border: '1px solid var(--primary)',
         borderRadius: 6,
         fontSize: 13,
         cursor: 'pointer',

@@ -31,7 +31,7 @@ export default function DevToolsPage() {
     return (
       <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 4 }}>開發人員區</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>只有管理員可以查看這個頁面。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>只有管理員可以查看這個頁面。</p>
       </main>
     );
   }
@@ -39,7 +39,7 @@ export default function DevToolsPage() {
   return (
     <main style={{ maxWidth: 860, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>開發人員資料中心</h1>
-      <p style={{ fontSize: 12, color: '#999', marginBottom: 12 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
         跟系統維運相關的「下載／上傳／備份」全部集中在這一頁：四部門 Excel 一鍵下載／上傳、備份檔（JSON）下載／還原，
         以及排課、課表、成績單範本、打卡機資料等專用上傳入口的快速連結。一般日常操作（登錄成績、點名、查詢學生等）請到首頁其他分類的功能卡片。
       </p>
@@ -52,30 +52,30 @@ export default function DevToolsPage() {
           ['#legacy-excel', '④ 舊版整批工具'],
           ['#password-policy-settings', '⑤ 系統設定'],
         ].map(([href, label]) => (
-          <a key={href} href={href} style={{ padding: '4px 10px', border: '1px solid #ccd', borderRadius: 14, color: '#2C6E9E', textDecoration: 'none' }}>
+          <a key={href} href={href} style={{ padding: '4px 10px', border: '1px solid #ccd', borderRadius: 14, color: 'var(--primary-ink)', textDecoration: 'none' }}>
             {label}
           </a>
         ))}
       </nav>
 
-      <section id="dept-excel" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+      <section id="dept-excel" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
         <h2 style={{ fontSize: 14, marginBottom: 12 }}>① 四部門 Excel 一鍵下載／上傳（教務、總務、訓導、開發人員）</h2>
         <DeptWorkbookPanel />
       </section>
 
-      <section id="backup-restore" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+      <section id="backup-restore" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
         <h2 style={{ fontSize: 14, marginBottom: 12 }}>② 備份與還原（JSON 備份檔：完整、含全部出缺勤，適合災難復原）</h2>
         <BackupRestorePanel />
       </section>
 
-      <section id="other-uploads" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+      <section id="other-uploads" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
         <h2 style={{ fontSize: 14, marginBottom: 4 }}>③ 其他檔案上傳入口</h2>
-        <p style={{ fontSize: 12, color: '#999', marginBottom: 12 }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
           下面這些檔案有各自專用的格式，統一整理在這裡，點一下直接到對應的上傳位置（不用再去首頁一張一張卡片找）。
         </p>
         <table style={{ fontSize: 12, borderCollapse: 'collapse', width: '100%' }}>
           <thead>
-            <tr style={{ textAlign: 'left', color: '#666' }}>
+            <tr style={{ textAlign: 'left', color: 'var(--sub)' }}>
               <th style={{ padding: '4px 8px' }}>檔案</th>
               <th style={{ padding: '4px 8px' }}>用途</th>
               <th style={{ padding: '4px 8px' }}>前往</th>
@@ -92,11 +92,11 @@ export default function DevToolsPage() {
               ['老師的成績／出缺勤輸入表', '代老師補登、小範圍修正', '/admin/teacher-desk', '教師代辦專區'],
               ['帳號名單', '邀請、停用、部門職務', '/admin/accounts', '帳號管理'],
             ].map(([file, use, href, label]) => (
-              <tr key={href + file} style={{ borderTop: '1px solid #eee' }}>
+              <tr key={href + file} style={{ borderTop: '1px solid var(--line)' }}>
                 <td style={{ padding: '4px 8px' }}>{file}</td>
-                <td style={{ padding: '4px 8px', color: '#777' }}>{use}</td>
+                <td style={{ padding: '4px 8px', color: 'var(--sub)' }}>{use}</td>
                 <td style={{ padding: '4px 8px' }}>
-                  <Link href={href} style={{ color: '#2C6E9E' }}>
+                  <Link href={href} style={{ color: 'var(--primary-ink)' }}>
                     {label} →
                   </Link>
                 </td>
@@ -106,7 +106,7 @@ export default function DevToolsPage() {
         </table>
       </section>
 
-      <section id="legacy-excel" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+      <section id="legacy-excel" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
         <details>
           <summary style={{ cursor: 'pointer', fontSize: 14 }}>④ 舊版整批 Excel 工具（逐表格式；新版「四部門 Excel」已涵蓋全部資料表，只在需要舊格式範本時才用）</summary>
           <div style={{ marginTop: 12 }}>
@@ -115,17 +115,17 @@ export default function DevToolsPage() {
         </details>
       </section>
 
-      <section id="password-policy-settings" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+      <section id="password-policy-settings" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
         <h2 style={{ fontSize: 14, marginBottom: 4 }}>密碼政策設定</h2>
         <PasswordPolicySettingsPanel />
       </section>
 
-      <section id="teacher-login-home-settings" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+      <section id="teacher-login-home-settings" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
         <h2 style={{ fontSize: 14, marginBottom: 4 }}>教師登入首頁設定</h2>
         <TeacherLoginHomeSettingsPanel />
       </section>
 
-      <section id="attendance-score-exclusion" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid #eee' }}>
+      <section id="attendance-score-exclusion" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
         <h2 style={{ fontSize: 14, marginBottom: 4 }}>班級成績總表：出缺席分數排除設定</h2>
         <AttendanceScoreExclusionPanel />
       </section>

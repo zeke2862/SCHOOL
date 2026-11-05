@@ -655,7 +655,7 @@ export default function AdminAccountsPage() {
   return (
     <main style={{ maxWidth: 560, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>帳號管理</h1>
-      <p style={{ fontSize: 13, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 16 }}>
         目前身分：{ROLE_LABEL[me.role]}
         {creatableRoles.length > 0 && '。您可以在下面新增/批次邀請：' + creatableRoles.map((r) => ROLE_LABEL[r]).join('、')}
       </p>
@@ -663,11 +663,11 @@ export default function AdminAccountsPage() {
       {me.role === 'system_admin_s' && (orphanedLoading || orphanedError || (orphaned && orphaned.length > 0)) && (
         <div style={{ marginBottom: 20, padding: 12, background: '#FBF3EA', border: '1px solid #E5D6C6', borderRadius: 8 }}>
           <h2 id="orphaned" style={{ fontSize: 13, color: '#8A5A00', marginBottom: 4 }}>孤兒帳號（信箱已註冊，但清單裡看不到）</h2>
-          <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
             這些信箱在登入系統裡已經存在（新增帳號時會被擋「這個信箱已經有帳號了」），但沒有對應的角色資料，
             不會出現在下面的帳號清單裡，通常是之前新增失敗留下的殘留。刪除後就可以用同一個信箱重新正確新增。
           </p>
-          {orphanedLoading && <p style={{ fontSize: 12, color: '#999' }}>檢查中…</p>}
+          {orphanedLoading && <p style={{ fontSize: 12, color: 'var(--sub)' }}>檢查中…</p>}
           {orphanedError && <p style={{ fontSize: 12, color: '#A32D2D' }}>{orphanedError}</p>}
           {orphaned && orphaned.length > 0 && (
             <div style={{ marginBottom: 8 }}>
@@ -677,7 +677,7 @@ export default function AdminAccountsPage() {
                 style={{
                   padding: '4px 10px',
                   background: orphanedSelected.size === 0 ? '#eee' : '#A32D2D',
-                  color: orphanedSelected.size === 0 ? '#999' : '#fff',
+                  color: orphanedSelected.size === 0 ? 'var(--sub)' : '#fff',
                   border: 'none',
                   borderRadius: 6,
                   fontSize: 12,
@@ -693,12 +693,12 @@ export default function AdminAccountsPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <input type="checkbox" checked={orphanedSelected.has(o.id)} onChange={() => toggleOrphanSelect(o.id)} />
-                  {o.email ?? '（無信箱）'}　<span style={{ color: '#999', fontSize: 11 }}>建立於 {new Date(o.created_at).toLocaleString()}</span>
+                  {o.email ?? '（無信箱）'}　<span style={{ color: 'var(--sub)', fontSize: 11 }}>建立於 {new Date(o.created_at).toLocaleString()}</span>
                 </span>
                 <span style={{ display: 'flex', gap: 6 }}>
                   <button
                     onClick={() => (editingOrphanId === o.id ? setEditingOrphanId(null) : startEditOrphan(o.id))}
-                    style={{ padding: '4px 10px', background: '#fff', color: '#8A5A00', border: '1px solid #8A5A00', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}
+                    style={{ padding: '4px 10px', background: 'var(--surface)', color: '#8A5A00', border: '1px solid #8A5A00', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}
                   >
                     {editingOrphanId === o.id ? '取消編輯' : '編輯'}
                   </button>
@@ -713,7 +713,7 @@ export default function AdminAccountsPage() {
               </div>
               {editingOrphanId === o.id && (
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0 8px 22px' }}>
-                  <span style={{ fontSize: 11, color: '#666' }}>補上姓名＋角色，這個帳號就能正常使用（不用刪除重建）：</span>
+                  <span style={{ fontSize: 11, color: 'var(--sub)' }}>補上姓名＋角色，這個帳號就能正常使用（不用刪除重建）：</span>
                   <input
                     placeholder="姓名"
                     value={editOrphanName}
@@ -730,7 +730,7 @@ export default function AdminAccountsPage() {
                   <button
                     onClick={handleSaveOrphanEdit}
                     disabled={!editOrphanName.trim() || savingOrphanEdit}
-                    style={{ padding: '4px 10px', background: '#2C6E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}
+                    style={{ padding: '4px 10px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}
                   >
                     {savingOrphanEdit ? '儲存中…' : '儲存'}
                   </button>
@@ -749,7 +749,7 @@ export default function AdminAccountsPage() {
 
       {creatableRoles.length > 0 && (
         <>
-          <h2 style={{ fontSize: 13, color: '#666', marginBottom: 4 }}>
+          <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 4 }}>
             批次上傳（格式同「{ACCOUNTS_SHEET_NAME}」工作表；有填「初始密碼」欄位就直接建立可登入帳號、不寄信，沒填則逐筆寄邀請信）
           </h2>
           <div style={{ marginBottom: 12 }}>
@@ -819,13 +819,13 @@ export default function AdminAccountsPage() {
                 系統偵測到「{newName}」姓名跟既有教師資料「<strong>{matchCandidate.name}</strong>」很像（可能只是多空格、簡稱、全形半形不同），是否是同一個人？
               </p>
               {matchCandidateInfo ? (
-                <ul style={{ paddingLeft: 18, marginBottom: 8, color: '#555' }}>
+                <ul style={{ paddingLeft: 18, marginBottom: 8, color: 'var(--sub)' }}>
                   {matchCandidateInfo.map((l, i) => (
                     <li key={i}>{l}</li>
                   ))}
                 </ul>
               ) : (
-                <p style={{ color: '#999', marginBottom: 8 }}>查詢這筆教師資料的相關紀錄中…</p>
+                <p style={{ color: 'var(--sub)', marginBottom: 8 }}>查詢這筆教師資料的相關紀錄中…</p>
               )}
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
@@ -837,7 +837,7 @@ export default function AdminAccountsPage() {
                   style={{
                     padding: '6px 14px',
                     fontSize: 12,
-                    background: bindTeacherId === matchCandidate.id ? '#2C6E9E' : undefined,
+                    background: bindTeacherId === matchCandidate.id ? 'var(--primary)' : undefined,
                     color: bindTeacherId === matchCandidate.id ? '#fff' : undefined,
                   }}
                 >
@@ -875,7 +875,7 @@ export default function AdminAccountsPage() {
                 transform: 'translateY(-50%)',
                 background: 'none',
                 border: 'none',
-                color: '#666',
+                color: 'var(--sub)',
                 fontSize: 12,
                 cursor: 'pointer',
               }}
@@ -883,15 +883,15 @@ export default function AdminAccountsPage() {
               {showNewPassword ? '隱藏' : '顯示'}
             </button>
           </div>
-          <button type="submit" style={{ padding: '8px 16px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+          <button type="submit" style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
             新增{ROLE_LABEL[creatableRoles.length > 1 ? newRole : creatableRoles[0]]}
           </button>
         </form>
       )}
 
       {selected.size > 0 && (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, padding: 8, background: '#F5F5F3', borderRadius: 6 }}>
-          <span style={{ fontSize: 12, color: '#666' }}>已選取 {selected.size} 筆</span>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, padding: 8, background: 'var(--primary-soft)', borderRadius: 6 }}>
+          <span style={{ fontSize: 12, color: 'var(--sub)' }}>已選取 {selected.size} 筆</span>
           {!armedDelete ? (
             <>
               <button onClick={() => setArmedDelete(true)} style={{ fontSize: 12, padding: '4px 10px', color: '#A32D2D' }}>
@@ -949,7 +949,7 @@ export default function AdminAccountsPage() {
             const manageable = me.id !== u.id && canManageAccount(me.role, u.role);
             const options = assignableRoles(me.role);
             return (
-              <tr key={u.id} style={{ borderTop: '1px solid #eee' }}>
+              <tr key={u.id} style={{ borderTop: '1px solid var(--line)' }}>
                 <td style={{ padding: 6 }}>
                   {manageable ? (
                     <input type="checkbox" checked={selected.has(u.id)} onChange={() => toggleSelect(u.id)} />
@@ -1015,15 +1015,15 @@ export default function AdminAccountsPage() {
       {me.role === 'system_admin_s' && (
         <>
           <h2 id="departments" style={{ fontSize: 13, marginBottom: 4 }}>部門職務指派（教務／訓導／總務／開發人員）</h2>
-          <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
             一個帳號可以同時勾選多個部門（例如身兼教務＋總務）。每個部門要選「主管(lead，可核准送審申請、可直接寫入)」或「承辦(staff，新增/修改/刪除需送審)」。
             只有這裡有勾選部門的帳號，才能使用對應部門的管理功能；只有系統管理員S能調整這裡。
           </p>
-          <div style={{ position: 'sticky', top: 0, zIndex: 5, background: '#fff', padding: '8px 0', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 5, background: 'var(--surface)', padding: '8px 0', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={handleSaveAllDepartments}
               disabled={savingAllDepts || dirtyDeptUserIds.length === 0}
-              style={{ fontSize: 14, padding: '8px 18px', background: dirtyDeptUserIds.length ? '#2C2C2A' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, cursor: dirtyDeptUserIds.length ? 'pointer' : 'default' }}
+              style={{ fontSize: 14, padding: '8px 18px', background: dirtyDeptUserIds.length ? 'var(--primary)' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, cursor: dirtyDeptUserIds.length ? 'pointer' : 'default' }}
             >
               {savingAllDepts ? '儲存中…' : dirtyDeptUserIds.length ? `全部儲存（${dirtyDeptUserIds.length} 位有修改）` : '全部儲存（目前沒有修改）'}
             </button>
@@ -1032,7 +1032,7 @@ export default function AdminAccountsPage() {
                 放棄修改
               </button>
             )}
-            <span style={{ fontSize: 12, color: '#888' }}>可以一次調整很多人，最後按一次「全部儲存」；有修改的列會用黃底標示。</span>
+            <span style={{ fontSize: 12, color: 'var(--sub)' }}>可以一次調整很多人，最後按一次「全部儲存」；有修改的列會用黃底標示。</span>
           </div>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, marginBottom: 32 }}>
             <thead>
@@ -1050,7 +1050,7 @@ export default function AdminAccountsPage() {
               {users.map((u) => {
                 const entry = deptEdits[u.id] ?? {};
                 return (
-                  <tr key={u.id} style={{ borderTop: '1px solid #eee', background: dirtyDeptUserIds.includes(u.id) ? '#FFF8E1' : undefined }}>
+                  <tr key={u.id} style={{ borderTop: '1px solid var(--line)', background: dirtyDeptUserIds.includes(u.id) ? '#FFF8E1' : undefined }}>
                     <td style={{ padding: 6 }}>
                       {u.name}
                       {dirtyDeptUserIds.includes(u.id) && <span style={{ marginLeft: 6, fontSize: 11, color: '#A36A00' }}>● 已修改</span>}
@@ -1083,7 +1083,7 @@ export default function AdminAccountsPage() {
       {me.role === 'system_admin_s' && (
         <>
           <h2 id="overrides" style={{ fontSize: 13, marginBottom: 4 }}>帳號可見內容（個別調整）</h2>
-          <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
             預設情況下，一個帳號看不看得到某功能是由「角色」＋「上面的部門職務」決定。這裡可以再針對「單一帳號」開放或隱藏個別功能，
             不會影響其他同角色/同部門的人。挑一個帳號後，勾選狀態預設就是目前的通則結果，只有跟通則不同的勾選才會被存成例外。
           </p>
@@ -1100,7 +1100,7 @@ export default function AdminAccountsPage() {
             ))}
           </select>
 
-          {visibilityUserId && visibilityLoading && <p style={{ fontSize: 12, color: '#999' }}>載入中…</p>}
+          {visibilityUserId && visibilityLoading && <p style={{ fontSize: 12, color: 'var(--sub)' }}>載入中…</p>}
 
           {visibilityUserId && !visibilityLoading && (
             <div style={{ marginBottom: 32 }}>
@@ -1116,8 +1116,8 @@ export default function AdminAccountsPage() {
                   const modules = ALL_MODULES.filter((m) => (categoryMap[m.key] ?? []).includes(cat));
                   if (modules.length === 0) return null;
                   return (
-                    <div key={cat} style={{ border: '1px solid #eee', borderRadius: 8, padding: 10 }}>
-                      <h3 style={{ fontSize: 12, color: '#666', marginBottom: 6 }}>{CATEGORY_LABEL[cat]}</h3>
+                    <div key={cat} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 10 }}>
+                      <h3 style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 6 }}>{CATEGORY_LABEL[cat]}</h3>
                       <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {modules.map((m) => (
                           <li key={m.key} style={{ fontSize: 12 }}>
@@ -1146,7 +1146,7 @@ export default function AdminAccountsPage() {
 
       {['system_admin_s', 'admin_a', 'admin_b'].includes(me.role) && (
         <>
-          <h2 id="audit-log" style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>帳號異動紀錄（角色變更／密碼重設，最近50筆）</h2>
+          <h2 id="audit-log" style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 8 }}>帳號異動紀錄（角色變更／密碼重設，最近50筆）</h2>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr>
@@ -1162,7 +1162,7 @@ export default function AdminAccountsPage() {
                 const target = users.find((u) => u.id === log.target_user_id);
                 const changer = users.find((u) => u.id === log.changed_by);
                 return (
-                  <tr key={log.id} style={{ borderTop: '1px solid #eee' }}>
+                  <tr key={log.id} style={{ borderTop: '1px solid var(--line)' }}>
                     <td style={{ padding: 6 }}>{new Date(log.changed_at).toLocaleString()}</td>
                     <td style={{ padding: 6 }}>{target?.name ?? log.target_user_id}</td>
                     <td style={{ padding: 6 }}>{log.action === 'role_change' ? '角色變更' : '密碼重設'}</td>
@@ -1177,7 +1177,7 @@ export default function AdminAccountsPage() {
               })}
               {auditLog.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                  <td colSpan={5} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                     尚無異動紀錄
                   </td>
                 </tr>

@@ -146,7 +146,7 @@ export default function ClockShiftsTab({ shifts, onChanged }: Props) {
     <div>
       {message && <p style={{ fontSize: 13, color: message.includes('失敗') || message.includes('請') ? '#c00' : '#2e7d32' }}>{message}</p>}
       <h3 style={{ fontSize: 15 }}>班別</h3>
-      <p style={{ fontSize: 12, color: '#777', marginTop: 0 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 0 }}>
         同一個人可同時掛多個班別（例如「平日晚班」＋「週六早班」），某天只會採用「上班日」包含當天的那一個。預設兩個班別是依 2026/5–9 的實際打卡規律估的起始值，請依學校規定調整。
       </p>
       <div style={{ overflowX: 'auto' }}>
@@ -205,7 +205,7 @@ export default function ClockShiftsTab({ shifts, onChanged }: Props) {
                 </tr>
               );
             })}
-            <tr style={{ background: '#fafafa' }}>
+            <tr style={{ background: 'var(--primary-soft)' }}>
               <td style={td}>
                 <input placeholder="新班別名稱" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={{ ...input, width: 100 }} />
               </td>
@@ -244,7 +244,7 @@ export default function ClockShiftsTab({ shifts, onChanged }: Props) {
       <ClockSpecialPeriods shifts={shifts} />
 
       <h3 style={{ fontSize: 15, marginTop: 28 }}>全校放假日</h3>
-      <p style={{ fontSize: 12, color: '#777', marginTop: 0 }}>放假日當天不判缺勤、不計入應到天數（個別請假請到「補卡／更正」分頁）。</p>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 0 }}>放假日當天不判缺勤、不計入應到天數（個別請假請到「補卡／更正」分頁）。</p>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 8 }}>
         <input type="date" value={hDate} onChange={(e) => setHDate(e.target.value)} style={input} />
         <input placeholder="名稱（例如：佛誕日）" value={hName} onChange={(e) => setHName(e.target.value)} style={{ ...input, width: 180 }} />
@@ -295,7 +295,7 @@ export default function ClockShiftsTab({ shifts, onChanged }: Props) {
           ))}
           {holidays.length === 0 && (
             <tr>
-              <td style={{ ...td, color: '#999' }}>尚未設定放假日</td>
+              <td style={{ ...td, color: 'var(--sub)' }}>尚未設定放假日</td>
             </tr>
           )}
         </tbody>

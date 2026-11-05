@@ -11,16 +11,23 @@ body, button, input, select, textarea {
   --bg: #F5FAF7; --surface: #FFFFFF; --line: #D9EBE1; --ink: #17301F; --sub: #5B6F63;
   --primary: #2E9166; --primary-soft: #E3F4EB; --on-primary: #FFFFFF;
   --a1: #FFC53D; --a2: #FF7F5C; --a3: #35B585;
+  --primary-ink: #1F7A52; --line-strong: #B7D6C6;
 }
 html[data-theme='sky'] {
   --bg: #F4F9FF; --surface: #FFFFFF; --line: #CFE2FF; --ink: #17335E; --sub: #5A6F8F;
   --primary: #2F7BFF; --primary-soft: #E3EEFF; --on-primary: #FFFFFF;
   --a1: #FFD23F; --a2: #FF7A66; --a3: #3CCB9B;
+  --primary-ink: #1F5FD6; --line-strong: #A9C8F5;
 }
 html[data-theme='mint'] {
   --bg: #F3FFFB; --surface: #FFFFFF; --line: #D6CCFF; --ink: #2D2160; --sub: #6A6290;
   --primary: #7C5CFF; --primary-soft: #ECE7FF; --on-primary: #FFFFFF;
   --a1: #FF8FC7; --a2: #4FD8B4; --a3: #FFB84D;
+  --primary-ink: #6240E0; --line-strong: #BFB0F5;
+}
+/* 列印一律回到黑白中性色，不受配色影響 */
+@media print {
+  :root, html[data-theme] { --bg:#fff; --surface:#fff; --ink:#000; --sub:#444; --line:#999; --line-strong:#666; --primary:#000; --primary-ink:#000; --primary-soft:#fff; }
 }
 body { background: var(--bg) !important; color: var(--ink); }
 /* 功能方塊：滑過去會浮起來，有一點活力 */

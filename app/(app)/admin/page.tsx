@@ -18,10 +18,10 @@ function BulletinGate({ posts, onAck }: { posts: BulletinPost[]; onAck: () => vo
   return (
     <main style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>布告欄</h1>
-      <p style={{ fontSize: 12, color: '#999', marginBottom: 16 }}>請先看過以下公告，按「我知道」後才會進入工作分類表。</p>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>請先看過以下公告，按「我知道」後才會進入工作分類表。</p>
       <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
         {posts.map((p) => (
-          <li key={p.id} style={{ border: '1px solid #e5e2da', borderRadius: 12, overflow: 'hidden', background: '#fff' }}>
+          <li key={p.id} style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', background: 'var(--surface)' }}>
             <button
               onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
               style={{ display: 'block', width: '100%', textAlign: 'left', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
@@ -31,18 +31,18 @@ function BulletinGate({ posts, onAck }: { posts: BulletinPost[]; onAck: () => vo
                 <img src={p.thumbnail_url} alt={p.title} style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }} />
               )}
               <div style={{ padding: '10px 14px' }}>
-                <span style={{ display: 'block', fontSize: 14, color: '#2C2C2A' }}>{p.title}</span>
+                <span style={{ display: 'block', fontSize: 14, color: 'var(--ink)' }}>{p.title}</span>
               </div>
             </button>
             {expandedId === p.id && (
-              <div style={{ padding: '0 14px 14px', fontSize: 13, color: '#444', whiteSpace: 'pre-wrap' }}>{p.content}</div>
+              <div style={{ padding: '0 14px 14px', fontSize: 13, color: 'var(--ink)', whiteSpace: 'pre-wrap' }}>{p.content}</div>
             )}
           </li>
         ))}
       </ul>
       <button
         onClick={onAck}
-        style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#2C2C2A', color: '#fff', fontSize: 14, cursor: 'pointer' }}
+        style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 14, cursor: 'pointer' }}
       >
         我知道
       </button>
@@ -63,7 +63,7 @@ function HubCard({ hub, count, label, desc, titleLines, tm }: { hub: HubDef; cou
       {/* 標題區高度統一（以行數最多的標題為準），所有按鈕的說明才會對齊 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: Math.round(titleLines * tm.titleSize * 1.3), fontSize: tm.titleSize, fontWeight: 700, lineHeight: 1.3 }}>{label}</div>
       {tm.tileH >= 110 + (titleLines - 1) * tm.titleSize && <div style={{ fontSize: tm.descSize, color: 'var(--sub)', marginTop: 4, lineHeight: 1.35 }}>{desc}</div>}
-      {count > 1 && tm.tileH >= 130 && <div style={{ fontSize: tm.descSize - 1, color: '#aaa', marginTop: 6 }}>{count} 個項目</div>}
+      {count > 1 && tm.tileH >= 130 && <div style={{ fontSize: tm.descSize - 1, color: 'var(--sub)', marginTop: 6 }}>{count} 個項目</div>}
     </Link>
   );
 }
@@ -100,7 +100,7 @@ export default function AdminHomePage() {
     setBulletinAcked(true);
   }
 
-  if (!caps) return <main style={{ padding: 24, color: '#999' }}>載入中…</main>;
+  if (!caps) return <main style={{ padding: 24, color: 'var(--sub)' }}>載入中…</main>;
   if (!bulletinAcked && bulletinPosts.length > 0) return <BulletinGate posts={bulletinPosts} onAck={handleAck} />;
 
   const hubs = visibleHubs(caps);
@@ -157,7 +157,7 @@ export default function AdminHomePage() {
       )}
 
       <section>
-        <h2 style={{ color: '#888', margin: '0 0 8px' }}>其他</h2>
+        <h2 style={{ color: 'var(--sub)', margin: '0 0 8px' }}>其他</h2>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {extras.filter((e) => e.show).map((e) => (
             <Link key={e.href} href={e.href} style={{ padding: isMobile ? '12px 18px' : '10px 16px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, fontSize: isMobile ? 17 : 15, fontWeight: 600, color: 'var(--ink)' }}>{siteContent[extraLabelKey(e.id)] || e.label}</Link>

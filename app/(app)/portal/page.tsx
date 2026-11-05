@@ -542,7 +542,7 @@ export default function ParentPortalPage() {
             display: 'inline-block',
             marginBottom: 16,
             padding: '8px 16px',
-            background: '#2C2C2A',
+            background: 'var(--primary)',
             color: '#fff',
             border: 'none',
             borderRadius: 6,
@@ -564,7 +564,7 @@ export default function ParentPortalPage() {
             marginBottom: 16,
             marginLeft: 8,
             padding: '8px 16px',
-            background: '#2C2C2A',
+            background: 'var(--primary)',
             color: '#fff',
             border: 'none',
             borderRadius: 6,
@@ -590,7 +590,7 @@ export default function ParentPortalPage() {
         </select>
       )}
 
-      {loadingAccounts && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+      {loadingAccounts && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
 
       {loadError && (
         <p style={{ fontSize: 13, color: '#B3261E', background: '#FDECEA', border: '1px solid #f5c2c7', borderRadius: 8, padding: '8px 12px' }}>
@@ -599,7 +599,7 @@ export default function ParentPortalPage() {
       )}
 
       {!loadingAccounts && !loadError && linkedStudents.length === 0 && (
-        <p style={{ fontSize: 13, color: '#666', background: '#f5f5f4', border: '1px solid #e5e5e0', borderRadius: 8, padding: '12px 16px' }}>
+        <p style={{ fontSize: 13, color: 'var(--sub)', background: '#f5f5f4', border: '1px solid var(--line)', borderRadius: 8, padding: '12px 16px' }}>
           目前這個帳號還沒有綁定任何學生資料，請聯絡導師或學校確認登入代碼與信箱是否正確、
           或是否已經完成帳號綁定。
         </p>
@@ -608,7 +608,7 @@ export default function ParentPortalPage() {
       {selected && (
         <>
           {/* 頁面上方三個切換按鈕：成績／教師班級課表／通知 */}
-          <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid #e5e5e0' }}>
+          <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid var(--line)' }}>
             {(['成績', '課表', '獎懲', '請假', '通知'] as const).map((tab) => (
               <button
                 key={tab}
@@ -617,11 +617,11 @@ export default function ParentPortalPage() {
                 style={{
                   padding: '10px 18px',
                   border: 'none',
-                  borderBottom: activeTab === tab ? '2px solid #2C2C2A' : '2px solid transparent',
+                  borderBottom: activeTab === tab ? '2px solid var(--primary)' : '2px solid transparent',
                   background: 'none',
                   fontSize: 14,
                   fontWeight: activeTab === tab ? 700 : 400,
-                  color: activeTab === tab ? '#2C2C2A' : '#999',
+                  color: activeTab === tab ? 'var(--ink)' : 'var(--sub)',
                   cursor: 'pointer',
                 }}
               >
@@ -643,7 +643,7 @@ export default function ParentPortalPage() {
                 <h2 style={{ fontSize: 14, marginBottom: 8 }}>本學期各期成績和排名</h2>
                 {currentTerm ? (
                   <>
-                    <p style={{ fontSize: 13, marginBottom: 8, color: '#666' }}>
+                    <p style={{ fontSize: 13, marginBottom: 8, color: 'var(--sub)' }}>
                       {currentTerm.academic_year}學年度 {currentTerm.term}　{currentTerm.grade_level}
                       {currentTerm.class_name}
                     </p>
@@ -657,25 +657,25 @@ export default function ParentPortalPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr style={{ borderTop: '1px solid #eee' }}>
+                        <tr style={{ borderTop: '1px solid var(--line)' }}>
                           <td style={{ padding: 6 }}>期中</td>
                           <td style={{ padding: 6, textAlign: 'right' }}>{currentTerm.midterm_total ?? '尚未公布'}</td>
                           <td style={{ padding: 6, textAlign: 'right' }}>{currentTerm.midterm_class_rank ?? '尚未公布'}</td>
                           <td style={{ padding: 6, textAlign: 'right' }}>{currentTerm.midterm_grade_rank ?? '尚未公布'}</td>
                         </tr>
-                        <tr style={{ borderTop: '1px solid #eee' }}>
+                        <tr style={{ borderTop: '1px solid var(--line)' }}>
                           <td style={{ padding: 6 }}>期末</td>
                           <td style={{ padding: 6, textAlign: 'right' }}>{currentTerm.final_total ?? '尚未公布'}</td>
                           <td style={{ padding: 6, textAlign: 'right' }}>{currentTerm.final_class_rank ?? '尚未公布'}</td>
                           <td style={{ padding: 6, textAlign: 'right' }}>{currentTerm.final_grade_rank ?? '尚未公布'}</td>
                         </tr>
-                        <tr style={{ borderTop: '1px solid #eee' }}>
+                        <tr style={{ borderTop: '1px solid var(--line)' }}>
                           <td style={{ padding: 6 }}>平時</td>
                           <td style={{ padding: 6, textAlign: 'right' }}>{currentTerm.daily_total ?? '尚未公布'}</td>
                           <td style={{ padding: 6, textAlign: 'right' }}>{currentTerm.daily_class_rank ?? '尚未公布'}</td>
                           <td style={{ padding: 6, textAlign: 'right' }}>{currentTerm.daily_grade_rank ?? '尚未公布'}</td>
                         </tr>
-                        <tr style={{ borderTop: '1px solid #eee', fontWeight: 700 }}>
+                        <tr style={{ borderTop: '1px solid var(--line)', fontWeight: 700 }}>
                           <td style={{ padding: 6 }}>總表</td>
                           <td style={{ padding: 6, textAlign: 'right' }}>{currentTerm.total_score ?? '尚未公布'}</td>
                           <td style={{ padding: 6, textAlign: 'right' }}>{currentTerm.class_rank ?? '尚未公布'}</td>
@@ -683,18 +683,18 @@ export default function ParentPortalPage() {
                         </tr>
                       </tbody>
                     </table>
-                    <p style={{ fontSize: 11, color: '#999', marginTop: 4 }}>
+                    <p style={{ fontSize: 11, color: 'var(--sub)', marginTop: 4 }}>
                       總分／排名要導師送出並鎖定平時分後才會公布；期中/期末/平時各自的總分排名也遵循同一個時間點一起公布。
                     </p>
                   </>
                 ) : (
-                  <p style={{ fontSize: 13, color: '#666' }}>目前沒有學期資料</p>
+                  <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有學期資料</p>
                 )}
               </section>
 
               <section style={{ marginBottom: 24 }}>
                 <h2 style={{ fontSize: 14, marginBottom: 8 }}>歷年成績</h2>
-                <p style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>點選右邊的「各科」（或總分）可以展開看該學期各科成績。總分與排名要等學校設定好科目比重並公布後才會顯示。</p>
+                <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 6 }}>點選右邊的「各科」（或總分）可以展開看該學期各科成績。總分與排名要等學校設定好科目比重並公布後才會顯示。</p>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr>
@@ -727,7 +727,7 @@ export default function ParentPortalPage() {
                               background: 'none',
                               padding: 0,
                               font: 'inherit',
-                              color: '#2C2C2A',
+                              color: 'var(--ink)',
                               fontWeight: label === '總表' ? 700 : 400,
                               textDecoration: 'underline',
                               cursor: 'pointer',
@@ -740,7 +740,7 @@ export default function ParentPortalPage() {
                         );
                       return (
                         <Fragment key={r.enrollment_id}>
-                          <tr style={{ borderTop: '1px solid #eee' }}>
+                          <tr style={{ borderTop: '1px solid var(--line)' }}>
                             <td style={{ padding: 6 }}>{r.academic_year}</td>
                             <td style={{ padding: 6 }}>{r.term}</td>
                             <td style={{ padding: 6 }}>{r.grade_level}{r.class_name}</td>
@@ -755,7 +755,7 @@ export default function ParentPortalPage() {
                               <button
                                 type="button"
                                 onClick={() => handleToggleTermScores(r.enrollment_id)}
-                                style={{ border: '1px solid #ccc', background: '#fff', borderRadius: 6, padding: '2px 8px', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                style={{ border: '1px solid var(--line-strong)', background: 'var(--surface)', borderRadius: 6, padding: '2px 8px', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}
                               >
                                 各科 {expandedId === r.enrollment_id ? '▲' : '▼'}
                               </button>
@@ -763,9 +763,9 @@ export default function ParentPortalPage() {
                           </tr>
                           {expandedId === r.enrollment_id && (
                             <tr key={`${r.enrollment_id}-detail`}>
-                              <td colSpan={10} style={{ padding: '4px 6px 12px 24px', background: '#FAFAF8' }}>
+                              <td colSpan={10} style={{ padding: '4px 6px 12px 24px', background: 'var(--primary-soft)' }}>
                                 {subjectScoresLoading === r.enrollment_id ? (
-                                  <p style={{ fontSize: 12, color: '#999' }}>載入中…</p>
+                                  <p style={{ fontSize: 12, color: 'var(--sub)' }}>載入中…</p>
                                 ) : (subjectScores[r.enrollment_id]?.length ?? 0) > 0 ? (
                                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                                     <thead>
@@ -779,7 +779,7 @@ export default function ParentPortalPage() {
                                     </thead>
                                     <tbody>
                                       {subjectScores[r.enrollment_id].map((s) => (
-                                        <tr key={s.subject} style={{ borderTop: '1px solid #eee' }}>
+                                        <tr key={s.subject} style={{ borderTop: '1px solid var(--line)' }}>
                                           <td style={{ padding: 4 }}>{s.subject}</td>
                                           <td style={{ padding: 4, textAlign: 'right' }}>{s.midterm ?? '—'}</td>
                                           <td style={{ padding: 4, textAlign: 'right' }}>{s.final ?? '—'}</td>
@@ -792,7 +792,7 @@ export default function ParentPortalPage() {
                                     </tbody>
                                   </table>
                                 ) : (
-                                  <p style={{ fontSize: 12, color: '#999' }}>這個學期還沒有各科成績資料。</p>
+                                  <p style={{ fontSize: 12, color: 'var(--sub)' }}>這個學期還沒有各科成績資料。</p>
                                 )}
                               </td>
                             </tr>
@@ -806,7 +806,7 @@ export default function ParentPortalPage() {
 
               <section>
                 <h2 style={{ fontSize: 14, marginBottom: 8 }}>出缺勤彙總（依學期）</h2>
-                <p style={{ fontSize: 11, color: '#999', marginBottom: 8 }}>預設顯示本學期，其他學期可用上方選單切換；點選次數可以看到相對應登記的日期。</p>
+                <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 8 }}>預設顯示本學期，其他學期可用上方選單切換；點選次數可以看到相對應登記的日期。</p>
                 {attendanceGroups.length > 0 ? (
                   <>
                   {attendanceGroups.length > 1 && (
@@ -827,7 +827,7 @@ export default function ParentPortalPage() {
                   )}
                   {attendanceGroups.filter((g) => g.key === attendanceTermKey).map((g) => (
                     <div key={g.key} style={{ marginBottom: 14 }}>
-                      <h3 style={{ fontSize: 13, margin: '0 0 6px', color: g.isCurrent ? '#2C2C2A' : '#666' }}>{g.label}</h3>
+                      <h3 style={{ fontSize: 13, margin: '0 0 6px', color: g.isCurrent ? 'var(--ink)' : 'var(--sub)' }}>{g.label}</h3>
                       {Object.entries(g.counts).length > 0 ? (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                           {Object.entries(g.counts).map(([status, count]) => {
@@ -841,24 +841,24 @@ export default function ParentPortalPage() {
                                     fontSize: 13,
                                     padding: '4px 10px',
                                     borderRadius: 6,
-                                    border: '1px solid #ddd',
-                                    background: expandedAttendanceStatus === ek ? '#2C2C2A' : '#f5f5f4',
-                                    color: expandedAttendanceStatus === ek ? '#fff' : '#333',
+                                    border: '1px solid var(--line-strong)',
+                                    background: expandedAttendanceStatus === ek ? 'var(--primary)' : '#f5f5f4',
+                                    color: expandedAttendanceStatus === ek ? '#fff' : 'var(--ink)',
                                     cursor: 'pointer',
                                   }}
                                 >
                                   {status} {count}次
                                 </button>
                                 {expandedAttendanceStatus === ek && (
-                                  <div style={{ marginTop: 4, padding: '6px 10px', border: '1px solid #eee', borderRadius: 6, background: '#fff' }}>
+                                  <div style={{ marginTop: 4, padding: '6px 10px', border: '1px solid var(--line)', borderRadius: 6, background: 'var(--surface)' }}>
                                     {(g.dates[status] ?? []).length > 0 ? (
-                                      <ul style={{ fontSize: 12, color: '#666', paddingLeft: 16, margin: 0 }}>
+                                      <ul style={{ fontSize: 12, color: 'var(--sub)', paddingLeft: 16, margin: 0 }}>
                                         {(g.dates[status] ?? []).map((d) => (
                                           <li key={d}>{d}</li>
                                         ))}
                                       </ul>
                                     ) : (
-                                      <p style={{ fontSize: 12, color: '#999', margin: 0 }}>沒有登記的日期。</p>
+                                      <p style={{ fontSize: 12, color: 'var(--sub)', margin: 0 }}>沒有登記的日期。</p>
                                     )}
                                   </div>
                                 )}
@@ -883,14 +883,14 @@ export default function ParentPortalPage() {
             <section>
               <h2 style={{ fontSize: 14, marginBottom: 8 }}>教師/班級課表</h2>
               {currentTerm ? (
-                <p style={{ fontSize: 13, marginBottom: 8, color: '#666' }}>
+                <p style={{ fontSize: 13, marginBottom: 8, color: 'var(--sub)' }}>
                   {currentTerm.academic_year}學年度 {currentTerm.term}　{currentTerm.grade_level}
                   {currentTerm.class_name}
                 </p>
               ) : (
-                <p style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>目前沒有在學的班級資料。</p>
+                <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 8 }}>目前沒有在學的班級資料。</p>
               )}
-              {scheduleLoading && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+              {scheduleLoading && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
               {scheduleError && <p style={{ fontSize: 13, color: '#B3261E' }}>⚠️ {scheduleError}</p>}
               {!scheduleLoading && !scheduleError && currentTerm && (
                 scheduleRows.length > 0 ? (
@@ -898,9 +898,9 @@ export default function ParentPortalPage() {
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, minWidth: 480 }}>
                       <thead>
                         <tr>
-                          <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid #e5e5e0' }}>節次</th>
+                          <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid var(--line)' }}>節次</th>
                           {WEEKDAY_LABELS.map((d) => (
-                            <th key={d} style={{ textAlign: 'center', padding: 6, borderBottom: '1px solid #e5e5e0' }}>
+                            <th key={d} style={{ textAlign: 'center', padding: 6, borderBottom: '1px solid var(--line)' }}>
                               星期{d}
                             </th>
                           ))}
@@ -910,7 +910,7 @@ export default function ParentPortalPage() {
                         {Array.from(new Set(scheduleRows.map((r) => r.period_no)))
                           .sort((a, b) => a - b)
                           .map((period) => (
-                            <tr key={period} style={{ borderTop: '1px solid #eee' }}>
+                            <tr key={period} style={{ borderTop: '1px solid var(--line)' }}>
                               <td style={{ padding: 6, fontWeight: 700 }}>第{period}節</td>
                               {WEEKDAY_LABELS.map((_, i) => {
                                 const cell = scheduleRows.find((r) => r.weekday === i + 1 && r.period_no === period);
@@ -920,7 +920,7 @@ export default function ParentPortalPage() {
                                       <>
                                         {cell.subject}
                                         <br />
-                                        <span style={{ fontSize: 10, color: '#999' }}>{cell.teacher_name}</span>
+                                        <span style={{ fontSize: 10, color: 'var(--sub)' }}>{cell.teacher_name}</span>
                                       </>
                                     ) : (
                                       ''
@@ -934,7 +934,7 @@ export default function ParentPortalPage() {
                     </table>
                   </div>
                 ) : (
-                  <p style={{ fontSize: 13, color: '#666' }}>目前還沒有排課資料。</p>
+                  <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前還沒有排課資料。</p>
                 )
               )}
             </section>
@@ -943,9 +943,9 @@ export default function ParentPortalPage() {
           {activeTab === '獎懲' && (
             <section>
               {loadingRewards ? (
-                <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+                <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
               ) : rewardEvents.length === 0 ? (
-                <p style={{ fontSize: 13, color: '#666' }}>目前還沒有任何獎懲紀錄。</p>
+                <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前還沒有任何獎懲紀錄。</p>
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
@@ -958,11 +958,11 @@ export default function ParentPortalPage() {
                   </thead>
                   <tbody>
                     {rewardEvents.map((r) => (
-                      <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+                      <tr key={r.id} style={{ borderTop: '1px solid var(--line)' }}>
                         <td style={{ padding: 6, whiteSpace: 'nowrap' }}>{new Date(r.created_at).toLocaleString('zh-TW')}</td>
                         <td style={{ padding: 6 }}>{r.event_type}</td>
                         <td style={{ padding: 6, textAlign: 'right' }}>{r.count}</td>
-                        <td style={{ padding: 6, color: '#666' }}>{r.reason ?? ''}</td>
+                        <td style={{ padding: 6, color: 'var(--sub)' }}>{r.reason ?? ''}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1012,7 +1012,7 @@ export default function ParentPortalPage() {
               <section style={{ marginBottom: 24 }}>
                 <h2 style={{ fontSize: 14, marginBottom: 8 }}>修改資料申請進度</h2>
                 {editRequests.length > 0 ? (
-                  <ul style={{ fontSize: 13, color: '#666', paddingLeft: 18 }}>
+                  <ul style={{ fontSize: 13, color: 'var(--sub)', paddingLeft: 18 }}>
                     {editRequests.map((r) => (
                       <li key={r.id} style={{ marginBottom: 4 }}>
                         {editRequestLabel(r)} → {r.new_value}（{r.status}）
@@ -1020,28 +1020,28 @@ export default function ParentPortalPage() {
                     ))}
                   </ul>
                 ) : (
-                  <p style={{ fontSize: 13, color: '#999' }}>目前沒有申請中的修改資料紀錄。</p>
+                  <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有申請中的修改資料紀錄。</p>
                 )}
               </section>
 
               <section>
                 <h2 style={{ fontSize: 14, marginBottom: 8 }}>學校公告</h2>
                 {bulletinPosts.length > 0 ? (
-                  <ul style={{ fontSize: 13, color: '#333', paddingLeft: 0, listStyle: 'none' }}>
+                  <ul style={{ fontSize: 13, color: 'var(--ink)', paddingLeft: 0, listStyle: 'none' }}>
                     {bulletinPosts.map((p) => (
-                      <li key={p.id} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #eee' }}>
+                      <li key={p.id} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--line)' }}>
                         <p style={{ fontWeight: 700, marginBottom: 2 }}>{p.title}</p>
                         {p.published_at && (
-                          <p style={{ fontSize: 11, color: '#999', marginBottom: 4 }}>
+                          <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 4 }}>
                             {new Date(p.published_at).toLocaleDateString('zh-TW')}
                           </p>
                         )}
-                        <p style={{ fontSize: 12, color: '#666' }}>{p.content}</p>
+                        <p style={{ fontSize: 12, color: 'var(--sub)' }}>{p.content}</p>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p style={{ fontSize: 13, color: '#999' }}>目前沒有公告。</p>
+                  <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有公告。</p>
                 )}
               </section>
             </>
@@ -1056,15 +1056,15 @@ export default function ParentPortalPage() {
               仍然只能改地址/電話，其餘欄位顯示唯讀文字，如需更正請洽導師），點進去
               就能直接修改，改過的欄位會標黃提示，全部改完到最下面按一次「送出申請」
               一起送出。 */}
-          <section style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid #e5e5e0' }}>
+          <section style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--line)' }}>
             <h2 style={{ fontSize: 14, marginBottom: 8 }}>學籍資料（個人資料）</h2>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <tbody>
                 {STUDENT_PROFILE_FIELDS.map((f) => {
                   const option = editableOptions.find((o) => o.targetTable === 'students' && o.fieldName === f.field);
                   return (
-                    <tr key={f.field} style={{ borderTop: '1px solid #eee' }}>
-                      <td style={{ padding: 6, width: '35%', color: '#666' }}>{f.label}</td>
+                    <tr key={f.field} style={{ borderTop: '1px solid var(--line)' }}>
+                      <td style={{ padding: 6, width: '35%', color: 'var(--sub)' }}>{f.label}</td>
                       <td style={{ padding: 6 }}>
                         {option ? (
                           <input
@@ -1075,7 +1075,7 @@ export default function ParentPortalPage() {
                               width: '100%',
                               padding: '4px 6px',
                               border: '1px solid transparent',
-                              borderBottom: '1px solid #ccc',
+                              borderBottom: '1px solid var(--line-strong)',
                               background:
                                 fieldEdits[option.key] !== undefined && fieldEdits[option.key] !== option.currentValue
                                   ? '#fff7d6'
@@ -1095,7 +1095,7 @@ export default function ParentPortalPage() {
             </table>
           </section>
 
-          <section style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid #e5e5e0' }}>
+          <section style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--line)' }}>
             <h2 style={{ fontSize: 14, marginBottom: 8 }}>監護人資料</h2>
             {guardians.length > 0 ? (
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -1111,7 +1111,7 @@ export default function ParentPortalPage() {
                     const nameOption = editableOptions.find((o) => o.targetTable === 'guardians' && o.guardianId === g.id && o.fieldName === 'name');
                     const phoneOption = editableOptions.find((o) => o.targetTable === 'guardians' && o.guardianId === g.id && o.fieldName === 'phone');
                     return (
-                      <tr key={g.id} style={{ borderTop: '1px solid #eee' }}>
+                      <tr key={g.id} style={{ borderTop: '1px solid var(--line)' }}>
                         <td style={{ padding: 6 }}>{g.relation}</td>
                         <td style={{ padding: 6 }}>
                           {nameOption ? (
@@ -1122,7 +1122,7 @@ export default function ParentPortalPage() {
                                 width: '100%',
                                 padding: '4px 6px',
                                 border: '1px solid transparent',
-                                borderBottom: '1px solid #ccc',
+                                borderBottom: '1px solid var(--line-strong)',
                                 background:
                                   fieldEdits[nameOption.key] !== undefined && fieldEdits[nameOption.key] !== nameOption.currentValue
                                     ? '#fff7d6'
@@ -1144,7 +1144,7 @@ export default function ParentPortalPage() {
                                 width: '100%',
                                 padding: '4px 6px',
                                 border: '1px solid transparent',
-                                borderBottom: '1px solid #ccc',
+                                borderBottom: '1px solid var(--line-strong)',
                                 background:
                                   fieldEdits[phoneOption.key] !== undefined && fieldEdits[phoneOption.key] !== phoneOption.currentValue
                                     ? '#fff7d6'
@@ -1163,20 +1163,20 @@ export default function ParentPortalPage() {
                 </tbody>
               </table>
             ) : (
-              <p style={{ fontSize: 13, color: '#999' }}>尚無監護人資料，如需新增請聯絡導師。</p>
+              <p style={{ fontSize: 13, color: 'var(--sub)' }}>尚無監護人資料，如需新增請聯絡導師。</p>
             )}
           </section>
 
           {editableOptions.length > 0 && (
             <section style={{ marginTop: 24 }}>
-              <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+              <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
                 直接點選上面標黃色的欄位可以修改，改完後按下方「送出申請」一起送出；送出後導師會立即收到通知，需經導師核准才會正式更新，核准前畫面上顯示的仍是原本的資料，申請進度可以到上面的「通知」分頁查看。
               </p>
               <button
                 type="button"
                 onClick={handleSubmitAllEdits}
                 disabled={submittingEdits}
-                style={{ padding: '8px 20px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}
+                style={{ padding: '8px 20px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}
               >
                 {submittingEdits ? '送出中…' : '送出申請'}
               </button>

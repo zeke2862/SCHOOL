@@ -95,7 +95,7 @@ export default function UtilityBillsPage() {
     return (
       <main style={{ maxWidth: 480, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 4 }}>水電網路等費用</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>本頁僅提供總務處人員使用。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>本頁僅提供總務處人員使用。</p>
       </main>
     );
   }
@@ -103,7 +103,7 @@ export default function UtilityBillsPage() {
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>水電網路等費用</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>登記每月水費/電費/網路費等帳單金額與繳費狀態。</p>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>登記每月水費/電費/網路費等帳單金額與繳費狀態。</p>
       {loadError && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{loadError}</p>}
 
       {!canWriteDirect && (
@@ -128,7 +128,7 @@ export default function UtilityBillsPage() {
         <input type="month" value={form.billing_month} onChange={(e) => setForm({ ...form, billing_month: e.target.value })} style={{ padding: 6 }} required />
         <input type="number" step="0.01" placeholder="金額" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} style={{ padding: 6, width: 110 }} required />
         <input placeholder="備註" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} style={{ padding: 6, width: 140 }} />
-        <button type="submit" style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+        <button type="submit" style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
           {canWriteDirect ? '新增' : '送出新增申請'}
         </button>
       </form>
@@ -148,7 +148,7 @@ export default function UtilityBillsPage() {
         </thead>
         <tbody>
           {bills.map((b) => (
-            <tr key={b.id} style={{ borderTop: '1px solid #eee' }}>
+            <tr key={b.id} style={{ borderTop: '1px solid var(--line)' }}>
               <td style={{ padding: 6 }}>{b.billing_month.slice(0, 7)}</td>
               <td style={{ padding: 6 }}>{b.category}</td>
               <td style={{ padding: 6, textAlign: 'right' }}>{b.amount}</td>
@@ -165,7 +165,7 @@ export default function UtilityBillsPage() {
           ))}
           {bills.length === 0 && (
             <tr>
-              <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+              <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                 目前沒有費用紀錄
               </td>
             </tr>

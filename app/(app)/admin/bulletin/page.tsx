@@ -90,7 +90,7 @@ export default function BulletinAdminPage() {
   if (loading) {
     return (
       <main style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       </main>
     );
   }
@@ -106,33 +106,33 @@ export default function BulletinAdminPage() {
   return (
     <main style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>公佈欄管理</h1>
-      <p style={{ fontSize: 12, color: '#999', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         最新已發布的一篇會在首頁登入卡片上方以縮圖顯示，接下來 4 篇只顯示標題。每篇可以設定「顯示幾天」，天數一到就自動隱藏（這裡仍看得到，標示「已過期」，可以按「編輯」勾選「從今天重新起算」再次發布）；需要長期公告請勾選「永久保存」。未發布的文章（草稿）只有管理員自己看得到。
       </p>
 
       {editingId ? (
-        <div style={{ border: '1px solid #eee', borderRadius: 8, padding: 16, marginBottom: 24 }}>
+        <div style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 16, marginBottom: 24 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <input
               placeholder="標題"
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              style={{ padding: 8, border: '1px solid #ccc', borderRadius: 6, fontSize: 13 }}
+              style={{ padding: 8, border: '1px solid var(--line-strong)', borderRadius: 6, fontSize: 13 }}
             />
             <input
               placeholder="縮圖網址（選填，貼圖片的網址即可）"
               value={form.thumbnail_url}
               onChange={(e) => setForm((f) => ({ ...f, thumbnail_url: e.target.value }))}
-              style={{ padding: 8, border: '1px solid #ccc', borderRadius: 6, fontSize: 13 }}
+              style={{ padding: 8, border: '1px solid var(--line-strong)', borderRadius: 6, fontSize: 13 }}
             />
             <textarea
               placeholder="內容"
               value={form.content}
               onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
               rows={6}
-              style={{ padding: 8, border: '1px solid #ccc', borderRadius: 6, fontSize: 13, fontFamily: 'inherit' }}
+              style={{ padding: 8, border: '1px solid var(--line-strong)', borderRadius: 6, fontSize: 13, fontFamily: 'inherit' }}
             />
-            <div style={{ border: '1px solid #eee', borderRadius: 6, padding: 10, background: '#fafaf8', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', fontSize: 13 }}>
+            <div style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 10, background: 'var(--primary-soft)', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', fontSize: 13 }}>
               <span>顯示</span>
               <input
                 type="number"
@@ -140,7 +140,7 @@ export default function BulletinAdminPage() {
                 value={form.forever ? '' : form.valid_days ?? ''}
                 disabled={form.forever}
                 onChange={(e) => setForm((f) => ({ ...f, valid_days: e.target.value === '' ? null : Number(e.target.value) }))}
-                style={{ width: 80, padding: 6, border: '1px solid #ccc', borderRadius: 6 }}
+                style={{ width: 80, padding: 6, border: '1px solid var(--line-strong)', borderRadius: 6 }}
               />
               <span>天後自動隱藏</span>
               <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -163,11 +163,11 @@ export default function BulletinAdminPage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: '#2C2C2A', color: '#fff', fontSize: 13, cursor: 'pointer' }}
+                style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 13, cursor: 'pointer' }}
               >
                 {saving ? '儲存中…' : '儲存'}
               </button>
-              <button onClick={cancelEdit} style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #ccc', background: '#fff', fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={cancelEdit} style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--line-strong)', background: 'var(--surface)', fontSize: 13, cursor: 'pointer' }}>
                 取消
               </button>
             </div>
@@ -176,7 +176,7 @@ export default function BulletinAdminPage() {
       ) : (
         <button
           onClick={startCreate}
-          style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #2C2C2A', background: '#fff', color: '#2C2C2A', fontSize: 13, cursor: 'pointer', marginBottom: 16 }}
+          style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--primary)', background: 'var(--surface)', color: 'var(--ink)', fontSize: 13, cursor: 'pointer', marginBottom: 16 }}
         >
           ＋ 新增公告
         </button>
@@ -184,14 +184,14 @@ export default function BulletinAdminPage() {
 
       <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {posts.map((p) => (
-          <li key={p.id} style={{ border: '1px solid #eee', borderRadius: 8, padding: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <li key={p.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13 }}>
               {p.title}
               <span style={{ marginLeft: 8, fontSize: 11, color: postStatus(p).color }}>{postStatus(p).label}</span>
-              {p.published_at && <span style={{ marginLeft: 8, fontSize: 11, color: '#aaa' }}>發布於 {new Date(p.published_at).toLocaleDateString('zh-TW')}</span>}
+              {p.published_at && <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--sub)' }}>發布於 {new Date(p.published_at).toLocaleDateString('zh-TW')}</span>}
             </span>
             <span style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => startEdit(p)} style={{ fontSize: 12, background: 'none', border: 'none', color: '#2C2C2A', cursor: 'pointer' }}>
+              <button onClick={() => startEdit(p)} style={{ fontSize: 12, background: 'none', border: 'none', color: 'var(--ink)', cursor: 'pointer' }}>
                 編輯
               </button>
               <button onClick={() => handleDelete(p.id)} style={{ fontSize: 12, background: 'none', border: 'none', color: '#A32D2D', cursor: 'pointer' }}>

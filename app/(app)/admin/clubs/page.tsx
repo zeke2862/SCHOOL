@@ -286,7 +286,7 @@ export default function AdminClubsPage() {
     return (
       <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16 }}>社團／才藝課管理</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>此頁僅開放教務部門主管或系統管理員操作。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>此頁僅開放教務部門主管或系統管理員操作。</p>
       </main>
     );
   }
@@ -294,12 +294,12 @@ export default function AdminClubsPage() {
   return (
     <main style={{ maxWidth: 960, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>社團／才藝課管理</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         建立社團、指派指導老師、設定選社方式。學生選好社／電腦抽籤分發完成後，社團老師可到「社團點名冊」「社團成績輸入」操作自己社團的學生。
       </p>
       {error && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{error}</p>}
 
-      <section style={{ border: '1px solid #eee', borderRadius: 8, padding: 16, marginBottom: 24 }}>
+      <section style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 16, marginBottom: 24 }}>
         <h2 style={{ fontSize: 14, marginBottom: 12 }}>新增社團</h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
           <label style={{ fontSize: 12 }}>
@@ -344,9 +344,9 @@ export default function AdminClubsPage() {
         </button>
       </section>
 
-      <section style={{ border: '1px solid #eee', borderRadius: 8, padding: 16, marginBottom: 24 }}>
+      <section style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 16, marginBottom: 24 }}>
         <h2 style={{ fontSize: 14, marginBottom: 4 }}>選社設定</h2>
-        <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
           設定這學期用哪一種方式決定學生進哪個社團。志願序類方法設定好開放時間後，學生會在「家長/學生查詢入口」看到選社頁面填志願，
           教務處確認截止後再回來這裡按「執行電腦抽籤」；即時搶選則是學生自己在開放時間內登入搶名額，不用另外按抽籤。
         </p>
@@ -392,13 +392,13 @@ export default function AdminClubsPage() {
           )}
         </div>
         {selectionWindow?.is_finalized && (
-          <p style={{ fontSize: 12, color: '#999', marginTop: 8 }}>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 8 }}>
             已於 {selectionWindow.finalized_at ? new Date(selectionWindow.finalized_at).toLocaleString('zh-TW') : ''} 執行過抽籤，各社團名單可到下方「社團名單管理」查看與微調。
           </p>
         )}
       </section>
 
-      <section style={{ border: '1px solid #eee', borderRadius: 8, padding: 16 }}>
+      <section style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 16 }}>
         <h2 style={{ fontSize: 14, marginBottom: 12 }}>社團名單管理</h2>
         <select value={selectedClubId} onChange={(e) => setSelectedClubId(e.target.value)} style={{ padding: 8, marginBottom: 16, width: '100%', maxWidth: 320 }}>
           <option value="">請選擇社團</option>
@@ -432,7 +432,7 @@ export default function AdminClubsPage() {
               </thead>
               <tbody>
                 {members.map((m) => (
-                  <tr key={m.id} style={{ borderTop: '1px solid #eee' }}>
+                  <tr key={m.id} style={{ borderTop: '1px solid var(--line)' }}>
                     <td style={{ padding: 6 }}>{m.student_no}</td>
                     <td style={{ padding: 6 }}>{m.class_label}</td>
                     <td style={{ padding: 6 }}>{m.seat_no ?? '－'}</td>
@@ -447,7 +447,7 @@ export default function AdminClubsPage() {
                 ))}
                 {members.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                    <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                       目前還沒有學生加入這個社團
                     </td>
                   </tr>

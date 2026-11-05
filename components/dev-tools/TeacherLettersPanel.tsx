@@ -80,9 +80,9 @@ export default function TeacherLettersPanel({ userId }: { userId: string | null 
             style={{
               padding: '6px 14px',
               borderRadius: 6,
-              border: '1px solid #2C6E9E',
-              background: tab === c.key ? '#2C6E9E' : '#fff',
-              color: tab === c.key ? '#fff' : '#2C6E9E',
+              border: '1px solid var(--primary)',
+              background: tab === c.key ? 'var(--primary)' : 'var(--surface)',
+              color: tab === c.key ? '#fff' : 'var(--primary-ink)',
               fontSize: 13,
               cursor: 'pointer',
             }}
@@ -128,7 +128,7 @@ function CompareSection() {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: '#666', marginTop: 0 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 0 }}>
         以歷年教師資料的「對應帳號」為準，逐一核對帳號管理、教師名單、班級導師，只列出對不起來的地方，不會修改任何資料。
         「未對應帳號」請到歷年教師資料編輯、選擇對應帳號即可消除。
       </p>
@@ -164,9 +164,9 @@ function CompareSection() {
             <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
               <thead>
                 <tr style={{ background: '#f2f6fa' }}>
-                  <th style={{ textAlign: 'left', padding: 6, border: '1px solid #ddd' }}>類型</th>
-                  <th style={{ textAlign: 'left', padding: 6, border: '1px solid #ddd' }}>姓名</th>
-                  <th style={{ textAlign: 'left', padding: 6, border: '1px solid #ddd' }}>說明</th>
+                  <th style={{ textAlign: 'left', padding: 6, border: '1px solid var(--line-strong)' }}>類型</th>
+                  <th style={{ textAlign: 'left', padding: 6, border: '1px solid var(--line-strong)' }}>姓名</th>
+                  <th style={{ textAlign: 'left', padding: 6, border: '1px solid var(--line-strong)' }}>說明</th>
                 </tr>
               </thead>
               <tbody>
@@ -174,9 +174,9 @@ function CompareSection() {
                   .sort((a, b) => a.kind.localeCompare(b.kind, 'zh-Hant') || a.name.localeCompare(b.name, 'zh-Hant'))
                   .map((i, idx) => (
                     <tr key={idx}>
-                      <td style={{ padding: 6, border: '1px solid #ddd', whiteSpace: 'nowrap' }}>{i.kind}</td>
-                      <td style={{ padding: 6, border: '1px solid #ddd' }}>{i.name}</td>
-                      <td style={{ padding: 6, border: '1px solid #ddd' }}>{i.detail}</td>
+                      <td style={{ padding: 6, border: '1px solid var(--line-strong)', whiteSpace: 'nowrap' }}>{i.kind}</td>
+                      <td style={{ padding: 6, border: '1px solid var(--line-strong)' }}>{i.name}</td>
+                      <td style={{ padding: 6, border: '1px solid var(--line-strong)' }}>{i.detail}</td>
                     </tr>
                   ))}
               </tbody>
@@ -269,7 +269,7 @@ function ServiceCertSection({ userId }: { userId: string | null }) {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         欄位比照原「教師資料+VBA列印」活頁簿的「在職證明」工作表（已改名「歷年教師資料」）：
         任職/離職日期最多3段（供中途離職又回聘的情況使用），下方列表的「在職時間」欄位是自動結算的總年數/月數/日數。
       </p>
@@ -296,14 +296,14 @@ function ServiceCertSection({ userId }: { userId: string | null }) {
         )}
 
         {loading ? (
-          <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+          <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ borderCollapse: 'collapse', fontSize: 12, width: '100%' }}>
               <thead>
-                <tr style={{ background: '#f5f5f5' }}>
+                <tr style={{ background: 'var(--primary-soft)' }}>
                   {['序號', '自聘', '離職', '姓名', '國籍', '性別', '服務部門', '職稱', '任職期間', '在職時間', '聘用結果', '對應帳號', ''].map((h) => (
-                    <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
+                    <th key={h} style={{ border: '1px solid var(--line-strong)', padding: 6, textAlign: 'left' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -325,15 +325,15 @@ function ServiceCertSection({ userId }: { userId: string | null }) {
                         {r.start_date_3 ? `；${r.start_date_3} ~ ${r.end_date_3 ?? '(在職)'}` : ''}
                       </td>
                       <td style={tdStyle}>{computeServiceDuration(r, new Date()).label}</td>
-                      <td style={{ ...tdStyle, color: r.renewal_status === '不續聘' ? '#A32D2D' : r.renewal_status === '已發聘' ? '#2E7D32' : '#666' }}>{r.renewal_status}</td>
+                      <td style={{ ...tdStyle, color: r.renewal_status === '不續聘' ? '#A32D2D' : r.renewal_status === '已發聘' ? '#2E7D32' : 'var(--sub)' }}>{r.renewal_status}</td>
                       <td style={tdStyle}>
                         {r.app_user_id ? (
                           <>
                             {accountName(r.app_user_id)}
-                            {r.email && <div style={{ fontSize: 11, color: '#666' }}>{r.email}</div>}
+                            {r.email && <div style={{ fontSize: 11, color: 'var(--sub)' }}>{r.email}</div>}
                           </>
                         ) : (
-                          <span style={{ color: r.resigned ? '#999' : '#b26a00' }}>{r.resigned ? '—' : '未對應'}</span>
+                          <span style={{ color: r.resigned ? 'var(--sub)' : '#b26a00' }}>{r.resigned ? '—' : '未對應'}</span>
                         )}
                       </td>
                       <td style={tdStyle}>
@@ -360,7 +360,7 @@ function ServiceCertSection({ userId }: { userId: string | null }) {
                 ))}
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={13} style={{ ...tdStyle, color: '#999', textAlign: 'center' }}>目前沒有資料</td>
+                    <td colSpan={13} style={{ ...tdStyle, color: 'var(--sub)', textAlign: 'center' }}>目前沒有資料</td>
                   </tr>
                 )}
               </tbody>
@@ -372,7 +372,7 @@ function ServiceCertSection({ userId }: { userId: string | null }) {
   );
 }
 
-const tdStyle: React.CSSProperties = { border: '1px solid #eee', padding: 6 };
+const tdStyle: React.CSSProperties = { border: '1px solid var(--line)', padding: 6 };
 const inputStyle: React.CSSProperties = { padding: 4, fontSize: 12, width: '100%', boxSizing: 'border-box' };
 
 function ServiceCertForm({
@@ -387,7 +387,7 @@ function ServiceCertForm({
 }) {
   const set = (patch: Partial<ServiceCertRow>) => onChange({ ...row, ...patch });
   return (
-    <div style={{ border: '1px solid #ddd', borderRadius: 6, padding: 12, marginBottom: 12, background: '#fafafa' }}>
+    <div style={{ border: '1px solid var(--line-strong)', borderRadius: 6, padding: 12, marginBottom: 12, background: 'var(--primary-soft)' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
         <label>歷年序號<input style={inputStyle} type="number" value={row.seq_no ?? ''} onChange={(e) => set({ seq_no: e.target.value ? Number(e.target.value) : null })} /></label>
         <label>姓名*<input style={inputStyle} value={row.name} onChange={(e) => set({ name: e.target.value })} /></label>
@@ -622,14 +622,14 @@ function PrintSection({ userId }: { userId: string | null }) {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
         文字內容比對「0808.xlsm」的「印在職證明」「印自聘教師聘書」「印當年聘書」逐條實作，直接產生 PDF 或 Word 檔（不是Excel），下載後就是完整格式，不需要再另外開Excel計算公式。
         在/離職證明依「歷年教師資料」的離職勾選自動選擇：仍在職印「在職證明書」，已離職印「離職證明書」（需先填好離職日期）。
         人員資料請在「歷年教師資料」維護；這裡依「自聘」勾選與聘用結果自動列出該印聘書的人，聘期沒特別設定就用預設值。
       </p>
 
       {settings && (
-        <div style={{ border: '1px solid #eee', borderRadius: 6, padding: 12, marginBottom: 16, background: '#fafafa' }}>
+        <div style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 12, marginBottom: 16, background: 'var(--primary-soft)' }}>
           <p style={{ fontSize: 13, marginBottom: 8, fontWeight: 600 }}>學校固定資料（校名/校長/董事長/電話/地址，所有人列印都會用這裡的值）</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8, marginBottom: 8 }}>
             <label>校名<input style={inputStyle} value={settings.school_name_zh} onChange={(e) => setSettings({ ...settings, school_name_zh: e.target.value })} /></label>
@@ -641,7 +641,7 @@ function PrintSection({ userId }: { userId: string | null }) {
           <button type="button" onClick={handleSaveSettings} disabled={savingSettings} style={{ padding: '5px 14px', fontSize: 12, cursor: 'pointer' }}>
             {savingSettings ? '儲存中…' : '儲存'}
           </button>
-          <p style={{ fontSize: 11, color: '#999', marginTop: 6 }}>
+          <p style={{ fontSize: 11, color: 'var(--sub)', marginTop: 6 }}>
             說明：印自聘教師聘書／當年聘書時，如果被印的人剛好就是「校長姓名」本人，落款會自動改成「董事長」簽署（原本活頁簿就是這樣設計的，避免校長替自己簽聘書）。
           </p>
         </div>
@@ -654,8 +654,8 @@ function PrintSection({ userId }: { userId: string | null }) {
             type="button"
             onClick={() => setCategory(c)}
             style={{
-              padding: '5px 12px', borderRadius: 6, border: '1px solid #2C6E9E', fontSize: 12, cursor: 'pointer',
-              background: category === c ? '#2C6E9E' : '#fff', color: category === c ? '#fff' : '#2C6E9E',
+              padding: '5px 12px', borderRadius: 6, border: '1px solid var(--primary)', fontSize: 12, cursor: 'pointer',
+              background: category === c ? 'var(--primary)' : 'var(--surface)', color: category === c ? '#fff' : 'var(--primary-ink)',
             }}
           >
             {c}
@@ -664,7 +664,7 @@ function PrintSection({ userId }: { userId: string | null }) {
       </div>
 
       {category !== '在/離職證明' && (
-        <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
           {isSelfHired
             ? '名單：「歷年教師資料」有勾選「自聘」、且聘用結果不是「不續聘」的教師。'
             : '名單：「歷年教師資料」尚未離職、且聘用結果不是「不續聘」的教師（自聘教師也算在內）。'}
@@ -673,14 +673,14 @@ function PrintSection({ userId }: { userId: string | null }) {
       )}
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : category === '在/離職證明' ? (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', fontSize: 12, width: '100%' }}>
             <thead>
-              <tr style={{ background: '#f5f5f5' }}>
+              <tr style={{ background: 'var(--primary-soft)' }}>
                 {['序號', '姓名', '職稱', '狀態（印哪一種）', '列印'].map((h) => (
-                  <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
+                  <th key={h} style={{ border: '1px solid var(--line-strong)', padding: 6, textAlign: 'left' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -695,7 +695,7 @@ function PrintSection({ userId }: { userId: string | null }) {
                 </tr>
               ))}
               {certRows.length === 0 && (
-                <tr><td colSpan={5} style={{ ...tdStyle, color: '#999', textAlign: 'center' }}>「歷年教師資料」目前沒有資料</td></tr>
+                <tr><td colSpan={5} style={{ ...tdStyle, color: 'var(--sub)', textAlign: 'center' }}>「歷年教師資料」目前沒有資料</td></tr>
               )}
             </tbody>
           </table>
@@ -704,9 +704,9 @@ function PrintSection({ userId }: { userId: string | null }) {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ borderCollapse: 'collapse', fontSize: 12, width: '100%' }}>
             <thead>
-              <tr style={{ background: '#f5f5f5' }}>
+              <tr style={{ background: 'var(--primary-soft)' }}>
                 {['序號', '姓名', '職稱', '聘期(年)', '起', '迄', ...(isSelfHired ? ['發聘時間'] : []), '列印／編輯'].map((h) => (
-                  <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
+                  <th key={h} style={{ border: '1px solid var(--line-strong)', padding: 6, textAlign: 'left' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -721,8 +721,8 @@ function PrintSection({ userId }: { userId: string | null }) {
                       <td style={tdStyle}>{r.name}</td>
                       <td style={tdStyle}>{r.title}</td>
                       <td style={tdStyle}>{r.term_no ?? ''}</td>
-                      <td style={{ ...tdStyle, color: usingDefault ? '#999' : undefined }}>{eff.start_date}</td>
-                      <td style={{ ...tdStyle, color: usingDefault ? '#999' : undefined }}>{eff.end_date}</td>
+                      <td style={{ ...tdStyle, color: usingDefault ? 'var(--sub)' : undefined }}>{eff.start_date}</td>
+                      <td style={{ ...tdStyle, color: usingDefault ? 'var(--sub)' : undefined }}>{eff.end_date}</td>
                       {isSelfHired && <td style={tdStyle}>{r.issued_date}</td>}
                       <td style={tdStyle}>
                         {printButtons(r.cert_id)}
@@ -766,12 +766,12 @@ function PrintSection({ userId }: { userId: string | null }) {
               })}
               {letterRows.length === 0 && (
                 <tr>
-                  <td colSpan={isSelfHired ? 8 : 7} style={{ ...tdStyle, color: '#999', textAlign: 'center' }}>目前沒有符合條件的教師</td>
+                  <td colSpan={isSelfHired ? 8 : 7} style={{ ...tdStyle, color: 'var(--sub)', textAlign: 'center' }}>目前沒有符合條件的教師</td>
                 </tr>
               )}
             </tbody>
           </table>
-          <p style={{ fontSize: 11, color: '#999', marginTop: 6 }}>灰色的起迄日期是預設值（尚未自訂）；列印會直接使用。</p>
+          <p style={{ fontSize: 11, color: 'var(--sub)', marginTop: 6 }}>灰色的起迄日期是預設值（尚未自訂）；列印會直接使用。</p>
         </div>
       )}
     </div>
@@ -789,8 +789,8 @@ function AppointmentLetterForm({
 }) {
   const set = (patch: Partial<MergedAppointmentRow>) => onChange({ ...row, ...patch });
   return (
-    <div style={{ border: '1px solid #ddd', borderRadius: 6, padding: 12, marginBottom: 12, background: '#fafafa' }}>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+    <div style={{ border: '1px solid var(--line-strong)', borderRadius: 6, padding: 12, marginBottom: 12, background: 'var(--primary-soft)' }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         {row.name}（{row.title ?? '—'}／{row.gender ?? '—'}{row.resigned ? '／已離職' : ''}）——姓名/職位/性別/離職狀態要修改請到「歷年教師資料」分頁，這裡只能編輯下面的聘書專屬欄位。
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>

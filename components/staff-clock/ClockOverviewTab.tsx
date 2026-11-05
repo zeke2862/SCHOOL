@@ -170,16 +170,16 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
     <div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', marginBottom: 12 }}>
         <span>
-          <button style={{ ...btn, background: mode === 'term' ? '#eee' : '#fff' }} onClick={() => setMode('term')} disabled={terms.length === 0}>
+          <button style={{ ...btn, background: mode === 'term' ? '#eee' : 'var(--surface)' }} onClick={() => setMode('term')} disabled={terms.length === 0}>
             學期統計
           </button>{' '}
-          <button style={{ ...btn, background: mode === 'year' ? '#eee' : '#fff' }} onClick={() => setMode('year')} disabled={terms.length === 0}>
+          <button style={{ ...btn, background: mode === 'year' ? '#eee' : 'var(--surface)' }} onClick={() => setMode('year')} disabled={terms.length === 0}>
             學年統計
           </button>{' '}
-          <button style={{ ...btn, background: mode === 'month' ? '#eee' : '#fff' }} onClick={() => setMode('month')}>
+          <button style={{ ...btn, background: mode === 'month' ? '#eee' : 'var(--surface)' }} onClick={() => setMode('month')}>
             整月統計
           </button>{' '}
-          <button style={{ ...btn, background: mode === 'day' ? '#eee' : '#fff' }} onClick={() => setMode('day')}>
+          <button style={{ ...btn, background: mode === 'day' ? '#eee' : 'var(--surface)' }} onClick={() => setMode('day')}>
             單日名單
           </button>
         </span>
@@ -198,16 +198,16 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
         </button>
       </div>
 
-      {loading && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+      {loading && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
       {error && <p style={{ fontSize: 13, color: '#c00' }}>{error}</p>}
       {!loading && autoHolidays.length > 0 && (
-        <p style={{ fontSize: 12, color: '#666', margin: '0 0 10px' }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', margin: '0 0 10px' }}>
           以下 {autoHolidays.length} 天排班的人有 80% 以上沒打卡，已自動當放假日計算（不算缺勤）：
           {autoHolidays.map((h) => h.holiday_date.slice(5).replace('-', '/')).join('、')}。要正式記錄或更正，請到「班別與放假日」。
         </p>
       )}
       {!loading && periods.length > 0 && (
-        <p style={{ fontSize: 12, color: '#666', margin: '0 0 10px' }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', margin: '0 0 10px' }}>
           特殊時段（期間內改用設定的上下班時間）：
           {periods.map((p) => `${p.name} ${p.from.slice(5).replace('-', '/')}～${p.to.slice(5).replace('-', '/')}${p.start_time ? ' 上班 ' + p.start_time.slice(0, 5) : ''}${p.end_time ? ' 下班 ' + p.end_time.slice(0, 5) : ''}`).join('；')}
         </p>
@@ -238,7 +238,7 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
                         {r.label}
                         {!r.emp.teacher_id && <span style={{ color: '#b26a00', fontSize: 11 }}>　未對應帳號</span>}
                       </td>
-                      <td style={{ ...td, color: '#666' }}>
+                      <td style={{ ...td, color: 'var(--sub)' }}>
                         {r.emp.shift_ids.length ? r.emp.shift_ids.map((id) => shifts.find((s) => s.id === id)?.name).filter(Boolean).join('、') : <span style={{ color: '#b26a00' }}>未設定</span>}
                       </td>
                       <td style={td}>{r.stats.expectedDays}</td>
@@ -254,7 +254,7 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
                     </tr>
                     {open && (
                       <tr>
-                        <td colSpan={13} style={{ padding: 12, background: '#fbfcff', borderBottom: '1px solid #eee' }}>
+                        <td colSpan={13} style={{ padding: 12, background: '#fbfcff', borderBottom: '1px solid var(--line)' }}>
                           <StatsCards stats={r.stats} />
                           <DayTable days={r.days} hideEmptyOffDays />
                         </td>
@@ -265,7 +265,7 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
               })}
               {!loading && visibleRows.length === 0 && (
                 <tr>
-                  <td style={{ ...td, color: '#999' }} colSpan={13}>
+                  <td style={{ ...td, color: 'var(--sub)' }} colSpan={13}>
                     沒有符合的資料（若剛建立系統，請先到「匯入與同步」上傳打卡機 CSV）
                   </td>
                 </tr>
@@ -295,14 +295,14 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
                   <tr key={r.emp.device_code} style={{ opacity: r.emp.active ? 1 : 0.5 }}>
                     <td style={td}>{r.emp.device_code}</td>
                     <td style={td}>{r.label}</td>
-                    <td style={{ ...td, color: '#666' }}>{d.shiftLabel || '—'}</td>
+                    <td style={{ ...td, color: 'var(--sub)' }}>{d.shiftLabel || '—'}</td>
                     <td style={td}>{d.inTime ?? '—'}</td>
                     <td style={td}>{d.outTime ?? '—'}</td>
                     <td style={td}>
                       <StatusBadge status={d.status} />
                     </td>
-                    <td style={{ ...td, color: '#666' }}>{d.punches.join('、') || '—'}</td>
-                    <td style={{ ...td, color: '#666' }}>{d.note}</td>
+                    <td style={{ ...td, color: 'var(--sub)' }}>{d.punches.join('、') || '—'}</td>
+                    <td style={{ ...td, color: 'var(--sub)' }}>{d.note}</td>
                   </tr>
                 );
               })}

@@ -122,15 +122,15 @@ export default function StatusChangeRequestPanel({ classId, classLabel, onClose 
     flex: 1,
     padding: '10px 0',
     borderRadius: 8,
-    border: active ? '1px solid #2C2C2A' : '1px solid #ccc',
-    background: active ? '#2C2C2A' : '#fff',
-    color: active ? '#fff' : '#2C2C2A',
+    border: active ? '1px solid var(--primary)' : '1px solid var(--line-strong)',
+    background: active ? 'var(--primary)' : 'var(--surface)',
+    color: active ? '#fff' : 'var(--ink)',
     fontSize: 15,
   });
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 60, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div style={{ background: '#fff', width: '100%', maxWidth: 460, maxHeight: '92vh', overflowY: 'auto', borderRadius: '12px 12px 0 0', padding: 16 }}>
+      <div style={{ background: 'var(--surface)', width: '100%', maxWidth: 460, maxHeight: '92vh', overflowY: 'auto', borderRadius: '12px 12px 0 0', padding: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <h2 style={{ fontSize: 16 }}>學籍異動申請（{classLabel}）</h2>
           <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 20 }} aria-label="關閉">
@@ -138,7 +138,7 @@ export default function StatusChangeRequestPanel({ classId, classLabel, onClose 
           </button>
         </div>
 
-        <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>① 選擇類別</p>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>① 選擇類別</p>
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           {TYPES.map((t) => (
             <button key={t} onClick={() => setType(t)} style={btn(type === t)}>
@@ -160,7 +160,7 @@ export default function StatusChangeRequestPanel({ classId, classLabel, onClose 
 
         {type && (
           <>
-            <p style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>② 勾選本班同學並填寫原因（可批次勾選）</p>
+            <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 4 }}>② 勾選本班同學並填寫原因（可批次勾選）</p>
             <label style={{ fontSize: 13, display: 'flex', gap: 6, alignItems: 'center', padding: '6px 0' }}>
               <input
                 type="checkbox"
@@ -173,10 +173,10 @@ export default function StatusChangeRequestPanel({ classId, classLabel, onClose 
               const pending = pendingNos.has(s.student_no);
               const on = checked.has(s.student_no);
               return (
-                <div key={s.student_no} style={{ padding: '8px 0', borderBottom: '1px solid #eee', opacity: pending ? 0.5 : 1 }}>
+                <div key={s.student_no} style={{ padding: '8px 0', borderBottom: '1px solid var(--line)', opacity: pending ? 0.5 : 1 }}>
                   <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 15 }}>
                     <input type="checkbox" disabled={pending} checked={on} onChange={() => toggle(s.student_no)} />
-                    <span style={{ color: '#999', width: 24 }}>{s.seat_no}</span>
+                    <span style={{ color: 'var(--sub)', width: 24 }}>{s.seat_no}</span>
                     {s.name}
                     {pending && <span style={{ fontSize: 12, color: '#A36A2D' }}>（已有待審申請）</span>}
                   </label>
@@ -185,19 +185,19 @@ export default function StatusChangeRequestPanel({ classId, classLabel, onClose 
                       value={reasons[s.student_no] ?? DEFAULT_REASON}
                       onChange={(e) => setReasons((prev) => ({ ...prev, [s.student_no]: e.target.value }))}
                       placeholder="原因"
-                      style={{ marginTop: 6, width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc' }}
+                      style={{ marginTop: 6, width: '100%', padding: 8, borderRadius: 6, border: '1px solid var(--line-strong)' }}
                     />
                   )}
                 </div>
               );
             })}
-            {students.length === 0 && <p style={{ fontSize: 13, color: '#999' }}>本班目前沒有在學學生。</p>}
+            {students.length === 0 && <p style={{ fontSize: 13, color: 'var(--sub)' }}>本班目前沒有在學學生。</p>}
 
             {error && <p style={{ fontSize: 13, color: '#A32D2D', marginTop: 8 }}>{error}</p>}
             <button
               onClick={submit}
               disabled={busy || checked.size === 0}
-              style={{ width: '100%', marginTop: 12, padding: 12, borderRadius: 8, background: '#2C2C2A', color: '#fff', border: 'none', opacity: busy || checked.size === 0 ? 0.5 : 1 }}
+              style={{ width: '100%', marginTop: 12, padding: 12, borderRadius: 8, background: 'var(--primary)', color: '#fff', border: 'none', opacity: busy || checked.size === 0 ? 0.5 : 1 }}
             >
               {busy ? '送出中…' : `③ 送出${checked.size ? `（${checked.size} 位）` : ''}`}
             </button>
@@ -205,7 +205,7 @@ export default function StatusChangeRequestPanel({ classId, classLabel, onClose 
         )}
 
         {myReqs.length > 0 && (
-          <div style={{ marginTop: 20, paddingTop: 12, borderTop: '1px solid #eee' }}>
+          <div style={{ marginTop: 20, paddingTop: 12, borderTop: '1px solid var(--line)' }}>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>本班申請紀錄</p>
             {myReqs.map((r) => (
               <div key={r.id} style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid #f3f3f3' }}>
@@ -214,16 +214,16 @@ export default function StatusChangeRequestPanel({ classId, classLabel, onClose 
                     {r.student_name ?? r.student_no}・{r.request_type}
                     {r.target_class_label ? `→${r.target_class_label}` : ''}
                   </span>
-                  <span style={{ color: STATUS_COLOR[r.status] ?? '#666' }}>
+                  <span style={{ color: STATUS_COLOR[r.status] ?? 'var(--sub)' }}>
                     {r.status}
                     {r.status === '待審核' && (
-                      <button onClick={() => cancel(r.id)} style={{ marginLeft: 8, fontSize: 12, border: 'none', background: 'none', textDecoration: 'underline', color: '#666' }}>
+                      <button onClick={() => cancel(r.id)} style={{ marginLeft: 8, fontSize: 12, border: 'none', background: 'none', textDecoration: 'underline', color: 'var(--sub)' }}>
                         撤回
                       </button>
                     )}
                   </span>
                 </div>
-                <div style={{ color: '#888' }}>
+                <div style={{ color: 'var(--sub)' }}>
                   {r.reason}
                   {r.decision_note ? `　教務處：${r.decision_note}` : ''}
                 </div>

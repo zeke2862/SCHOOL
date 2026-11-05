@@ -74,7 +74,7 @@ export default function ChangePasswordPage() {
   return (
     <main style={{ maxWidth: 360, margin: '80px auto', padding: 24 }}>
       <h1 style={{ fontSize: 18, marginBottom: 8 }}>請先設定新密碼</h1>
-      <p style={{ fontSize: 13, color: '#666', marginBottom: 24 }}>
+      <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 24 }}>
         這是您第一次登入（或密碼剛被管理員重設），系統要求先自己設定一組新密碼，才能繼續使用。
       </p>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -83,7 +83,7 @@ export default function ChangePasswordPage() {
           placeholder="新密碼（至少6碼）"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+          style={{ padding: 10, borderRadius: 8, border: '1px solid var(--line-strong)' }}
           required
         />
         <input
@@ -91,14 +91,14 @@ export default function ChangePasswordPage() {
           placeholder="再輸入一次新密碼"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+          style={{ padding: 10, borderRadius: 8, border: '1px solid var(--line-strong)' }}
           required
         />
         {error && <p style={{ color: '#A32D2D', fontSize: 13 }}>{error}</p>}
         <button
           type="submit"
           disabled={submitting}
-          style={{ padding: 12, background: submitting ? '#999' : '#2C2C2A', color: '#fff', border: 'none', borderRadius: 8 }}
+          style={{ padding: 12, background: submitting ? '#999' : 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8 }}
         >
           {submitting ? '更新中…' : '更新密碼並繼續'}
         </button>

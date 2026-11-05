@@ -4,15 +4,15 @@ import { CSSProperties, ReactNode, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 // 競賽頁面共用的樣式與小工具（沿用校務系統的簡單 inline style 風格）
-export const card: CSSProperties = { border: '1px solid #eee', borderRadius: 8, padding: 16, marginBottom: 16 };
+export const card: CSSProperties = { border: '1px solid var(--line)', borderRadius: 8, padding: 16, marginBottom: 16 };
 export const inputStyle: CSSProperties = { padding: 6, marginTop: 4, width: '100%', boxSizing: 'border-box' };
 export const smallInput: CSSProperties = { padding: 4, boxSizing: 'border-box' };
-export const th: CSSProperties = { textAlign: 'left', padding: '6px 8px', borderBottom: '2px solid #ddd', fontSize: 12, whiteSpace: 'nowrap' };
-export const td: CSSProperties = { padding: '6px 8px', borderBottom: '1px solid #f0f0f0', fontSize: 13, verticalAlign: 'top' };
-export const btn: CSSProperties = { padding: '6px 12px', border: '1px solid #bbb', borderRadius: 6, background: '#fff', cursor: 'pointer' };
-export const btnPrimary: CSSProperties = { ...btn, background: '#1f4e79', color: '#fff', borderColor: '#1f4e79' };
+export const th: CSSProperties = { textAlign: 'left', padding: '6px 8px', borderBottom: '2px solid var(--line-strong)', fontSize: 12, whiteSpace: 'nowrap' };
+export const td: CSSProperties = { padding: '6px 8px', borderBottom: '1px solid var(--line)', fontSize: 13, verticalAlign: 'top' };
+export const btn: CSSProperties = { padding: '6px 12px', border: '1px solid var(--line-strong)', borderRadius: 6, background: 'var(--surface)', cursor: 'pointer' };
+export const btnPrimary: CSSProperties = { ...btn, background: 'var(--primary)', color: '#fff', borderColor: 'var(--primary)' };
 export const btnDanger: CSSProperties = { ...btn, color: '#A32D2D', borderColor: '#d9a3a3' };
-export const hint: CSSProperties = { fontSize: 12, color: '#666' };
+export const hint: CSSProperties = { fontSize: 12, color: 'var(--sub)' };
 
 export function Section({ title, children, id }: { title: string; children: ReactNode; id?: string }) {
   return (

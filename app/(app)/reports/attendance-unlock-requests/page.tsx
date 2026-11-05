@@ -249,7 +249,7 @@ export default function AttendanceUnlockRequestsPage() {
     return (
       <main style={{ maxWidth: 560, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 4 }}>出缺勤修正／開放申請審核</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>
           {perms.loading ? '載入中…' : '出缺勤屬訓導處業務，本頁僅提供訓導處成員／系統管理員S／開發人員使用。'}
         </p>
       </main>
@@ -259,18 +259,18 @@ export default function AttendanceUnlockRequestsPage() {
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>出缺勤修正／開放申請審核</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         導師在「學生出缺席登錄（一週）」頁面送出的兩種申請都會列在這裡：整班/整週鎖定時的「申請開放」（核准後解除該範圍鎖定），
         以及單一格「補登超過範圍」時針對某一筆紀錄送出的修正申請（核准後導師就能重新編輯那一筆紀錄，不影響其他紀錄）。
       </p>
       <ErrorBanner message={loadError} />
 
       <h2 style={{ fontSize: 14, margin: '8px 0' }}>整週／當天出缺席修正申請</h2>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         流程：導師送出 → 訓導處承辦人審核 →（人數太多或該教師申請太頻繁時）再由訓導主任批示；
         出缺席「已結算（鎖定）」後的修正，承辦同意後一律送管理員A批示，A 可再決定是否送管理員S。門檻可在「出缺席相關設定」調整。
       </p>
-      {batches.length === 0 && <p style={{ fontSize: 13, color: '#666', marginBottom: 16 }}>目前沒有待處理的修正申請。</p>}
+      {batches.length === 0 && <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 16 }}>目前沒有待處理的修正申請。</p>}
       {batches.map((b) => {
         const items = batchItems[b.id] ?? [];
         const byStudent: Record<string, BatchItem[]> = {};
@@ -286,21 +286,21 @@ export default function AttendanceUnlockRequestsPage() {
                 ? isStageA && notHandler
                 : perms.isSystemAdmin;
         return (
-          <div key={b.id} style={{ padding: 12, border: waitingSupervisor ? '2px solid #D9A400' : '1px solid #eee', borderRadius: 8, marginBottom: 8 }}>
+          <div key={b.id} style={{ padding: 12, border: waitingSupervisor ? '2px solid #D9A400' : '1px solid var(--line)', borderRadius: 8, marginBottom: 8 }}>
             <p style={{ fontSize: 13 }}>
               <b>{teacherNames[b.requested_by] ?? '教師'}</b> 申請修正 {classLabels[b.class_id] ?? ''}：
               {b.date_from === b.date_to ? b.date_from : `${b.date_from} ～ ${b.date_to}`}，共 {b.student_count} 位學生、{b.cell_count} 節
-              <span style={{ marginLeft: 8, fontSize: 11, padding: '1px 6px', borderRadius: 4, background: waitingSupervisor ? '#FFF6D9' : '#F5F5F3' }}>
+              <span style={{ marginLeft: 8, fontSize: 11, padding: '1px 6px', borderRadius: 4, background: waitingSupervisor ? '#FFF6D9' : 'var(--primary-soft)' }}>
                 {b.status}
               </span>
             </p>
-            <p style={{ fontSize: 13, color: '#666' }}>理由：{b.reason}</p>
+            <p style={{ fontSize: 13, color: 'var(--sub)' }}>理由：{b.reason}</p>
             {b.needs_supervisor && (
               <p style={{ fontSize: 12, color: '#A36A2D' }}>
                 ⚠ {b.after_settlement ? '需管理員A批示' : '需長官批示'}：{b.needs_supervisor_reason}
               </p>
             )}
-            {waitingSupervisor && b.handler_note && <p style={{ fontSize: 12, color: '#666' }}>承辦意見：{b.handler_note}</p>}
+            {waitingSupervisor && b.handler_note && <p style={{ fontSize: 12, color: 'var(--sub)' }}>承辦意見：{b.handler_note}</p>}
             <ul style={{ fontSize: 12, margin: '6px 0', paddingLeft: 18 }}>
               {Object.entries(byStudent).map(([no, list]) => (
                 <li key={no}>
@@ -338,7 +338,7 @@ export default function AttendanceUnlockRequestsPage() {
                     <button
                       onClick={() => handleBatchDecision(b, '送S')}
                       disabled={busyId === b.id}
-                      style={{ padding: '4px 12px', background: '#fff', color: '#2C2C2A', border: '1px solid #2C2C2A', borderRadius: 6 }}
+                      style={{ padding: '4px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--primary)', borderRadius: 6 }}
                     >
                       送管理員S決定
                     </button>
@@ -353,7 +353,7 @@ export default function AttendanceUnlockRequestsPage() {
                 </div>
               </>
             ) : (
-              <p style={{ fontSize: 12, color: '#999' }}>
+              <p style={{ fontSize: 12, color: 'var(--sub)' }}>
                 {b.status === '待長官批示'
                   ? '此申請等待訓導主任批示（承辦人與批示者不能是同一人）。'
                   : b.status === '待A批示'
@@ -368,15 +368,15 @@ export default function AttendanceUnlockRequestsPage() {
       })}
 
       <h2 style={{ fontSize: 14, margin: '20px 0 8px' }}>單格補登／範圍開放申請（舊流程）</h2>
-      {requests.length === 0 && <p style={{ fontSize: 13, color: '#666' }}>目前沒有待審核的申請。</p>}
+      {requests.length === 0 && <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有待審核的申請。</p>}
 
       {requests.map((r) => (
-        <div key={r.id} style={{ padding: 12, border: '1px solid #eee', borderRadius: 8, marginBottom: 8 }}>
+        <div key={r.id} style={{ padding: 12, border: '1px solid var(--line)', borderRadius: 8, marginBottom: 8 }}>
           <p style={{ fontSize: 13 }}>
             {teacherNames[r.requested_by] ?? r.requested_by} 申請{r.record_id ? '修正' : '開放'}：{scopeLabel(r)}
           </p>
-          {r.reason && <p style={{ fontSize: 13, color: '#666' }}>原因：{r.reason}</p>}
-          <p style={{ fontSize: 12, color: '#999' }}>{new Date(r.created_at).toLocaleString('zh-TW')}</p>
+          {r.reason && <p style={{ fontSize: 13, color: 'var(--sub)' }}>原因：{r.reason}</p>}
+          <p style={{ fontSize: 12, color: 'var(--sub)' }}>{new Date(r.created_at).toLocaleString('zh-TW')}</p>
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
             <button
               onClick={() => handleDecision(r, '核准')}

@@ -165,7 +165,7 @@ export default function ClubRosterPage() {
     return (
       <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16 }}>社團點名冊</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>目前沒有指派給您的社團，如有需要請洽教務處。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有指派給您的社團，如有需要請洽教務處。</p>
       </main>
     );
   }
@@ -185,7 +185,7 @@ export default function ClubRosterPage() {
   return (
     <main style={{ maxWidth: 800, margin: '0 auto', padding: isMobile ? '16px 12px' : 24 }}>
       <h1 style={{ fontSize: isMobile ? 18 : 16, marginBottom: 4 }}>社團點名冊</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>選擇社團與日期後，逐位學生點選出缺勤狀態，最後按「儲存點名」送出。</p>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>選擇社團與日期後，逐位學生點選出缺勤狀態，最後按「儲存點名」送出。</p>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
         {clubs.length > 1 && (
@@ -214,10 +214,10 @@ export default function ClubRosterPage() {
           </button>
         </div>
       ) : loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <>
-          <p style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>在社共 {members.length} 人</p>
+          <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 6 }}>在社共 {members.length} 人</p>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 16 }}>
             <thead>
               <tr>
@@ -231,7 +231,7 @@ export default function ClubRosterPage() {
             </thead>
             <tbody>
               {members.map((m, idx) => (
-                <tr key={m.student_no} style={{ borderTop: '1px solid #eee' }}>
+                <tr key={m.student_no} style={{ borderTop: '1px solid var(--line)' }}>
                   <td style={{ padding: 6 }}>{idx + 1}</td>
                   <td style={{ padding: 6 }}>{m.student_no}</td>
                   <td style={{ padding: 6 }}>{m.class_label}</td>
@@ -251,8 +251,8 @@ export default function ClubRosterPage() {
                             fontSize: 13,
                             padding: isMobile ? '8px 12px' : '4px 10px',
                             borderRadius: 6,
-                            border: '1px solid #ccc',
-                            background: (statusMap[m.student_no] ?? '出席') === opt ? '#EAF3DE' : '#fff',
+                            border: '1px solid var(--line-strong)',
+                            background: (statusMap[m.student_no] ?? '出席') === opt ? '#EAF3DE' : 'var(--surface)',
                           }}
                         >
                           {opt}
@@ -265,7 +265,7 @@ export default function ClubRosterPage() {
               ))}
               {members.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                  <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                     這個社團目前沒有在社學生
                   </td>
                 </tr>
@@ -282,9 +282,9 @@ export default function ClubRosterPage() {
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}
         >
-          <div style={{ background: '#fff', borderRadius: 8, padding: 24, width: '90%', maxWidth: 420, maxHeight: '80vh', overflowY: 'auto' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 8, padding: 24, width: '90%', maxWidth: 420, maxHeight: '80vh', overflowY: 'auto' }}>
             <h2 style={{ fontSize: 16, marginBottom: 8 }}>點名已儲存，請確認</h2>
-            <p style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
+            <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 12 }}>
               {summary.date} 共 {summary.total} 人，出席 {summary.total - summary.absent.length} 人，未出席 {summary.absent.length} 人
             </p>
             {summary.absent.length === 0 ? (
@@ -292,17 +292,17 @@ export default function ClubRosterPage() {
             ) : (
               <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px', fontSize: 14 }}>
                 {summary.absent.map((a) => (
-                  <li key={a.student_no} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #eee' }}>
+                  <li key={a.student_no} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
                     <span>
                       {a.name}
-                      <span style={{ color: '#999', marginLeft: 6, fontSize: 12 }}>{a.class_label}</span>
+                      <span style={{ color: 'var(--sub)', marginLeft: 6, fontSize: 12 }}>{a.class_label}</span>
                     </span>
                     <span style={{ color: '#A32D2D' }}>{a.status}</span>
                   </li>
                 ))}
               </ul>
             )}
-            <button onClick={() => setSummary(null)} style={{ width: '100%', padding: 10, borderRadius: 8, background: '#2C2C2A', color: '#fff', border: 'none' }}>
+            <button onClick={() => setSummary(null)} style={{ width: '100%', padding: 10, borderRadius: 8, background: 'var(--primary)', color: '#fff', border: 'none' }}>
               確認
             </button>
           </div>

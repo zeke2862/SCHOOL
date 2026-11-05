@@ -99,7 +99,7 @@ export default function TransferPage() {
   return (
     <div style={{ maxWidth: 420, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>學期中轉班</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         原本的班級紀錄不會被刪除，只會標記為非現行，歷年查詢時仍看得到這個學生曾經在哪個班待過。
       </p>
 
@@ -127,8 +127,8 @@ export default function TransferPage() {
             ))}
           </select>
           <input type="number" placeholder="新座號" value={seatNo} onChange={(e) => setSeatNo(e.target.value)} style={{ padding: 8 }} required />
-          {seatNote && <div style={{ fontSize: 12, color: '#888' }}>{seatNote}</div>}
-          <button type="submit" style={{ padding: 12, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 8 }}>
+          {seatNote && <div style={{ fontSize: 12, color: 'var(--sub)' }}>{seatNote}</div>}
+          <button type="submit" style={{ padding: 12, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8 }}>
             確認轉班
           </button>
         </form>

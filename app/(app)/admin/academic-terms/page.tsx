@@ -144,9 +144,9 @@ export default function AcademicTermsPage() {
     <main style={{ maxWidth: 780, margin: '0 auto', padding: 24 }}>
       {rollover && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ background: '#fff', borderRadius: 10, padding: 20, width: 560, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 10, padding: 20, width: 560, maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
             <h2 style={{ fontSize: 15, margin: '0 0 6px' }}>要現在進行升級作業嗎？</h2>
-            <p style={{ fontSize: 12, color: '#666', margin: '0 0 12px' }}>
+            <p style={{ fontSize: 12, color: 'var(--sub)', margin: '0 0 12px' }}>
               已把 {rollover.tgt.year} 學年度 {rollover.tgt.term} 設為目前生效，但學生的學籍還停在 {rollover.src.year} 學年度 {rollover.src.term}。
             </p>
             <RolloverPanel src={rollover.src} tgt={rollover.tgt} onCancel={() => setRollover(null)} />
@@ -154,7 +154,7 @@ export default function AcademicTermsPage() {
         </div>
       )}
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>學年學期中央管理主檔</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         管理系統內有哪些學年學期，以及「目前生效」的是哪一個。這是開發人員部門權限（依部門切割規則，
         只有開發人員或系統管理員可以新增/切換，一般校務人員只能讀取）。
       </p>
@@ -179,13 +179,13 @@ export default function AcademicTermsPage() {
           補上預設日期
         </button>
       </div>
-      <p style={{ fontSize: 11, color: '#999', margin: '-12px 0 16px' }}>
+      <p style={{ fontSize: 11, color: 'var(--sub)', margin: '-12px 0 16px' }}>
         新增時自動帶入預設日期：上學期 5/1 開學～9/30 期末；下學期 10/20 開學～隔年 3/31 期末（可在表格裡再修改）。
       </p>
 
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #ddd', textAlign: 'left' }}>
+          <tr style={{ borderBottom: '1px solid var(--line-strong)', textAlign: 'left' }}>
             <th style={{ padding: 8 }}>學年度</th>
             <th style={{ padding: 8 }}>學期</th>
             <th style={{ padding: 8 }}>開始日期</th>
@@ -196,7 +196,7 @@ export default function AcademicTermsPage() {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+            <tr key={row.id} style={{ borderBottom: '1px solid var(--line)' }}>
               <td style={{ padding: 8 }}>{row.academic_year}</td>
               <td style={{ padding: 8 }}>{row.term}</td>
               <td style={{ padding: 8 }}>
@@ -237,7 +237,7 @@ export default function AcademicTermsPage() {
           ))}
           {rows.length === 0 && (
             <tr>
-              <td colSpan={6} style={{ padding: 16, color: '#999', textAlign: 'center' }}>
+              <td colSpan={6} style={{ padding: 16, color: 'var(--sub)', textAlign: 'center' }}>
                 尚無資料，請先新增一筆學年學期。
               </td>
             </tr>

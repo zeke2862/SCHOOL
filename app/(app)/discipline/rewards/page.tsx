@@ -359,7 +359,7 @@ export default function RewardsPage() {
   if (perms.loading || !ready) {
     return (
       <main style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       </main>
     );
   }
@@ -367,7 +367,7 @@ export default function RewardsPage() {
   return (
     <main style={{ maxWidth: 960, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>獎懲登記</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         {isFull
           ? '訓導處：可對全校任何學生送出敘獎／懲處，送出後直接到管理員A審核（A 可再決定是否送管理員S），通過後才正式生效。'
           : '教師：可對自己有教過的班級送出敘獎／懲處，送出後先由訓導處審核，再送管理員A（A 可再決定是否送管理員S），通過後才正式記錄。'}
@@ -379,10 +379,10 @@ export default function RewardsPage() {
         <div style={{ border: '1px solid #E0C68A', background: '#FFFBEF', borderRadius: 8, padding: 16, marginBottom: 24 }}>
           <h2 style={{ fontSize: 14, marginBottom: 8 }}>
             待您審核的敘獎／懲處申請　
-            <span style={{ fontWeight: 400, fontSize: 12, color: '#999' }}>共 {reviewRows.length} 筆</span>
+            <span style={{ fontWeight: 400, fontSize: 12, color: 'var(--sub)' }}>共 {reviewRows.length} 筆</span>
           </h2>
           {reviewRows.length === 0 ? (
-            <p style={{ fontSize: 13, color: '#999' }}>目前沒有待您審核的申請。</p>
+            <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有待您審核的申請。</p>
           ) : (
             <>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 10 }}>
@@ -403,7 +403,7 @@ export default function RewardsPage() {
                 </thead>
                 <tbody>
                   {reviewRows.map((r) => (
-                    <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+                    <tr key={r.id} style={{ borderTop: '1px solid var(--line)' }}>
                       <td style={{ padding: 6, textAlign: 'center' }}>
                         <input
                           type="checkbox"
@@ -416,7 +416,7 @@ export default function RewardsPage() {
                       <td style={{ padding: 6 }}>{r.event_type}</td>
                       <td style={{ padding: 6, textAlign: 'right' }}>{r.count}</td>
                       <td style={{ padding: 6, textAlign: 'right' }}>{r.points}</td>
-                      <td style={{ padding: 6, color: '#666' }}>{r.reason}</td>
+                      <td style={{ padding: 6, color: 'var(--sub)' }}>{r.reason}</td>
                       <td style={{ padding: 6 }}>{reviewRequesterByUid[r.requested_by] ?? '—'}</td>
                       <td style={{ padding: 6, fontSize: 12, color: '#A36A2D' }}>{STATUS_LABEL[r.status] ?? r.status}</td>
                     </tr>
@@ -435,7 +435,7 @@ export default function RewardsPage() {
                   <button
                     onClick={() => handleReviewDecision('送S')}
                     disabled={reviewBusy}
-                    style={{ padding: '6px 16px', background: '#fff', color: '#2C2C2A', border: '1px solid #2C2C2A', borderRadius: 6, fontSize: 13 }}
+                    style={{ padding: '6px 16px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--primary)', borderRadius: 6, fontSize: 13 }}
                     title="管理員A：勾選的申請改送管理員S決定"
                   >
                     送管理員S決定
@@ -444,7 +444,7 @@ export default function RewardsPage() {
                 <button
                   onClick={() => handleReviewDecision('不同意')}
                   disabled={reviewBusy}
-                  style={{ padding: '6px 16px', background: '#fff', color: '#A32D2D', border: '1px solid #A32D2D', borderRadius: 6, fontSize: 13 }}
+                  style={{ padding: '6px 16px', background: 'var(--surface)', color: '#A32D2D', border: '1px solid #A32D2D', borderRadius: 6, fontSize: 13 }}
                 >
                   不同意勾選項目
                 </button>
@@ -526,7 +526,7 @@ export default function RewardsPage() {
                 const typeOptions: readonly string[] = mode === 'reward' ? REWARD_TYPES : PUNISHMENT_TYPES;
                 const defaultType = mode === 'reward' ? '嘉獎' : '警告';
                 return (
-                  <tr key={s.student_no} style={{ borderTop: '1px solid #eee' }}>
+                  <tr key={s.student_no} style={{ borderTop: '1px solid var(--line)' }}>
                     <td style={{ padding: 6, textAlign: 'center' }}>
                       <input
                         type="checkbox"
@@ -567,7 +567,7 @@ export default function RewardsPage() {
               })}
               {students.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                  <td colSpan={5} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                     這個班級目前沒有在學學生
                   </td>
                 </tr>
@@ -575,7 +575,7 @@ export default function RewardsPage() {
             </tbody>
           </table>
 
-          <div style={{ borderTop: '1px solid #eee', paddingTop: 12, maxWidth: 520 }}>
+          <div style={{ borderTop: '1px solid var(--line)', paddingTop: 12, maxWidth: 520 }}>
             <p style={{ fontSize: 13, marginBottom: 8 }}>
               已勾選 <b>{rewardIncludedNos.length}</b> 位學生
             </p>
@@ -593,7 +593,7 @@ export default function RewardsPage() {
                 else handleSubmitRequest('懲處');
               }}
               disabled={busy}
-              style={{ padding: '8px 18px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}
+              style={{ padding: '8px 18px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}
             >
               {busy ? '送出中…' : '批次送出申請'}
             </button>
@@ -605,11 +605,11 @@ export default function RewardsPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <tbody>
                   {recent.map((r) => (
-                    <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+                    <tr key={r.id} style={{ borderTop: '1px solid var(--line)' }}>
                       <td style={{ padding: 4 }}>{r.event_date}</td>
                       <td style={{ padding: 4 }}>{nameByNo[r.student_no] ?? r.student_no}</td>
                       <td style={{ padding: 4 }}>{r.event_type}</td>
-                      <td style={{ padding: 4, color: '#666' }}>{r.reason ?? ''}</td>
+                      <td style={{ padding: 4, color: 'var(--sub)' }}>{r.reason ?? ''}</td>
                     </tr>
                   ))}
                 </tbody>

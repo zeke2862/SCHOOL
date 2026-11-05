@@ -154,7 +154,7 @@ export default function OrphanSubjectsPanel() {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 10, lineHeight: 1.7 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 10, lineHeight: 1.7 }}>
         這裡列出「成績表裡有分數，但該學年度／學期／年級的【科目與比重設定】裡已經沒有」的科目（例如誤植、遺留的科目）。
         這些科目會出現在班級成績總表的欄位，卻在登錄頁和科目設定裡找不到，所以無法修正。
         你可以<b>刪除</b>這些分數，或<b>改掛</b>到正確的科目（學生在正確科目同一種考試已有分數的不會被覆蓋）。
@@ -182,7 +182,7 @@ export default function OrphanSubjectsPanel() {
       {message && (
         <p style={{ fontSize: 12, color: '#2E6B3A', background: '#EEF7EF', border: '1px solid #bfe0c4', borderRadius: 6, padding: '8px 12px', marginBottom: 12 }}>{message}</p>
       )}
-      {loading && <p style={{ fontSize: 12, color: '#999' }}>載入中…</p>}
+      {loading && <p style={{ fontSize: 12, color: 'var(--sub)' }}>載入中…</p>}
       {!loading && !error && groups.length === 0 && (
         <p style={{ fontSize: 13, color: '#2E6B3A' }}>目前沒有殘留科目，所有成績都對得上科目與比重設定。</p>
       )}
@@ -194,7 +194,7 @@ export default function OrphanSubjectsPanel() {
           <div key={g.key} style={{ border: '1px solid #E5E1D8', borderRadius: 8, padding: 10, marginBottom: 10 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
               <b style={{ fontSize: 14 }}>{g.subject}</b>
-              <span style={{ fontSize: 12, color: '#666' }}>
+              <span style={{ fontSize: 12, color: 'var(--sub)' }}>
                 {g.academic_year} 學年度 {g.term}・{g.grade_level}・{g.classes.length} 班・共 {g.total} 筆成績
               </span>
               <button
@@ -253,9 +253,9 @@ export default function OrphanSubjectsPanel() {
               <table style={{ width: '100%', fontSize: 12, marginTop: 8, borderCollapse: 'collapse' }}>
                 <tbody>
                   {g.classes.map((c) => (
-                    <tr key={c.class_id} style={{ borderTop: '1px solid #eee' }}>
+                    <tr key={c.class_id} style={{ borderTop: '1px solid var(--line)' }}>
                       <td style={{ padding: '4px 6px' }}>{c.label}</td>
-                      <td style={{ padding: '4px 6px', color: '#666' }}>
+                      <td style={{ padding: '4px 6px', color: 'var(--sub)' }}>
                         {c.student_count} 位學生・{c.score_count} 筆
                       </td>
                       <td style={{ padding: '4px 6px', textAlign: 'right', whiteSpace: 'nowrap' }}>

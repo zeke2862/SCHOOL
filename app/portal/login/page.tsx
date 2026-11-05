@@ -117,12 +117,12 @@ function PortalLoginPageInner() {
     <main style={{ maxWidth: 360, margin: '80px auto', padding: 24 }}>
       <button
         onClick={() => router.push('/')}
-        style={{ background: 'none', border: 'none', color: '#999', fontSize: 13, cursor: 'pointer', padding: 0, marginBottom: 16 }}
+        style={{ background: 'none', border: 'none', color: 'var(--sub)', fontSize: 13, cursor: 'pointer', padding: 0, marginBottom: 16 }}
       >
         ‹ 返回選擇身分
       </button>
       <h1 style={{ fontSize: 18, marginBottom: 8 }}>家長／學生查詢入口</h1>
-      <p style={{ fontSize: 13, color: '#666', marginBottom: 24 }}>
+      <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 24 }}>
         家長帳號是 <b>HY＋學號</b>，學生帳號是 <b>HYS＋學號</b>，密碼是<b>你的手機號碼</b>。
         <br />
         <b>第一次使用</b>請輸入後按「第一次使用？申請帳號」，申請會送給班導師核對手機號碼，核准後就能登入；之後直接按「登入」即可。查詢。
@@ -133,7 +133,7 @@ function PortalLoginPageInner() {
           placeholder="登入代碼（例如 HY0123）"
           value={loginCode}
           onChange={(e) => setLoginCode(e.target.value)}
-          style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+          style={{ padding: 10, borderRadius: 8, border: '1px solid var(--line-strong)' }}
           required
         />
         <input
@@ -141,18 +141,18 @@ function PortalLoginPageInner() {
           placeholder="手機號碼"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+          style={{ padding: 10, borderRadius: 8, border: '1px solid var(--line-strong)' }}
           required
         />
         {error && <p style={{ color: '#A32D2D', fontSize: 14 }}>{error}</p>}
         {notice && <p style={{ color: '#3B6D11', fontSize: 14, background: '#EAF3EC', borderRadius: 8, padding: 10 }}>{notice}</p>}
-        <button type="submit" disabled={submitting} style={{ padding: 12, background: submitting ? '#999' : '#2C2C2A', color: '#fff', border: 'none', borderRadius: 8 }}>
+        <button type="submit" disabled={submitting} style={{ padding: 12, background: submitting ? '#999' : 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8 }}>
           {submitting ? '登入中…' : '登入'}
         </button>
-        <button type="button" onClick={handleRegister} disabled={registering} style={{ padding: 12, background: '#fff', color: '#2C6E9E', border: '1px solid #2C6E9E', borderRadius: 8 }}>
+        <button type="button" onClick={handleRegister} disabled={registering} style={{ padding: 12, background: 'var(--surface)', color: 'var(--primary-ink)', border: '1px solid var(--primary)', borderRadius: 8 }}>
           {registering ? '送出中…' : '第一次使用？申請帳號'}
         </button>
-        <p style={{ fontSize: 13, color: '#999' }}>登入時如果顯示「代碼與手機不相符」，代表這支手機還沒登記，請按上面的「申請帳號」，等班導師核准。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>登入時如果顯示「代碼與手機不相符」，代表這支手機還沒登記，請按上面的「申請帳號」，等班導師核准。</p>
       </form>
     </main>
   );

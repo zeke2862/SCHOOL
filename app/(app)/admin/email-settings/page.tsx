@@ -54,16 +54,16 @@ export default function EmailSettingsPage() {
   return (
     <main style={{ maxWidth: 760, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 18, marginBottom: 4 }}>寄信設定</h1>
-      <p style={{ fontSize: 13, color: '#666', lineHeight: 1.7, marginBottom: 16 }}>
+      <p style={{ fontSize: 13, color: 'var(--sub)', lineHeight: 1.7, marginBottom: 16 }}>
         系統有新的通知（家長／學生帳號申請、考場名冊、審核、出缺勤示警…）時，會寄一封簡短的信到老師的登入信箱，提醒他登入處理。
         信裡只寫通知類別，不含學生姓名、電話等個資。老師可以在「帳號設定」自己關閉。
       </p>
       {error && <p style={{ color: '#A32D2D', fontSize: 13 }}>{error}</p>}
       {msg && <p style={{ color: '#3B6D11', fontSize: 13 }}>{msg}</p>}
-      {!status && !error && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+      {!status && !error && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
 
       {cfg && (
-        <section style={{ border: '1px solid #e5e5e0', borderRadius: 8, padding: 14, marginBottom: 16 }}>
+        <section style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 14, marginBottom: 16 }}>
           <div style={{ fontSize: 14, marginBottom: 6 }}>
             寄信服務：
             {cfg.configured ? (
@@ -73,7 +73,7 @@ export default function EmailSettingsPage() {
             )}
           </div>
           {!cfg.configured && (
-            <div style={{ fontSize: 12.5, color: '#666', lineHeight: 1.8 }}>
+            <div style={{ fontSize: 12.5, color: 'var(--sub)', lineHeight: 1.8 }}>
               請到 Vercel 專案的 Settings → Environment Variables 新增（只勾 Production），存檔後 Redeploy：
               <ul style={{ margin: '6px 0 0 18px' }}>
                 <li>
@@ -107,11 +107,11 @@ export default function EmailSettingsPage() {
         <section>
           <h2 style={{ fontSize: 14, marginBottom: 6 }}>最近 30 封</h2>
           {status.recent.length === 0 ? (
-            <p style={{ fontSize: 13, color: '#999' }}>還沒有信件紀錄。</p>
+            <p style={{ fontSize: 13, color: 'var(--sub)' }}>還沒有信件紀錄。</p>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
               <thead>
-                <tr style={{ textAlign: 'left', background: '#f5f5f3' }}>
+                <tr style={{ textAlign: 'left', background: 'var(--primary-soft)' }}>
                   <th style={{ padding: 6 }}>時間</th>
                   <th style={{ padding: 6 }}>收件人</th>
                   <th style={{ padding: 6 }}>主旨</th>
@@ -120,7 +120,7 @@ export default function EmailSettingsPage() {
               </thead>
               <tbody>
                 {status.recent.map((r) => (
-                  <tr key={r.id} style={{ borderTop: '1px solid #eee', verticalAlign: 'top' }}>
+                  <tr key={r.id} style={{ borderTop: '1px solid var(--line)', verticalAlign: 'top' }}>
                     <td style={{ padding: 6, whiteSpace: 'nowrap' }}>{new Date(r.created_at).toLocaleString('zh-TW', { hour12: false })}</td>
                     <td style={{ padding: 6 }}>{r.to_name}</td>
                     <td style={{ padding: 6 }}>{r.subject}</td>

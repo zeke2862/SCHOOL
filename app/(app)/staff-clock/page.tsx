@@ -135,11 +135,11 @@ export default function MyStaffClockPage() {
   return (
     <main style={{ maxWidth: 960, margin: '0 auto', padding: 16 }}>
       <h1 style={{ fontSize: 18, marginBottom: 4 }}>我的打卡紀錄</h1>
-      <p style={{ fontSize: 12, color: '#888', marginTop: 0 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 0 }}>
         打卡機資料由學校電腦每天自動更新{lastLabel ? `，目前資料最新到 ${lastLabel}（泰國時間）` : ''}。上班／下班依「班別設定」的時段推算；如有錯漏請洽教務處補卡或更正。
       </p>
 
-      {loading && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+      {loading && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
       {error && <p style={{ fontSize: 13, color: '#c00' }}>{error}</p>}
 
       {!loading && !error && selectable.length === 0 && (
@@ -152,13 +152,13 @@ export default function MyStaffClockPage() {
         <>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', margin: '12px 0' }}>
             <span>
-              <button style={{ ...btn, background: period === 'month' ? '#eee' : '#fff' }} onClick={() => setPeriod('month')}>
+              <button style={{ ...btn, background: period === 'month' ? '#eee' : 'var(--surface)' }} onClick={() => setPeriod('month')}>
                 依月份
               </button>{' '}
-              <button style={{ ...btn, background: period === 'term' ? '#eee' : '#fff' }} onClick={() => setPeriod('term')} disabled={terms.length === 0}>
+              <button style={{ ...btn, background: period === 'term' ? '#eee' : 'var(--surface)' }} onClick={() => setPeriod('term')} disabled={terms.length === 0}>
                 依學期
               </button>{' '}
-              <button style={{ ...btn, background: period === 'year' ? '#eee' : '#fff' }} onClick={() => setPeriod('year')} disabled={terms.length === 0}>
+              <button style={{ ...btn, background: period === 'year' ? '#eee' : 'var(--surface)' }} onClick={() => setPeriod('year')} disabled={terms.length === 0}>
                 依學年
               </button>
             </span>
@@ -191,7 +191,7 @@ export default function MyStaffClockPage() {
 
           {selected && (
             <>
-              <div style={{ fontSize: 13, color: '#555' }}>
+              <div style={{ fontSize: 13, color: 'var(--sub)' }}>
                 {employeeLabel(selected, selected.teacher_id ? teacherNames.get(selected.teacher_id) : null)}　班別：
                 {myShifts.length ? myShifts.map(shiftLabel).join('；') : '尚未設定'}
               </div>
@@ -199,7 +199,7 @@ export default function MyStaffClockPage() {
               <DayTable days={days} hideEmptyOffDays />
             </>
           )}
-          {!selected && canManage && <p style={{ fontSize: 13, color: '#888' }}>請選擇要查看的人員。</p>}
+          {!selected && canManage && <p style={{ fontSize: 13, color: 'var(--sub)' }}>請選擇要查看的人員。</p>}
         </>
       )}
     </main>

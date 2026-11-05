@@ -70,7 +70,7 @@ export default function SchedulerBackupPanel({ academicYear, term }: { academicY
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
         排課工具「💾 存檔到校務系統」按下去就會自動存一筆在這裡（不用手動操作）。
         如果手上有舊方式（工具內「備份專案」）下載的JSON檔想補存進來，也可以在這裡手動上傳。
         下載回來的JSON檔可以在排課工具用「上傳專案」讀回去繼續編輯。
@@ -82,7 +82,7 @@ export default function SchedulerBackupPanel({ academicYear, term }: { academicY
         </label>
         <input ref={fileInputRef} type="file" accept=".json" onChange={handleUploadChange} disabled={saving} style={{ fontSize: 13 }} />
       </div>
-      {saving && <p style={{ fontSize: 12, color: '#666' }}>儲存中…</p>}
+      {saving && <p style={{ fontSize: 12, color: 'var(--sub)' }}>儲存中…</p>}
       {saveMsg && <p style={{ fontSize: 12, color: saveMsg.startsWith('已存') ? '#3B6D11' : '#A32D2D', marginBottom: 8 }}>{saveMsg}</p>}
 
       {loadError && <p style={{ fontSize: 12, color: '#A32D2D', marginBottom: 8 }}>讀取存檔清單失敗：{loadError}</p>}
@@ -97,9 +97,9 @@ export default function SchedulerBackupPanel({ academicYear, term }: { academicY
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+            <tr key={r.id} style={{ borderTop: '1px solid var(--line)' }}>
               <td style={{ padding: 6, whiteSpace: 'nowrap' }}>{new Date(r.saved_at).toLocaleString()}</td>
-              <td style={{ padding: 6, color: '#666' }}>{r.note || '—'}</td>
+              <td style={{ padding: 6, color: 'var(--sub)' }}>{r.note || '—'}</td>
               <td style={{ padding: 6, textAlign: 'right', whiteSpace: 'nowrap' }}>
                 <button onClick={() => handleDownload(r)} style={{ fontSize: 12, padding: '2px 8px' }}>
                   下載JSON
@@ -109,7 +109,7 @@ export default function SchedulerBackupPanel({ academicYear, term }: { academicY
           ))}
           {rows.length === 0 && (
             <tr>
-              <td colSpan={3} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+              <td colSpan={3} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                 這個學年度／學期目前還沒有存檔
               </td>
             </tr>

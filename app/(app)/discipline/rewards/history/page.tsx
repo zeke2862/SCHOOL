@@ -107,7 +107,7 @@ export default function RewardsHistoryPage() {
   return (
     <main style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>查看獎懲</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         只顯示已經正式生效（審核通過或訓導/管理員直接登記）的獎懲紀錄。訓導部門／系統管理員S／管理員A 看得到全校；導師看得到本班學生＋自己登記過的學生；一般教師只看得到自己登記過的學生。
         {simulatingTeacher && '（目前是「教師視角」預覽，畫面已依教師身分限縮範圍）'}
       </p>
@@ -131,7 +131,7 @@ export default function RewardsHistoryPage() {
       </div>
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
@@ -145,19 +145,19 @@ export default function RewardsHistoryPage() {
           </thead>
           <tbody>
             {filtered.map((r) => (
-              <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+              <tr key={r.id} style={{ borderTop: '1px solid var(--line)' }}>
                 <td style={{ padding: 6, whiteSpace: 'nowrap' }}>{new Date(r.created_at).toLocaleString('zh-TW')}</td>
                 <td style={{ padding: 6 }}>
                   {nameByNo[r.student_no] ?? r.student_no}（{r.student_no}）
                 </td>
                 <td style={{ padding: 6 }}>{r.event_type}</td>
                 <td style={{ padding: 6, textAlign: 'right' }}>{r.count}</td>
-                <td style={{ padding: 6, color: '#666' }}>{r.reason ?? ''}</td>
+                <td style={{ padding: 6, color: 'var(--sub)' }}>{r.reason ?? ''}</td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                <td colSpan={5} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                   沒有符合條件的紀錄
                 </td>
               </tr>

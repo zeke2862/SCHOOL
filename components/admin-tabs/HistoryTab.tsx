@@ -91,16 +91,16 @@ export default function HistoryQueryPage() {
           onChange={(e) => setStudentNo(e.target.value)}
           style={{ padding: 8, flex: 1 }}
         />
-        <button onClick={handleSearch} style={{ padding: '8px 16px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+        <button onClick={handleSearch} style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
           查詢
         </button>
       </div>
 
       {!subjectOnly && caps?.homeroom && !caps.academic && (
-        <p style={{ fontSize: 12, color: '#888' }}>導師可查詢「目前班上學生」過去所有學期（包含上一個年級）的各科期中、期末、平時分、總分與班排名。</p>
+        <p style={{ fontSize: 12, color: 'var(--sub)' }}>導師可查詢「目前班上學生」過去所有學期（包含上一個年級）的各科期中、期末、平時分、總分與班排名。</p>
       )}
-      {subjectOnly && <p style={{ fontSize: 12, color: '#888' }}>任課教師可查詢「目前正在教的學生」在您任教的同一科目的歷年成績。</p>}
-      {searched && records.length === 0 && <p style={{ fontSize: 13, color: '#666' }}>查無此學號的歷年紀錄。</p>}
+      {subjectOnly && <p style={{ fontSize: 12, color: 'var(--sub)' }}>任課教師可查詢「目前正在教的學生」在您任教的同一科目的歷年成績。</p>}
+      {searched && records.length === 0 && <p style={{ fontSize: 13, color: 'var(--sub)' }}>查無此學號的歷年紀錄。</p>}
 
       {records.length > 0 && (
         <>
@@ -124,7 +124,7 @@ export default function HistoryQueryPage() {
             </thead>
             <tbody>
               {records.map((r) => (
-                <tr key={r.enrollment_id} style={{ borderTop: '1px solid #eee' }}>
+                <tr key={r.enrollment_id} style={{ borderTop: '1px solid var(--line)' }}>
                   <td style={{ padding: 6 }}>{r.academic_year}</td>
                   <td style={{ padding: 6 }}>{r.term}</td>
                   <td style={{ padding: 6 }}>{r.grade_level}{r.class_name}</td>

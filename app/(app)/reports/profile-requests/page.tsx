@@ -134,20 +134,20 @@ export default function ProfileChangesPage() {
             <button
               disabled={busy}
               onClick={() => markRead(unread.map((r) => r.id), as)}
-              style={{ padding: '4px 12px', fontSize: 12, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}
+              style={{ padding: '4px 12px', fontSize: 12, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}
             >
               全部標為已閱讀
             </button>
           )}
         </div>
-        {visible.length === 0 && <p style={{ fontSize: 13, color: '#999', marginBottom: 12 }}>沒有{showRead ? '' : '未閱讀的'}資料變更。</p>}
+        {visible.length === 0 && <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 12 }}>沒有{showRead ? '' : '未閱讀的'}資料變更。</p>}
         {visible.map((r) => (
           <div
             key={r.id}
             style={{
               padding: 10,
-              border: r[readKey] ? '1px solid #eee' : '1px solid #D9A400',
-              background: r[readKey] ? '#fff' : '#FFFBEF',
+              border: r[readKey] ? '1px solid var(--line)' : '1px solid #D9A400',
+              background: r[readKey] ? 'var(--surface)' : '#FFFBEF',
               borderRadius: 8,
               marginBottom: 6,
             }}
@@ -160,15 +160,15 @@ export default function ProfileChangesPage() {
                 </span>
               )}
             </p>
-            <p style={{ fontSize: 13, color: '#666' }}>
+            <p style={{ fontSize: 13, color: 'var(--sub)' }}>
               {r.old_value || '（空）'} → <b>{r.new_value || '（空）'}</b>
-              <span style={{ marginLeft: 8, fontSize: 11, color: '#999' }}>{new Date(r.requested_at).toLocaleString('zh-TW')} 已生效</span>
+              <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--sub)' }}>{new Date(r.requested_at).toLocaleString('zh-TW')} 已生效</span>
             </p>
             {!r[readKey] ? (
               <button
                 disabled={busy}
                 onClick={() => markRead([r.id], as)}
-                style={{ marginTop: 6, padding: '3px 10px', fontSize: 12, border: '1px solid #2C2C2A', background: '#fff', borderRadius: 6 }}
+                style={{ marginTop: 6, padding: '3px 10px', fontSize: 12, border: '1px solid var(--primary)', background: 'var(--surface)', borderRadius: 6 }}
               >
                 {as === 'homeroom' ? '已閱讀' : '教務已閱讀'}
               </button>
@@ -184,12 +184,12 @@ export default function ProfileChangesPage() {
   return (
     <main style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>學生資料變更通知</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
         家長／學生在入口修改的基本資料會「直接生效」，不需要審核；導師請閱讀後按「已閱讀」。
         改到姓名、泰文姓名、出生日期、身分證號時，教務處也會收到通知，請核對學籍文件。
       </p>
       <ErrorBanner message={loadError} />
-      <label style={{ fontSize: 12, color: '#666', display: 'flex', gap: 4, alignItems: 'center', marginBottom: 12 }}>
+      <label style={{ fontSize: 12, color: 'var(--sub)', display: 'flex', gap: 4, alignItems: 'center', marginBottom: 12 }}>
         <input type="checkbox" checked={showRead} onChange={(e) => setShowRead(e.target.checked)} />
         也顯示已閱讀的紀錄
       </label>
@@ -209,14 +209,14 @@ export default function ProfileChangesPage() {
       )}
 
       {homeroomStudentNos.size === 0 && !isAcademic && !perms.loading && (
-        <p style={{ fontSize: 13, color: '#999' }}>這頁提供導師與教務處使用。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>這頁提供導師與教務處使用。</p>
       )}
 
       {legacyPending.length > 0 && (
         <section>
           <h2 style={{ fontSize: 14, marginBottom: 8 }}>舊版留下的待審核申請（107 之前送出）</h2>
           {legacyPending.map((r) => (
-            <div key={r.id} style={{ padding: 10, border: '1px solid #eee', borderRadius: 8, marginBottom: 6 }}>
+            <div key={r.id} style={{ padding: 10, border: '1px solid var(--line)', borderRadius: 8, marginBottom: 6 }}>
               <p style={{ fontSize: 13 }}>
                 {r.students?.name ?? r.student_no}（{r.student_no}）— {label(r)}：{r.old_value || '（空）'} → <b>{r.new_value}</b>
               </p>

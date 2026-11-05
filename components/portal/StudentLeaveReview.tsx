@@ -124,12 +124,12 @@ export default function StudentLeaveReview() {
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', padding: 24 }}>
       <h1 style={{ marginBottom: 4 }}>學生請假申請</h1>
-      <p style={{ fontSize: 13, color: '#666', marginBottom: 14, lineHeight: 1.7 }}>
+      <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 14, lineHeight: 1.7 }}>
         家長在入口幫學生請假後，申請會送到這裡。按「核准」，系統會依該班當天的上課節數，把病假／事假<b>直接寫進出缺席表</b>（會覆蓋原本的曠課、遲到；已是公假的節次不會被改）。
         不同意請按「拒絕」，可以寫原因給家長看。
       </p>
       {error && <p style={{ color: '#A32D2D', fontSize: 13 }}>{error}</p>}
-      {loading && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+      {loading && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
       {!loading && pending.length === 0 && !error && <p style={{ fontSize: 14, color: '#3B6D11' }}>✅ 目前沒有待審核的請假。</p>}
 
       {pending.length > 0 && (
@@ -140,7 +140,7 @@ export default function StudentLeaveReview() {
           <button
             disabled={batchBusy || selected.size === 0}
             onClick={approveSelected}
-            style={{ padding: '6px 14px', background: selected.size ? '#2C2C2A' : '#bbb', color: '#fff', border: 'none', borderRadius: 6 }}
+            style={{ padding: '6px 14px', background: selected.size ? 'var(--primary)' : '#bbb', color: '#fff', border: 'none', borderRadius: 6 }}
           >
             {batchBusy ? '處理中…' : `批次核准（${selected.size}）`}
           </button>
@@ -151,7 +151,7 @@ export default function StudentLeaveReview() {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#f5f5f3' }}>
+              <tr style={{ background: 'var(--primary-soft)' }}>
                 <th style={th}>
                   <input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="全部勾選" />
                 </th>
@@ -166,21 +166,21 @@ export default function StudentLeaveReview() {
             </thead>
             <tbody>
               {pending.map((r) => (
-                <tr key={r.id} style={{ borderTop: '1px solid #eee', verticalAlign: 'top', background: selected.has(r.id) ? '#FFF8E1' : undefined }}>
+                <tr key={r.id} style={{ borderTop: '1px solid var(--line)', verticalAlign: 'top', background: selected.has(r.id) ? '#FFF8E1' : undefined }}>
                   <td style={{ padding: 8 }}>
                     <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleOne(r.id)} aria-label={`勾選 ${r.student_name ?? r.student_no}`} />
                   </td>
                   <td style={{ padding: 8, fontSize: 14 }}>
                     <b>{r.student_name}</b>
-                    <div style={{ fontSize: 12, color: '#888' }}>學號 {r.student_no}</div>
+                    <div style={{ fontSize: 12, color: 'var(--sub)' }}>學號 {r.student_no}</div>
                   </td>
                   <td style={{ padding: 8, fontSize: 14 }}>{r.class_label}</td>
                   <td style={{ padding: 8, fontSize: 14, fontWeight: 700 }}>{r.leave_type}</td>
                   <td style={{ padding: 8, fontSize: 14 }}>{range(r)}</td>
-                  <td style={{ padding: 8, fontSize: 13, color: '#555' }}>{r.reason ?? ''}</td>
-                  <td style={{ padding: 8, fontSize: 12, color: '#888' }}>{new Date(r.requested_at).toLocaleString('zh-TW', { hour12: false })}</td>
+                  <td style={{ padding: 8, fontSize: 13, color: 'var(--sub)' }}>{r.reason ?? ''}</td>
+                  <td style={{ padding: 8, fontSize: 12, color: 'var(--sub)' }}>{new Date(r.requested_at).toLocaleString('zh-TW', { hour12: false })}</td>
                   <td style={{ padding: 8, whiteSpace: 'nowrap' }}>
-                    <button disabled={busyId === r.id} onClick={() => decide(r, true)} style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, marginRight: 6 }}>
+                    <button disabled={busyId === r.id} onClick={() => decide(r, true)} style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, marginRight: 6 }}>
                       核准
                     </button>
                     <button disabled={busyId === r.id} onClick={() => decide(r, false)} style={{ padding: '6px 14px', color: '#A32D2D' }}>
@@ -196,22 +196,22 @@ export default function StudentLeaveReview() {
 
       {done.length > 0 && (
         <div style={{ marginTop: 24 }}>
-          <button onClick={() => setShowDone((v) => !v)} className="keep-size" style={{ fontSize: 13, background: 'none', border: 'none', color: '#2C6E9E', cursor: 'pointer', padding: 0 }}>
+          <button onClick={() => setShowDone((v) => !v)} className="keep-size" style={{ fontSize: 13, background: 'none', border: 'none', color: 'var(--primary-ink)', cursor: 'pointer', padding: 0 }}>
             {showDone ? '▾' : '▸'} 已處理的請假（{done.length}）
           </button>
           {showDone && (
             <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 8, fontSize: 13 }}>
               <tbody>
                 {done.map((r) => (
-                  <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+                  <tr key={r.id} style={{ borderTop: '1px solid var(--line)' }}>
                     <td style={{ padding: 6 }}>{r.student_name}（{r.class_label}）</td>
                     <td style={{ padding: 6 }}>{r.leave_type}</td>
                     <td style={{ padding: 6 }}>{range(r)}</td>
-                    <td style={{ padding: 6, color: r.status === '已核准' ? '#3B6D11' : r.status === '已拒絕' ? '#A32D2D' : '#999' }}>
+                    <td style={{ padding: 6, color: r.status === '已核准' ? '#3B6D11' : r.status === '已拒絕' ? '#A32D2D' : 'var(--sub)' }}>
                       {r.status}
                       {r.status === '已核准' && r.applied_periods != null ? `（${r.applied_periods} 節）` : ''}
                     </td>
-                    <td style={{ padding: 6, color: '#888' }}>{r.decision_note ?? ''}</td>
+                    <td style={{ padding: 6, color: 'var(--sub)' }}>{r.decision_note ?? ''}</td>
                   </tr>
                 ))}
               </tbody>

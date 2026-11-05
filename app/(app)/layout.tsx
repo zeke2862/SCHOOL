@@ -86,7 +86,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (status === 'checking' || guestOutOfBounds) {
     return (
       <main style={{ maxWidth: 480, margin: '0 auto', padding: 24 }}>
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       </main>
     );
   }

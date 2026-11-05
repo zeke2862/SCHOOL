@@ -44,7 +44,7 @@ export default function PasswordPolicySettingsPanel() {
     setEnabled(next);
   }
 
-  if (enabled === null && !error) return <p style={{ fontSize: 12, color: '#999' }}>載入中…</p>;
+  if (enabled === null && !error) return <p style={{ fontSize: 12, color: 'var(--sub)' }}>載入中…</p>;
 
   return (
     <div>
@@ -53,7 +53,7 @@ export default function PasswordPolicySettingsPanel() {
         <input type="checkbox" checked={!!enabled} onChange={handleToggle} disabled={saving} />
         新帳號第一次登入強制要求先改密碼
       </label>
-      <p style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 4 }}>
         只影響【帳號管理】頁「管理員直接設定初始密碼」建立的新帳號（用寄邀請信建立的帳號，對方本來就是自己設第一組密碼，不受影響）。
       </p>
     </div>

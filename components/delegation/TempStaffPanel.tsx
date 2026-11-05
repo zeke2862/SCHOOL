@@ -43,7 +43,7 @@ export default function TempStaffPanel() {
   }
 
   const inp: React.CSSProperties = { padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 8, width: '100%' };
-  const box: React.CSSProperties = { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, marginBottom: 16 };
+  const box: React.CSSProperties = { background: 'var(--surface)', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, marginBottom: 16 };
   return (
     <div style={{ maxWidth: 820, margin: '0 auto', padding: 16 }}>
       <h2 style={{ marginTop: 0 }}>臨時教師（外校支援）</h2>

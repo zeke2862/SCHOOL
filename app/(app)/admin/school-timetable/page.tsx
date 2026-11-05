@@ -324,7 +324,7 @@ export default function SchoolTimetableAdminPage() {
     <main style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>本學期課表清單{currentTerm ? `（${currentTerm.academic_year} 學年度 ${currentTerm.term}）` : ''}</h1>
       <ErrorBanner message={loadError} />
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16, lineHeight: 1.7 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16, lineHeight: 1.7 }}>
         這裡只列出<b>本學期</b>每個班級每週各節次實際由哪位教師教哪一科（一般由【排課工具】排好後存進來）。
         有班級要更動時，找到該班該節次，按列尾的「修改」直接改<b>科目</b>與<b>任課教師</b>就好。
         這裡的星期／節次會用來判斷教師「今天」該登錄哪些節次的出缺勤，也是【請假與代課】找空堂老師的資料來源。
@@ -367,8 +367,8 @@ export default function SchoolTimetableAdminPage() {
 
       {showTools && canWriteDirect && (
         <div style={{ marginBottom: 20 }}>
-          <h2 id="bulk-upload" style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>整批上傳（一鍵匯入／覆蓋）</h2>
-          <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+          <h2 id="bulk-upload" style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 8 }}>整批上傳（一鍵匯入／覆蓋）</h2>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
             上傳「{SCHOOL_TIMETABLE_SHEET_NAME}」範本，或「下載完整資料快照」裡的「學校課表(現況)」都可以直接上傳，同一格（班級/星期/節次）會直接覆蓋成上傳檔案裡的內容。
           </p>
           <input
@@ -381,7 +381,7 @@ export default function SchoolTimetableAdminPage() {
               e.target.value = '';
             }}
           />
-          {uploading && <p style={{ fontSize: 12, color: '#2C6E9E' }}>上傳中…</p>}
+          {uploading && <p style={{ fontSize: 12, color: 'var(--primary-ink)' }}>上傳中…</p>}
           {uploadResult && (
             <div style={{ fontSize: 12, marginTop: 8 }}>
               <p style={{ color: '#3B6D11' }}>成功寫入 {uploadResult.successCount} 筆</p>
@@ -398,7 +398,7 @@ export default function SchoolTimetableAdminPage() {
         </div>
       )}
 
-      {showTools && <h2 id="manual-add" style={{ fontSize: 13, color: '#666', marginBottom: 8, marginTop: 8 }}>手動新增單一堂課</h2>}
+      {showTools && <h2 id="manual-add" style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 8, marginTop: 8 }}>手動新增單一堂課</h2>}
       <form onSubmit={handleAdd} style={{ display: showTools ? 'flex' : 'none', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
         <input
           type="number"
@@ -449,7 +449,7 @@ export default function SchoolTimetableAdminPage() {
           style={{ width: 240, padding: 6 }}
           required
         />
-        <button type="submit" style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+        <button type="submit" style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
           {canWriteDirect ? '新增課表' : '送出新增申請'}
         </button>
       </form>
@@ -457,8 +457,8 @@ export default function SchoolTimetableAdminPage() {
       {perms.userId && <MyPendingChangesList userId={perms.userId} tableName="class_schedule" />}
 
       {selected.size > 0 && (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, padding: 8, background: '#F5F5F3', borderRadius: 6 }}>
-          <span style={{ fontSize: 12, color: '#666' }}>已選取 {selected.size} 筆</span>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, padding: 8, background: 'var(--primary-soft)', borderRadius: 6 }}>
+          <span style={{ fontSize: 12, color: 'var(--sub)' }}>已選取 {selected.size} 筆</span>
           {armedAction === null && (
             <>
               <input
@@ -481,7 +481,7 @@ export default function SchoolTimetableAdminPage() {
           {armedAction === 'edit' && (
             <>
               <span style={{ fontSize: 12 }}>確定要把這 {selected.size} 筆的任課教師都改成「{batchTeacherName}」嗎？</span>
-              <button onClick={handleBatchChangeTeacher} style={{ fontSize: 12, padding: '4px 10px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 4 }}>
+              <button onClick={handleBatchChangeTeacher} style={{ fontSize: 12, padding: '4px 10px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 4 }}>
                 確定
               </button>
               <button onClick={() => setArmedAction(null)} style={{ fontSize: 12, padding: '4px 10px' }}>
@@ -520,7 +520,7 @@ export default function SchoolTimetableAdminPage() {
         </thead>
         <tbody>
           {visibleRows.map((r) => (
-            <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+            <tr key={r.id} style={{ borderTop: '1px solid var(--line)' }}>
               <td style={{ padding: 6 }}>
                 <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSelect(r.id)} />
               </td>
@@ -537,7 +537,7 @@ export default function SchoolTimetableAdminPage() {
               <td style={{ padding: 6, textAlign: 'right', whiteSpace: 'nowrap' }}>
                 {editingId === r.id ? (
                   <span style={{ display: 'inline-flex', gap: 4 }}>
-                    <button onClick={() => handleSaveEdit(r)} style={{ fontSize: 12, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 4, padding: '2px 8px' }}>
+                    <button onClick={() => handleSaveEdit(r)} style={{ fontSize: 12, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 4, padding: '2px 8px' }}>
                       儲存
                     </button>
                     <button onClick={() => setEditingId(null)} style={{ fontSize: 12 }}>

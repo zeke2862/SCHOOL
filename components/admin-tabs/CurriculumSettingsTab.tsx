@@ -215,7 +215,7 @@ export default function CurriculumAdminPage() {
     <div style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>科目與比重設定</h1>
       <ErrorBanner message={loadError} />
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         每學期開學前，請為每個年級設定當學期的科目與比重。同一年級同一學期的比重加總應該等於1.0。
       </p>
 
@@ -238,8 +238,8 @@ export default function CurriculumAdminPage() {
         全新學校第一次建檔（還沒用過排課系統）需要整批匯入節數＋比重時，請到【開發人員區】使用「一鍵上傳/下載」。
       </p>
 
-      <details style={{ fontSize: 12, color: '#444', background: '#F7F5F0', border: '1px solid #E5E1D8', borderRadius: 6, padding: '8px 12px', margin: '10px 0 20px' }}>
-        <summary style={{ cursor: 'pointer', fontWeight: 'bold', color: '#2C6E9E' }}>【開發人員區】整批匯入格式說明（只有全新建檔才需要看）</summary>
+      <details style={{ fontSize: 12, color: 'var(--ink)', background: '#F7F5F0', border: '1px solid #E5E1D8', borderRadius: 6, padding: '8px 12px', margin: '10px 0 20px' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--primary-ink)' }}>【開發人員區】整批匯入格式說明（只有全新建檔才需要看）</summary>
         <div style={{ marginTop: 8, lineHeight: 1.7 }}>
           <p><b>每一列＝一筆「比重設定」</b>，可以同時涵蓋好幾個年級——但前提是這幾個年級要用「同一個比重、同一個節數」。如果同一科目在不同年級的比重不一樣（例如國中一年級國文佔20%、國中二年級佔18%），請拆成不同列各填一次。</p>
           <p><b>表頭第1列（H欄開始）</b>是系統認得的「具體年級」清單：幼兒園、幼甲、幼乙、1年～6年、初一～三、高一～三。這些欄位標題文字<b>請不要更改、也不要調整順序</b>（系統是照文字去比對欄位，不是照欄位位置），用不到的年級欄位留著、不用刪除。</p>
@@ -301,7 +301,7 @@ export default function CurriculumAdminPage() {
           onChange={(e) => setForm({ ...form, periods: e.target.value })}
           style={{ width: 70, padding: 6 }}
         />
-        <button type="submit" style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+        <button type="submit" style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
           {canWriteDirect ? '新增' : '送出新增申請'}
         </button>
       </form>
@@ -309,8 +309,8 @@ export default function CurriculumAdminPage() {
       {perms.userId && <MyPendingChangesList userId={perms.userId} tableName="curriculum" />}
 
       {selected.size > 0 && (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, padding: 8, background: '#F5F5F3', borderRadius: 6 }}>
-          <span style={{ fontSize: 12, color: '#666' }}>已選取 {selected.size} 筆</span>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, padding: 8, background: 'var(--primary-soft)', borderRadius: 6 }}>
+          <span style={{ fontSize: 12, color: 'var(--sub)' }}>已選取 {selected.size} 筆</span>
           {armedAction === null && (
             <>
               <input
@@ -335,7 +335,7 @@ export default function CurriculumAdminPage() {
           {armedAction === 'edit' && (
             <>
               <span style={{ fontSize: 12 }}>確定要把這 {selected.size} 筆比重都改成 {batchWeight} 嗎？</span>
-              <button onClick={handleBatchEditWeight} style={{ fontSize: 12, padding: '4px 10px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 4 }}>
+              <button onClick={handleBatchEditWeight} style={{ fontSize: 12, padding: '4px 10px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 4 }}>
                 確定
               </button>
               <button onClick={() => setArmedAction(null)} style={{ fontSize: 12, padding: '4px 10px' }}>
@@ -363,7 +363,7 @@ export default function CurriculumAdminPage() {
           <button
             onClick={handleSaveAllWeights}
             disabled={savingAll}
-            style={{ fontSize: 12, padding: '4px 12px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 4 }}
+            style={{ fontSize: 12, padding: '4px 12px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 4 }}
           >
             {savingAll ? '儲存中…' : canWriteDirect ? '儲存所有修改' : '送出所有修改申請'}
           </button>
@@ -393,7 +393,7 @@ export default function CurriculumAdminPage() {
             const sum = weightSumByGrade[key];
             const editedVal = editedWeights[r.id];
             return (
-              <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+              <tr key={r.id} style={{ borderTop: '1px solid var(--line)' }}>
                 <td style={{ padding: 6 }}>
                   <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSelect(r.id)} />
                 </td>
@@ -419,8 +419,8 @@ export default function CurriculumAdminPage() {
                       width: 80,
                       padding: 4,
                       textAlign: 'right',
-                      background: editedVal !== undefined && Number(editedVal) !== Number(r.weight) ? '#FFF8E1' : '#fff',
-                      border: '1px solid #ccc',
+                      background: editedVal !== undefined && Number(editedVal) !== Number(r.weight) ? '#FFF8E1' : 'var(--surface)',
+                      border: '1px solid var(--line-strong)',
                       borderRadius: 4,
                     }}
                   />

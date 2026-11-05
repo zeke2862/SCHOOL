@@ -86,12 +86,12 @@ export default function ParentLeaveTab({ studentNo, studentName, canRequest }: {
     await load();
   }
 
-  const input: React.CSSProperties = { padding: 6, fontSize: 14, border: '1px solid #ccc', borderRadius: 6 };
+  const input: React.CSSProperties = { padding: 6, fontSize: 14, border: '1px solid var(--line-strong)', borderRadius: 6 };
 
   return (
     <div>
       {canRequest ? (
-        <section style={{ border: '1px solid #eee', borderRadius: 8, padding: 14, marginBottom: 20 }}>
+        <section style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 14, marginBottom: 20 }}>
           <h2 style={{ fontSize: 14, marginBottom: 10 }}>幫 {studentName} 請假</h2>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
             <label style={{ fontSize: 13 }}>
@@ -132,23 +132,23 @@ export default function ParentLeaveTab({ studentNo, studentName, canRequest }: {
             type="button"
             disabled={busy}
             onClick={submit}
-            style={{ padding: '8px 18px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}
+            style={{ padding: '8px 18px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}
           >
             {busy ? '送出中…' : '送出請假申請'}
           </button>
-          <p style={{ fontSize: 11, color: '#999', marginTop: 8, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 11, color: 'var(--sub)', marginTop: 8, lineHeight: 1.6 }}>
             送出後由班導師審核，同意後才會登記進出缺席表。只能補請最近 14 天內的假。
           </p>
         </section>
       ) : (
-        <p style={{ fontSize: 13, color: '#666', marginBottom: 16 }}>請假申請需要由家長帳號送出；這裡可以查看請假紀錄。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 16 }}>請假申請需要由家長帳號送出；這裡可以查看請假紀錄。</p>
       )}
 
       <h2 style={{ fontSize: 14, marginBottom: 8 }}>請假紀錄</h2>
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : rows.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#666' }}>還沒有請假紀錄。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>還沒有請假紀錄。</p>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -163,17 +163,17 @@ export default function ParentLeaveTab({ studentNo, studentName, canRequest }: {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} style={{ borderTop: '1px solid #eee', verticalAlign: 'top' }}>
+                <tr key={r.id} style={{ borderTop: '1px solid var(--line)', verticalAlign: 'top' }}>
                   <td style={{ padding: 6 }}>
                     {r.start_date}
                     {r.end_date !== r.start_date ? ` ～ ${r.end_date}` : ''}
-                    <div style={{ fontSize: 11, color: '#888' }}>{r.period_from ? `第 ${r.period_from}～${r.period_to} 節` : '整天'}</div>
+                    <div style={{ fontSize: 11, color: 'var(--sub)' }}>{r.period_from ? `第 ${r.period_from}～${r.period_to} 節` : '整天'}</div>
                   </td>
                   <td style={{ padding: 6 }}>{r.leave_type}</td>
                   <td style={{ padding: 6 }}>{r.reason ?? ''}</td>
                   <td style={{ padding: 6, color: STATUS_COLOR[r.status], fontWeight: 700 }}>
                     {r.status}
-                    {r.decision_note && <div style={{ fontSize: 11, fontWeight: 400, color: '#888' }}>{r.decision_note}</div>}
+                    {r.decision_note && <div style={{ fontSize: 11, fontWeight: 400, color: 'var(--sub)' }}>{r.decision_note}</div>}
                   </td>
                   <td style={{ padding: 6 }}>
                     {r.status === '待審核' && canRequest && (

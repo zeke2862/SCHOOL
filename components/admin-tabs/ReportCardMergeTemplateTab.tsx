@@ -103,7 +103,7 @@ export default function ReportCardMergeTemplateTab() {
 
   return (
     <div style={{ maxWidth: 780 }}>
-      <h2 style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
+      <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 12 }}>
         「Word 合併列印」是成績單的第二種輸出方式（原本的 PDF 列印不受影響，兩種並存）。
         版面完全由您在 Word 裡自己設計，系統只負責把每位學生的資料套進範本裡的合併欄位。
       </h2>
@@ -112,7 +112,7 @@ export default function ReportCardMergeTemplateTab() {
         <button
           onClick={handleDownload}
           disabled={downloading}
-          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #2C6E9E', background: '#fff', color: '#2C6E9E', borderRadius: 6 }}
+          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--primary)', background: 'var(--surface)', color: 'var(--primary-ink)', borderRadius: 6 }}
         >
           {downloading ? '下載中…' : '↓ 下載目前範本（.docx）'}
         </button>
@@ -120,9 +120,9 @@ export default function ReportCardMergeTemplateTab() {
           style={{
             padding: '8px 16px',
             fontSize: 13,
-            border: '1px solid #2C6E9E',
-            background: uploading ? '#eee' : '#fff',
-            color: '#2C6E9E',
+            border: '1px solid var(--primary)',
+            background: uploading ? '#eee' : 'var(--surface)',
+            color: 'var(--primary-ink)',
             borderRadius: 6,
             cursor: uploading ? 'default' : 'pointer',
           }}
@@ -133,14 +133,14 @@ export default function ReportCardMergeTemplateTab() {
         <button
           onClick={handleRevert}
           disabled={reverting}
-          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #999', background: '#fff', color: '#666', borderRadius: 6 }}
+          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #999', background: 'var(--surface)', color: 'var(--sub)', borderRadius: 6 }}
         >
           {reverting ? '還原中…' : '還原成系統預設範本'}
         </button>
       </div>
 
       <h3 style={{ fontSize: 13, marginBottom: 8 }}>操作步驟</h3>
-      <ol style={{ fontSize: 12.5, color: '#444', lineHeight: 1.9, paddingLeft: 20, marginBottom: 20 }}>
+      <ol style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.9, paddingLeft: 20, marginBottom: 20 }}>
         <li>按「下載目前範本」，用 Microsoft Word 打開。</li>
         <li>
           自由調整版面、字體、顏色、要放哪些欄位——範本裡的 <code>{'{{...}}'}</code> 就是「合併欄位」，
@@ -153,7 +153,7 @@ export default function ReportCardMergeTemplateTab() {
       </ol>
 
       <h3 style={{ fontSize: 13, marginBottom: 8 }}>常見問題：上傳失敗，出現「格式有誤」</h3>
-      <div style={{ fontSize: 12.5, color: '#444', lineHeight: 1.9, marginBottom: 20, background: '#FBF6EC', border: '1px solid #E8D9B5', borderRadius: 8, padding: '10px 14px' }}>
+      <div style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.9, marginBottom: 20, background: '#FBF6EC', border: '1px solid #E8D9B5', borderRadius: 8, padding: '10px 14px' }}>
         <p style={{ marginBottom: 6 }}>
           上傳失敗時，錯誤訊息裡會直接告訴您可以怎麼處理；以下是兩種最常見的原因：
         </p>
@@ -172,7 +172,7 @@ export default function ReportCardMergeTemplateTab() {
       </div>
 
       <h3 style={{ fontSize: 13, marginBottom: 8 }}>可用合併欄位</h3>
-      <p style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         不需要每個欄位都用到，範本裡沒放的欄位就不會出現在成績單上。
       </p>
 
@@ -259,8 +259,8 @@ function TagTable({ title, rows }: { title: string; rows: [string, string][] }) 
         <tbody>
           {rows.map(([tag, desc]) => (
             <tr key={tag}>
-              <td style={{ border: '1px solid #eee', padding: '4px 8px', width: '45%', fontFamily: 'monospace', color: '#2C6E9E' }}>{tag}</td>
-              <td style={{ border: '1px solid #eee', padding: '4px 8px', color: '#666' }}>{desc}</td>
+              <td style={{ border: '1px solid var(--line)', padding: '4px 8px', width: '45%', fontFamily: 'monospace', color: 'var(--primary-ink)' }}>{tag}</td>
+              <td style={{ border: '1px solid var(--line)', padding: '4px 8px', color: 'var(--sub)' }}>{desc}</td>
             </tr>
           ))}
         </tbody>

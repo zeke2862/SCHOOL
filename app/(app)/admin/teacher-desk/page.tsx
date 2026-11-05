@@ -23,13 +23,13 @@ const linkStyle: React.CSSProperties = {
   display: 'inline-block',
   padding: '4px 10px',
   fontSize: 12,
-  border: '1px solid #2C6E9E',
-  color: '#2C6E9E',
+  border: '1px solid var(--primary)',
+  color: 'var(--primary-ink)',
   borderRadius: 6,
   textDecoration: 'none',
   marginRight: 6,
   marginBottom: 6,
-  background: '#fff',
+  background: 'var(--surface)',
 };
 
 export default function TeacherDeskPage() {
@@ -96,12 +96,12 @@ export default function TeacherDeskPage() {
   const filtered = useMemo(() => teachers.filter((t) => !keyword.trim() || t.name.toLowerCase().includes(keyword.trim().toLowerCase())), [teachers, keyword]);
   const teacherName = teachers.find((t) => t.id === teacherId)?.name ?? '';
 
-  if (allowed === null) return <p style={{ padding: 24, fontSize: 13, color: '#999' }}>載入中…</p>;
+  if (allowed === null) return <p style={{ padding: 24, fontSize: 13, color: 'var(--sub)' }}>載入中…</p>;
   if (!allowed) {
     return (
       <main style={{ maxWidth: 560, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16 }}>教師代辦專區</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>只有管理員（系統管理員S／A／B）可以使用。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>只有管理員（系統管理員S／A／B）可以使用。</p>
       </main>
     );
   }
@@ -111,7 +111,7 @@ export default function TeacherDeskPage() {
   return (
     <main style={{ maxWidth: 980, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>教師代辦專區</h1>
-      <p style={{ fontSize: 12, color: '#999', marginBottom: 16, lineHeight: 1.7 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16, lineHeight: 1.7 }}>
         要幫老師補登成績、補點名、或重新上傳／下載他的輸入表時，先在這裡選老師，下面會列出他教的班級與科目，
         每個按鈕都會直接帶你進入對應的教師頁面（管理員身分在那些頁面可以選任何班級，一樣有「下載輸入表／上傳輸入表」按鈕）。
         目前學年度：{yearInfo ? `${yearInfo.academic_year} ${yearInfo.term}` : '（尚未設定）'}。所有修改都會照原本規則留下修改紀錄。
@@ -129,7 +129,7 @@ export default function TeacherDeskPage() {
         </select>
       </div>
 
-      {loading && <p style={{ fontSize: 12, color: '#2C6E9E' }}>讀取中…</p>}
+      {loading && <p style={{ fontSize: 12, color: 'var(--primary-ink)' }}>讀取中…</p>}
       {error && <p style={{ fontSize: 12, color: '#A32D2D' }}>讀取失敗：{error}</p>}
 
       {teacherId && !loading && (
@@ -137,10 +137,10 @@ export default function TeacherDeskPage() {
           <h2 style={{ fontSize: 14, margin: '8px 0' }}>{teacherName} 老師</h2>
 
           <section style={{ marginBottom: 20 }}>
-            <h3 style={{ fontSize: 13, color: '#555', marginBottom: 6 }}>導師班</h3>
-            {homerooms.length === 0 && <p style={{ fontSize: 12, color: '#999' }}>這位老師目前沒有帶班。</p>}
+            <h3 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 6 }}>導師班</h3>
+            {homerooms.length === 0 && <p style={{ fontSize: 12, color: 'var(--sub)' }}>這位老師目前沒有帶班。</p>}
             {homerooms.map((c) => (
-              <div key={c.id} style={{ border: '1px solid #e3e3e3', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+              <div key={c.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 8 }}>
                 <div style={{ fontWeight: 'bold', fontSize: 13, marginBottom: 6 }}>{classLabel(c)}</div>
                 <Link href={`/admin/grading?tab=entry&classId=${c.id}`} style={linkStyle}>成績登錄／成績輸入表</Link>
                 <Link href={`/attendance/weekly?classId=${c.id}`} style={linkStyle}>出缺席登錄（一週）／輸入表</Link>
@@ -155,12 +155,12 @@ export default function TeacherDeskPage() {
           </section>
 
           <section style={{ marginBottom: 20 }}>
-            <h3 style={{ fontSize: 13, color: '#555', marginBottom: 6 }}>任課班級與科目</h3>
-            {taught.length === 0 && <p style={{ fontSize: 12, color: '#999' }}>目前學年度沒有找到這位老師的任課資料。</p>}
+            <h3 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 6 }}>任課班級與科目</h3>
+            {taught.length === 0 && <p style={{ fontSize: 12, color: 'var(--sub)' }}>目前學年度沒有找到這位老師的任課資料。</p>}
             {taught.map(({ cls, subjects }) => (
-              <div key={cls.id} style={{ border: '1px solid #e3e3e3', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+              <div key={cls.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 8 }}>
                 <div style={{ fontSize: 13, marginBottom: 6 }}>
-                  <b>{classLabel(cls)}</b> <span style={{ color: '#777' }}>— {subjects.join('、')}</span>
+                  <b>{classLabel(cls)}</b> <span style={{ color: 'var(--sub)' }}>— {subjects.join('、')}</span>
                 </div>
                 <Link href={`/admin/grading?tab=entry&classId=${cls.id}`} style={linkStyle}>成績登錄／成績輸入表</Link>
                 <Link href={`/attendance/weekly?classId=${cls.id}`} style={linkStyle}>出缺席登錄（一週）／輸入表</Link>
@@ -170,12 +170,12 @@ export default function TeacherDeskPage() {
           </section>
 
           <section style={{ marginBottom: 20 }}>
-            <h3 style={{ fontSize: 13, color: '#555', marginBottom: 6 }}>社團／才藝課</h3>
-            {clubs.length === 0 && <p style={{ fontSize: 12, color: '#999' }}>沒有帶社團。</p>}
+            <h3 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 6 }}>社團／才藝課</h3>
+            {clubs.length === 0 && <p style={{ fontSize: 12, color: 'var(--sub)' }}>沒有帶社團。</p>}
             {clubs.map((c) => (
-              <div key={c.id} style={{ border: '1px solid #e3e3e3', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+              <div key={c.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 8 }}>
                 <div style={{ fontSize: 13, marginBottom: 6 }}>
-                  <b>{c.name}</b> <span style={{ color: '#777' }}>{c.academic_year} {c.term}</span>
+                  <b>{c.name}</b> <span style={{ color: 'var(--sub)' }}>{c.academic_year} {c.term}</span>
                 </div>
                 <Link href="/clubs/roster" style={linkStyle}>社團點名冊</Link>
                 <Link href="/clubs/grading" style={linkStyle}>社團成績輸入</Link>
@@ -185,8 +185,8 @@ export default function TeacherDeskPage() {
         </>
       )}
 
-      <section style={{ borderTop: '1px solid #eee', paddingTop: 14 }}>
-        <h3 style={{ fontSize: 13, color: '#555', marginBottom: 6 }}>全校性的教師檔案上傳／下載（不用先選老師）</h3>
+      <section style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
+        <h3 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 6 }}>全校性的教師檔案上傳／下載（不用先選老師）</h3>
         <Link href="/admin/grading?tab=entry" style={linkStyle}>成績輸入表（全校各班下載／上傳）</Link>
         <Link href="/attendance/weekly" style={linkStyle}>出缺席輸入表（可下載全校一班一分頁）</Link>
         <Link href="/admin/grading?tab=class-summary" style={linkStyle}>班級成績總表下載</Link>

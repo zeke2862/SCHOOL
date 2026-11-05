@@ -12,7 +12,7 @@ export default function BackupsRedirectPage() {
   }, [router]);
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
-      <p style={{ fontSize: 13, color: '#999' }}>「備份與還原」已經搬到「開發人員區」，正在為您跳轉…</p>
+      <p style={{ fontSize: 13, color: 'var(--sub)' }}>「備份與還原」已經搬到「開發人員區」，正在為您跳轉…</p>
     </main>
   );
 }

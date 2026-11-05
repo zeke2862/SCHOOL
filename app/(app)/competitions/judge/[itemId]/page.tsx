@@ -164,7 +164,7 @@ export default function JudgeScoringPage() {
       <main style={{ maxWidth: 720, margin: '0 auto', padding: 16 }}>
         <h1 style={{ fontSize: 16 }}>評審打分</h1>
         <p style={{ ...hint, marginTop: 8 }}>你沒有被分派到這個項目，或帳號已到期。如有疑問請洽賽事承辦人。</p>
-        <Link href="/competitions" style={{ color: '#1f4e79', fontSize: 13 }}>← 回競賽活動</Link>
+        <Link href="/competitions" style={{ color: 'var(--primary-ink)', fontSize: 13 }}>← 回競賽活動</Link>
       </main>
     );
   }
@@ -179,7 +179,7 @@ export default function JudgeScoringPage() {
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: 16, paddingBottom: 96 }}>
-      <Link href="/competitions" style={{ color: '#1f4e79', fontSize: 12 }}>← 競賽活動</Link>
+      <Link href="/competitions" style={{ color: 'var(--primary-ink)', fontSize: 12 }}>← 競賽活動</Link>
       <h1 style={{ fontSize: 16, margin: '4px 0' }}>{title}</h1>
       <p style={{ ...hint, marginBottom: 8 }}>
         已完成 <b>{filled}</b> / {regs.length} 位。{item.criteria.length ? '請依各項評分準則給分，系統會自動加總。' : '請輸入總分（0–100）。'}
@@ -201,12 +201,12 @@ export default function JudgeScoringPage() {
         const t = totals[r.id];
         const isDirty = dirty.has(r.id);
         return (
-          <section key={r.id} style={{ border: '1px solid #e5e5e5', borderRadius: 10, padding: 12, marginBottom: 12, background: locked ? '#fafafa' : '#fff' }}>
+          <section key={r.id} style={{ border: '1px solid var(--line)', borderRadius: 10, padding: 12, marginBottom: 12, background: locked ? 'var(--primary-soft)' : 'var(--surface)' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 20, fontWeight: 700, minWidth: 36 }}>{r.draw_number ? `${r.draw_number} 號` : ''}</span>
               <b style={{ fontSize: 15 }}>{r.display_name}</b>
               <span style={hint}>{[r.school_name, r.grade_label].filter(Boolean).join('・')}</span>
-              <span style={{ marginLeft: 'auto', fontSize: 12, color: t?.total !== null ? '#2d6a2d' : '#999' }}>
+              <span style={{ marginLeft: 'auto', fontSize: 12, color: t?.total !== null ? '#2d6a2d' : 'var(--sub)' }}>
                 {t?.total !== null ? `合計 ${t?.total}` : '未打完'}{isDirty ? '（未儲存）' : ''}
               </span>
             </div>
@@ -219,7 +219,7 @@ export default function JudgeScoringPage() {
                     onChange={(e) => setCell(r.id, f.key, e.target.value)}
                     onBlur={() => { if (needsSave(r.id)) saveRow(r.id); }}
                     placeholder={`0–${f.max}`} aria-label={`${r.display_name} ${f.key === TOTAL_KEY ? '總分' : f.key}`}
-                    style={{ width: '100%', boxSizing: 'border-box', marginTop: 4, padding: 10, fontSize: 18, border: '1px solid #bbb', borderRadius: 6 }}
+                    style={{ width: '100%', boxSizing: 'border-box', marginTop: 4, padding: 10, fontSize: 18, border: '1px solid var(--line-strong)', borderRadius: 6 }}
                   />
                 </label>
               ))}
@@ -230,7 +230,7 @@ export default function JudgeScoringPage() {
       })}
 
       {!locked && regs.length > 0 && (
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, background: '#fff', borderTop: '1px solid #ddd', padding: 10, display: 'flex', gap: 8, justifyContent: 'center' }}>
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, background: 'var(--surface)', borderTop: '1px solid var(--line-strong)', padding: 10, display: 'flex', gap: 8, justifyContent: 'center' }}>
           <button onClick={saveAll} disabled={saving || dirty.size === 0} style={btn}>{dirty.size ? `全部儲存（${dirty.size}）` : '已全部儲存'}</button>
           <button onClick={submit} disabled={saving || filled < regs.length} style={btnPrimary}>送出並鎖定</button>
         </div>

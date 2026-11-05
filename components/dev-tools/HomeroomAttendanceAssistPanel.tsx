@@ -60,7 +60,7 @@ export default function HomeroomAttendanceAssistPanel() {
     setEnabled(data.allow_present_to_leave);
   }
 
-  if (enabled === null && !error) return <p style={{ fontSize: 12, color: '#999' }}>載入中…</p>;
+  if (enabled === null && !error) return <p style={{ fontSize: 12, color: 'var(--sub)' }}>載入中…</p>;
 
   return (
     <div>
@@ -69,7 +69,7 @@ export default function HomeroomAttendanceAssistPanel() {
         <input type="checkbox" checked={!!enabled} onChange={handleToggle} disabled={saving} />
         同意由導師協助任課教師點名
       </label>
-      <p style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 4 }}>
         開啟後，導師在「學生出缺席登錄（一週）」頁面，即使該節不是自己任教的科目，也可以把顯示
         「出席」的學生修正為「事假」／「病假」／「公假」（例如任課教師點名時還不知道學生已經
         請假，家長事後才告知或補請假單，由導師協助更正）。關閉時維持原本規則：非任教節次只能把

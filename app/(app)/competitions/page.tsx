@@ -123,8 +123,8 @@ export default function CompetitionsPage() {
               <td style={td}><b>{e.title}</b>{e.scope === 'external' && <span style={{ ...hint, marginLeft: 6 }}>（含外校）</span>}</td>
               <td style={td}>{EVENT_STATUS_LABEL[e.status]?.split('（')[0]}</td>
               <td style={td}>{e.reg_open_at || e.reg_close_at ? `${fmtTime(e.reg_open_at)} ～ ${fmtTime(e.reg_close_at)}` : '—'}</td>
-              <td style={td}><Link href={`/competitions/${e.id}`} style={{ color: '#1f4e79' }}>{e.status === 'open' ? '報名／詳情 →' : '詳情 →'}</Link>
-                {mine.has(e.id) && <> ｜ <Link href={`/competitions/${e.id}/manage`} style={{ color: '#1f4e79' }}>承辦人管理 →</Link></>}</td>
+              <td style={td}><Link href={`/competitions/${e.id}`} style={{ color: 'var(--primary-ink)' }}>{e.status === 'open' ? '報名／詳情 →' : '詳情 →'}</Link>
+                {mine.has(e.id) && <> ｜ <Link href={`/competitions/${e.id}/manage`} style={{ color: 'var(--primary-ink)' }}>承辦人管理 →</Link></>}</td>
             </tr>
           ))}
         </tbody>
@@ -145,10 +145,10 @@ export default function CompetitionsPage() {
       {tasks.length > 0 && (
         <Section title="我的評審任務">
           {tasks.map((t) => (
-            <div key={t.itemId} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0', borderTop: '1px solid #f0f0f0' }}>
+            <div key={t.itemId} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0', borderTop: '1px solid var(--line)' }}>
               <div><b>{t.label}</b><div style={hint}>{t.event}</div></div>
               <span style={{ ...hint, marginLeft: 'auto' }}>{t.locked ? '已送出' : `已打 ${t.done} / ${t.total}`}</span>
-              <Link href={`/competitions/judge/${t.itemId}`} style={{ color: '#1f4e79', fontSize: 14 }}>{t.locked ? '查看 →' : '去打分 →'}</Link>
+              <Link href={`/competitions/judge/${t.itemId}`} style={{ color: 'var(--primary-ink)', fontSize: 14 }}>{t.locked ? '查看 →' : '去打分 →'}</Link>
             </div>
           ))}
         </Section>

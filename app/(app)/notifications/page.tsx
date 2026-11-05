@@ -74,30 +74,30 @@ export default function NotificationsPage() {
   return (
     <main style={{ maxWidth: 560, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>通知{unreadCount > 0 ? `（${unreadCount} 則未讀）` : ''}</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         家長／學生送出基本資料修改申請、以及出缺勤相關訊息會顯示在這裡。
       </p>
 
       {loadError && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{loadError}</p>}
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : !hasTeacherProfile ? (
-        <p style={{ fontSize: 13, color: '#999' }}>這個帳號沒有連結教師資料，沒有屬於自己的個人通知。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>這個帳號沒有連結教師資料，沒有屬於自己的個人通知。</p>
       ) : notifications.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#999' }}>目前沒有通知。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有通知。</p>
       ) : (
         notifications.map((n) => (
           <div
             key={n.id}
             style={{
               padding: 12,
-              border: '1px solid #eee',
+              border: '1px solid var(--line)',
               borderRadius: 8,
               marginBottom: 8,
-              background: n.read_at ? '#fff' : '#FBEFE9',
+              background: n.read_at ? 'var(--surface)' : '#FBEFE9',
             }}
           >
-            <p style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>
+            <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 4 }}>
               {n.category}｜{new Date(n.created_at).toLocaleString('zh-TW')}
             </p>
             <p style={{ fontSize: 13, marginBottom: n.read_at ? 0 : 8, whiteSpace: 'pre-line' }}>{n.message}</p>

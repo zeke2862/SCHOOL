@@ -114,7 +114,7 @@ export default function CompetitionEventPage() {
       <main style={{ maxWidth: 800, margin: '0 auto', padding: 16 }}>
         <h1 style={{ fontSize: 16 }}>競賽活動</h1>
         <p style={{ ...hint, marginTop: 8 }}>找不到這場賽事，或還沒開放。</p>
-        <Link href="/competitions" style={{ color: '#1f4e79', fontSize: 13 }}>← 回競賽活動</Link>
+        <Link href="/competitions" style={{ color: 'var(--primary-ink)', fontSize: 13 }}>← 回競賽活動</Link>
       </main>
     );
   }
@@ -124,18 +124,18 @@ export default function CompetitionEventPage() {
 
   return (
     <main style={{ maxWidth: 800, margin: '0 auto', padding: 16 }}>
-      <Link href="/competitions" style={{ color: '#1f4e79', fontSize: 12 }}>← 競賽活動</Link>
+      <Link href="/competitions" style={{ color: 'var(--primary-ink)', fontSize: 12 }}>← 競賽活動</Link>
       <h1 style={{ fontSize: 16, margin: '4px 0' }}>{event.title}</h1>
       <p style={{ ...hint, marginBottom: 8 }}>
         {EVENT_STATUS_LABEL[event.status]?.split('（')[0]}
         {(event.reg_open_at || event.reg_close_at) && `・報名時間 ${fmtTime(event.reg_open_at)} ～ ${fmtTime(event.reg_close_at)}`}
-        {isOrganizer && <> ・ <Link href={`/competitions/${id}/manage`} style={{ color: '#1f4e79' }}>承辦人管理 →</Link></>}
+        {isOrganizer && <> ・ <Link href={`/competitions/${id}/manage`} style={{ color: 'var(--primary-ink)' }}>承辦人管理 →</Link></>}
       </p>
       {event.description && <p style={{ fontSize: 13, whiteSpace: 'pre-wrap', marginBottom: 12 }}>{event.description}</p>}
       {flash.node}
 
-      {who === 'family' && <p style={{ fontSize: 13, background: '#f7f7f7', padding: 10, borderRadius: 6, marginBottom: 12 }}>家長帳號不能代替學生報名，請讓學生用自己的帳號登入報名。</p>}
-      {who === 'guest' && <p style={{ fontSize: 13, background: '#f7f7f7', padding: 10, borderRadius: 6, marginBottom: 12 }}>您是賽事訪客，請回「競賽活動」首頁，進入「我的評審任務」打分。</p>}
+      {who === 'family' && <p style={{ fontSize: 13, background: 'var(--primary-soft)', padding: 10, borderRadius: 6, marginBottom: 12 }}>家長帳號不能代替學生報名，請讓學生用自己的帳號登入報名。</p>}
+      {who === 'guest' && <p style={{ fontSize: 13, background: 'var(--primary-soft)', padding: 10, borderRadius: 6, marginBottom: 12 }}>您是賽事訪客，請回「競賽活動」首頁，進入「我的評審任務」打分。</p>}
 
       {(who === 'student' || who === 'teacher') && (
         <Section title={who === 'student' ? `報名（您的年級：${grade}）` : '報名教師組'}>
@@ -155,7 +155,7 @@ export default function CompetitionEventPage() {
                 const n = counts[it.id] ?? 0;
                 const full = !!it.quota && n >= it.quota;
                 return (
-                  <div key={it.id} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '10px 0', borderTop: '1px solid #f0f0f0' }}>
+                  <div key={it.id} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '10px 0', borderTop: '1px solid var(--line)' }}>
                     <div style={{ flex: '1 1 160px' }}>
                       <b style={{ fontSize: 14 }}>{it.name}</b>
                       <div style={hint}>{it.quota ? `名額 ${n} / ${it.quota}` : `已有 ${n} 人報名`}</div>
@@ -186,10 +186,10 @@ export default function CompetitionEventPage() {
             const closed = !!i.published_at || (c.vote_close_at && Date.now() > new Date(c.vote_close_at).getTime());
             const upcoming = c.vote_open_at && Date.now() < new Date(c.vote_open_at).getTime();
             return (
-              <div key={i.id} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0', borderTop: '1px solid #f0f0f0', fontSize: 13 }}>
+              <div key={i.id} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0', borderTop: '1px solid var(--line)', fontSize: 13 }}>
                 <b>{itemLabel.get(i.id)}</b>
                 <span style={hint}>{closed ? '投票已結束' : upcoming ? `${fmtTime(c.vote_open_at)} 開始` : c.vote_close_at ? `${fmtTime(c.vote_close_at)} 截止` : '投票中'}</span>
-                <Link href={`/competitions/vote/${i.id}`} style={{ marginLeft: 'auto', color: '#1f4e79' }}>{closed ? '查看 →' : '去投票 →'}</Link>
+                <Link href={`/competitions/vote/${i.id}`} style={{ marginLeft: 'auto', color: 'var(--primary-ink)' }}>{closed ? '查看 →' : '去投票 →'}</Link>
               </div>
             );
           })}
@@ -199,12 +199,12 @@ export default function CompetitionEventPage() {
       {who === 'teacher' && (
         <Section title="擔任評審／裁判／工作人員">
           {myStaff.map((r) => (
-            <div key={r.id} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0', borderTop: '1px solid #f0f0f0', fontSize: 13 }}>
+            <div key={r.id} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '8px 0', borderTop: '1px solid var(--line)', fontSize: 13 }}>
               <b>{ROLE_LABEL[r.staff_role]}</b>
               {r.status === 'volunteered' ? <span style={hint}>已登記志願，等待承辦人分派{r.prefer_note ? `（備註：${r.prefer_note}）` : ''}</span>
                 : <span>已分派：{r.item_id ? itemLabel.get(r.item_id) : '全場'}</span>}
               {r.status === 'volunteered' && <button onClick={() => cancelVolunteer(r)} style={{ ...btn, marginLeft: 'auto' }}>取消志願</button>}
-              {r.status === 'assigned' && r.item_id && r.staff_role === 'judge' && <Link href={`/competitions/judge/${r.item_id}`} style={{ marginLeft: 'auto', color: '#1f4e79' }}>去打分 →</Link>}
+              {r.status === 'assigned' && r.item_id && r.staff_role === 'judge' && <Link href={`/competitions/judge/${r.item_id}`} style={{ marginLeft: 'auto', color: 'var(--primary-ink)' }}>去打分 →</Link>}
             </div>
           ))}
           {canVolunteer ? (
@@ -231,10 +231,10 @@ export default function CompetitionEventPage() {
       {view && view.notices.length > 0 && (
         <Section title="公告">
           {view.notices.map((n, i) => (
-            <div key={i} style={{ borderTop: i ? '1px solid #f0f0f0' : undefined, padding: '8px 0', fontSize: 13 }}>
+            <div key={i} style={{ borderTop: i ? '1px solid var(--line)' : undefined, padding: '8px 0', fontSize: 13 }}>
               <b style={{ color: n.kind === 'correction' ? '#A32D2D' : undefined }}>{n.kind === 'correction' ? '【修正】' : ''}{n.title}</b>
               <span style={{ ...hint, marginLeft: 8 }}>{fmtTime(n.created_at)}</span>
-              {n.body && <div style={{ whiteSpace: 'pre-wrap', color: '#444', marginTop: 4 }}>{n.body}</div>}
+              {n.body && <div style={{ whiteSpace: 'pre-wrap', color: 'var(--ink)', marginTop: 4 }}>{n.body}</div>}
             </div>
           ))}
         </Section>
@@ -249,10 +249,10 @@ export default function CompetitionEventPage() {
                 <tbody>
                   {vi.results.filter((r) => r.rank || r.award).map((r, k) => (
                     <tr key={k}>
-                      <td style={{ padding: '4px 8px', borderBottom: '1px solid #f0f0f0', width: 56 }}>{r.rank ? `第${r.rank}名` : ''}</td>
-                      <td style={{ padding: '4px 8px', borderBottom: '1px solid #f0f0f0' }}>{r.name}</td>
-                      <td style={{ padding: '4px 8px', borderBottom: '1px solid #f0f0f0', color: '#666' }}>{r.school}</td>
-                      <td style={{ padding: '4px 8px', borderBottom: '1px solid #f0f0f0' }}>{r.award}{r.total !== null && r.total !== undefined ? `（${r.total}）` : ''}</td>
+                      <td style={{ padding: '4px 8px', borderBottom: '1px solid var(--line)', width: 56 }}>{r.rank ? `第${r.rank}名` : ''}</td>
+                      <td style={{ padding: '4px 8px', borderBottom: '1px solid var(--line)' }}>{r.name}</td>
+                      <td style={{ padding: '4px 8px', borderBottom: '1px solid var(--line)', color: 'var(--sub)' }}>{r.school}</td>
+                      <td style={{ padding: '4px 8px', borderBottom: '1px solid var(--line)' }}>{r.award}{r.total !== null && r.total !== undefined ? `（${r.total}）` : ''}</td>
                     </tr>
                   ))}
                 </tbody>

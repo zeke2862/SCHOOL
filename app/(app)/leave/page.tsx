@@ -34,13 +34,13 @@ export default function LeavePage() {
     })();
   }, []);
 
-  if (!ready) return <p style={{ padding: 24, fontSize: 13, color: '#999' }}>載入中…</p>;
+  if (!ready) return <p style={{ padding: 24, fontSize: 13, color: 'var(--sub)' }}>載入中…</p>;
   if (!me) return <p style={{ padding: 24, fontSize: 13 }}>請先登入。</p>;
   if (!me.teacherId) {
     return (
       <main style={{ maxWidth: 560, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16 }}>請假與代課</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>您的帳號沒有對應到教師資料，無法自己請假。臨時有事請洽教務處代為登記。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>您的帳號沒有對應到教師資料，無法自己請假。臨時有事請洽教務處代為登記。</p>
       </main>
     );
   }
@@ -48,13 +48,13 @@ export default function LeavePage() {
   return (
     <main style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>請假與代課</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16, lineHeight: 1.7 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16, lineHeight: 1.7 }}>
         選好請假日期，系統會列出您當天的課；勾選要請假的節次，每一節旁邊可以直接選那一節「有空堂」的老師代課。
         不確定誰能代課也可以先不選，送出後狀態是「待安排」，教務處會再安排。只能替自己請假；臨時來不及登記，請洽教務處代為輸入。
         {term ? `（目前學期：${term.academic_year} ${term.term}）` : ''}
       </p>
 
-      <section style={{ border: '1px solid #eee', borderRadius: 8, padding: 16, marginBottom: 24 }}>
+      <section style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 16, marginBottom: 24 }}>
         <h2 style={{ fontSize: 14, marginBottom: 12 }}>我要請假</h2>
         <LeaveForm mode="self" userId={me.userId} term={term} teachers={teachers.filter((t) => t.id === me.teacherId)} fixedTeacherId={me.teacherId} onDone={() => setRefreshKey((k) => k + 1)} />
       </section>

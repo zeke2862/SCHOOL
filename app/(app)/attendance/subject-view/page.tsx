@@ -298,7 +298,7 @@ export default function SubjectAttendanceViewPage() {
     return (
       <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 4 }}>任課班級出席查詢</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>目前沒有指派的任課班級/科目。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有指派的任課班級/科目。</p>
       </main>
     );
   }
@@ -308,13 +308,13 @@ export default function SubjectAttendanceViewPage() {
       <h1 style={{ fontSize: isMobile ? 18 : 16, marginBottom: 4 }}>任課班級出席查詢</h1>
       {isMobile ? (
         <details style={{ marginBottom: 12 }}>
-          <summary style={{ fontSize: 12, color: '#666', cursor: 'pointer' }}>說明</summary>
-          <p style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+          <summary style={{ fontSize: 12, color: 'var(--sub)', cursor: 'pointer' }}>說明</summary>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 4 }}>
             {siteContent['page_hint.attendance_subject_view'] ?? '只會顯示您自己授課節次的出缺勤累計次數（累計至今），不包含同班其他科目/節次的紀錄。'}
           </p>
         </details>
       ) : (
-        <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
           {siteContent['page_hint.attendance_subject_view'] ?? '只會顯示您自己授課節次的出缺勤累計次數（累計至今），不包含同班其他科目/節次的紀錄。'}
         </p>
       )}
@@ -331,7 +331,7 @@ export default function SubjectAttendanceViewPage() {
       )}
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
@@ -347,7 +347,7 @@ export default function SubjectAttendanceViewPage() {
           </thead>
           <tbody>
             {students.map((s) => (
-              <tr key={s.student_no} style={{ borderTop: '1px solid #eee' }}>
+              <tr key={s.student_no} style={{ borderTop: '1px solid var(--line)' }}>
                 <td style={{ padding: 6 }}>{s.seat_no}</td>
                 <td style={{ padding: 6 }}>
                   <button
@@ -366,7 +366,7 @@ export default function SubjectAttendanceViewPage() {
             ))}
             {students.length === 0 && (
               <tr>
-                <td colSpan={2 + STATUS_OPTIONS.length} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                <td colSpan={2 + STATUS_OPTIONS.length} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                   這個班級目前沒有在學學生
                 </td>
               </tr>
@@ -382,16 +382,16 @@ export default function SubjectAttendanceViewPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ background: '#fff', borderRadius: 8, padding: 20, width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto' }}
+            style={{ background: 'var(--surface)', borderRadius: 8, padding: 20, width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto' }}
           >
             <h2 style={{ fontSize: 15, marginBottom: 4 }}>
               {detailStudent.seat_no} 號 {detailStudent.name}　出缺席明細
             </h2>
-            <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
+            <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
               這學期到今天為止、這堂課的紀錄（只列出曠課、遲到、病假、事假、公假）
             </p>
             {(exceptions[detailStudent.student_no] ?? []).length === 0 ? (
-              <p style={{ fontSize: 13, color: '#999' }}>這段期間這堂課沒有任何曠課、遲到、病假、事假、公假紀錄。</p>
+              <p style={{ fontSize: 13, color: 'var(--sub)' }}>這段期間這堂課沒有任何曠課、遲到、病假、事假、公假紀錄。</p>
             ) : (
               EXCEPTION_STATUSES.map((st) => {
                 const list = (exceptions[detailStudent.student_no] ?? []).filter((r) => r.status === st);

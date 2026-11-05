@@ -327,14 +327,14 @@ export default function SubstituteTeachingPage() {
   return (
     <main style={{ maxWidth: 960, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>請假與代課</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 20 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 20 }}>
         老師可自行請假並選代課老師；教務處可在這裡代為輸入請假、補安排代課人選，也可一次處理多位老師同一天請假。完成後會自動發站內通知給請假老師與代課老師。屬教務部門權限。
       </p>
       {loadError && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{loadError}</p>}
 
-      <section id="proxy-leave" style={{ border: '1px solid #eee', borderRadius: 6, padding: 16, marginBottom: 24 }}>
+      <section id="proxy-leave" style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 16, marginBottom: 24 }}>
         <h2 style={{ fontSize: 14, marginBottom: 4 }}>代為輸入請假（臨時接到請假通知）</h2>
-        <p style={{ fontSize: 11, color: '#999', marginBottom: 12 }}>
+        <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 12 }}>
           選老師與日期，勾選要請假的節次，並直接指定那一節的空堂老師代課；教務處輸入後立即生效，不用送審，並會通知請假老師與代課老師。老師自己也可以到「請假與代課」自行登記。
         </p>
         {perms.userId && (
@@ -342,16 +342,16 @@ export default function SubstituteTeachingPage() {
         )}
       </section>
 
-      <section id="pending-leave" style={{ border: '1px solid #eee', borderRadius: 6, padding: 16, marginBottom: 24 }}>
+      <section id="pending-leave" style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 16, marginBottom: 24 }}>
         <h2 style={{ fontSize: 14, marginBottom: 4 }}>待安排代課老師的請假</h2>
-        <p style={{ fontSize: 11, color: '#999', marginBottom: 12 }}>老師自己請假時沒有選代課老師的節次，會列在這裡，請選一位空堂老師安排。</p>
+        <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 12 }}>老師自己請假時沒有選代課老師的節次，會列在這裡，請選一位空堂老師安排。</p>
         <PendingLeavePanel term={currentTerm} teachers={teachers} refreshKey={leaveRefresh} onChanged={load} />
       </section>
 
-      <section id="batch-assign" style={{ border: '1px solid #eee', borderRadius: 6, padding: 16, marginBottom: 24 }}>
+      <section id="batch-assign" style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 16, marginBottom: 24 }}>
         <h2 style={{ fontSize: 14, marginBottom: 12 }}>同一天批次代課安排（多位老師同一天請假時使用）</h2>
 
-        <label style={{ fontSize: 12, color: '#666', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+        <label style={{ fontSize: 12, color: 'var(--sub)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
           <input type="checkbox" checked={useOtherTerm} onChange={(e) => setUseOtherTerm(e.target.checked)} />
           這個日期不屬於目前這學期（自行指定學年度／學期）
         </label>
@@ -365,7 +365,7 @@ export default function SubstituteTeachingPage() {
           </div>
         )}
         {!useOtherTerm && currentTerm && (
-          <p style={{ fontSize: 11, color: '#999', marginBottom: 10 }}>
+          <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 10 }}>
             目前依系統設定的生效學期：{currentTerm.academic_year} 學年度／{currentTerm.term}
           </p>
         )}
@@ -394,7 +394,7 @@ export default function SubstituteTeachingPage() {
             </div>
 
             {entries.map((entry) => (
-              <div key={entry.key} style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: 12, marginBottom: 12, background: '#fafafa' }}>
+              <div key={entry.key} style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: 12, marginBottom: 12, background: 'var(--primary-soft)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <strong style={{ fontSize: 13 }}>{entry.teacherName}</strong>
                   <button type="button" onClick={() => handleRemoveEntry(entry.key)} style={{ fontSize: 12, color: '#A32D2D', cursor: 'pointer', background: 'none', border: 'none' }}>
@@ -402,7 +402,7 @@ export default function SubstituteTeachingPage() {
                   </button>
                 </div>
 
-                {entry.loadingPeriods && <p style={{ fontSize: 12, color: '#999' }}>查詢當天課表中…</p>}
+                {entry.loadingPeriods && <p style={{ fontSize: 12, color: 'var(--sub)' }}>查詢當天課表中…</p>}
                 {entry.periodNote && <p style={{ fontSize: 12, color: '#A36A00' }}>{entry.periodNote}</p>}
                 {entry.periodOptions.length > 0 && (
                   <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -417,9 +417,9 @@ export default function SubstituteTeachingPage() {
 
                 {entry.selectedPeriods.size > 0 && (
                   <div style={{ marginBottom: 10 }}>
-                    <p style={{ fontSize: 12, color: '#666', marginBottom: 6 }}>代課教師：</p>
+                    <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 6 }}>代課教師：</p>
                     {entry.availableNote && <p style={{ fontSize: 12, color: '#A36A00', marginBottom: 6 }}>{entry.availableNote}</p>}
-                    {entry.availableTeachers === null && <p style={{ fontSize: 12, color: '#999' }}>查詢中…</p>}
+                    {entry.availableTeachers === null && <p style={{ fontSize: 12, color: 'var(--sub)' }}>查詢中…</p>}
                     {entry.availableTeachers && entry.availableTeachers.length > 0 && !entry.showAllTeachersFallback && (
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                         {entry.availableTeachers.map((t) => (
@@ -455,7 +455,7 @@ export default function SubstituteTeachingPage() {
                       <button
                         type="button"
                         onClick={() => updateEntry(entry.key, { showAllTeachersFallback: true })}
-                        style={{ display: 'block', marginTop: 6, fontSize: 12, padding: '3px 10px', background: 'transparent', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer' }}
+                        style={{ display: 'block', marginTop: 6, fontSize: 12, padding: '3px 10px', background: 'transparent', border: '1px solid var(--line-strong)', borderRadius: 4, cursor: 'pointer' }}
                       >
                         改成從全體教師選擇
                       </button>
@@ -485,7 +485,7 @@ export default function SubstituteTeachingPage() {
         <h2 style={{ fontSize: 14, marginBottom: 12 }}>近期代課紀錄</h2>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #ddd', textAlign: 'left' }}>
+            <tr style={{ borderBottom: '1px solid var(--line-strong)', textAlign: 'left' }}>
               <th style={{ padding: 8 }}>日期</th>
               <th style={{ padding: 8 }}>班級</th>
               <th style={{ padding: 8 }}>節次</th>
@@ -499,7 +499,7 @@ export default function SubstituteTeachingPage() {
           </thead>
           <tbody>
             {assignments.map((a) => (
-              <tr key={a.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+              <tr key={a.id} style={{ borderBottom: '1px solid var(--line)' }}>
                 <td style={{ padding: 8 }}>{a.substitute_date}</td>
                 <td style={{ padding: 8 }}>{a.classes ? `${a.classes.grade_level}${a.classes.class_name}` : '—'}</td>
                 <td style={{ padding: 8 }}>第{a.period_no}節</td>
@@ -519,7 +519,7 @@ export default function SubstituteTeachingPage() {
             ))}
             {assignments.length === 0 && (
               <tr>
-                <td colSpan={9} style={{ padding: 16, color: '#999', textAlign: 'center' }}>
+                <td colSpan={9} style={{ padding: 16, color: 'var(--sub)', textAlign: 'center' }}>
                   尚無代課紀錄
                 </td>
               </tr>

@@ -48,11 +48,11 @@ function HubInner() {
   return (
     <div style={{ maxWidth: 1180, margin: '0 auto', padding: '16px 12px' }}>
       <h1 style={{ fontSize: 16, margin: '0 12px 4px' }}>排課與代課中心</h1>
-      <p style={{ fontSize: 12, color: '#999', margin: '0 12px 12px' }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', margin: '0 12px 12px' }}>
         排課、課表、代課、時間鎖定、課表查詢都集中在這裡。課表相關的 Excel 上傳／下載請統一從「① 排課工具」或「② 學校課表」進行；
         全校所有資料的 Excel（含課表資料表）一鍵下載／上傳，請到「開發人員資料中心」。
       </p>
-      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', borderBottom: '1px solid #ddd', margin: '0 12px' }}>
+      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', borderBottom: '1px solid var(--line-strong)', margin: '0 12px' }}>
         {visibleTabs.map((t) => (
           <button
             key={t.key}
@@ -63,8 +63,8 @@ function HubInner() {
               fontSize: 13,
               background: 'none',
               border: 'none',
-              borderBottom: current.key === t.key ? '2px solid #2C2C2A' : '2px solid transparent',
-              color: current.key === t.key ? '#2C2C2A' : '#999',
+              borderBottom: current.key === t.key ? '2px solid var(--primary)' : '2px solid transparent',
+              color: current.key === t.key ? 'var(--ink)' : 'var(--sub)',
               cursor: 'pointer',
             }}
           >
@@ -72,7 +72,7 @@ function HubInner() {
           </button>
         ))}
       </div>
-      <p style={{ fontSize: 11, color: '#aaa', margin: '6px 12px 0' }}>{current.hint}</p>
+      <p style={{ fontSize: 11, color: 'var(--sub)', margin: '6px 12px 0' }}>{current.hint}</p>
 
       {current.key === 'tool' && <SchedulingPage />}
       {current.key === 'timetable' && <SchoolTimetableAdminPage />}
@@ -86,7 +86,7 @@ function HubInner() {
 
 export default function SchedulingHubPage() {
   return (
-    <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: '#999' }}>載入中…</p>}>
+    <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}>
       <HubInner />
     </Suspense>
   );

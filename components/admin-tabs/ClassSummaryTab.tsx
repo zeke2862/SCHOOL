@@ -633,7 +633,7 @@ export default function ClassSummaryPage() {
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>{className || '班級'} 成績總表</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         任課教師登入本頁時，只會看到自己授課科目的欄位；總分、排名、評語僅導師與管理員可見。
         {subjects.some((s) => ATTENDANCE_SUBJECT_NAMES.includes(s)) && (
           <>「全勤」／「出缺席」欄位是依真實出缺勤紀錄自動計算（全勤100分，曠課/遲到/事假/病假依「整體佔比與加扣分規則」倒扣），不需要老師手動輸入，滑鼠移到格子上可以看到說明。</>
@@ -714,7 +714,7 @@ export default function ClassSummaryPage() {
 
       {classId && (
         <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 13, color: '#666' }}>檢視/列印範圍：</span>
+          <span style={{ fontSize: 13, color: 'var(--sub)' }}>檢視/列印範圍：</span>
           {(['all', '期中考', '期末考', '平時分'] as const).map((v) => (
             <button
               key={v}
@@ -723,9 +723,9 @@ export default function ClassSummaryPage() {
                 fontSize: 12,
                 padding: '4px 10px',
                 borderRadius: 999,
-                border: '1px solid #ccc',
-                background: viewMode === v ? '#2C2C2A' : '#fff',
-                color: viewMode === v ? '#fff' : '#2C2C2A',
+                border: '1px solid var(--line-strong)',
+                background: viewMode === v ? 'var(--primary)' : 'var(--surface)',
+                color: viewMode === v ? '#fff' : 'var(--ink)',
               }}
             >
               {v === 'all' ? '全部' : v}
@@ -733,7 +733,7 @@ export default function ClassSummaryPage() {
           ))}
           <button
             onClick={() => window.print()}
-            style={{ marginLeft: 'auto', fontSize: 12, padding: '4px 12px', borderRadius: 6, background: '#2C2C2A', color: '#fff', border: 'none' }}
+            style={{ marginLeft: 'auto', fontSize: 12, padding: '4px 12px', borderRadius: 6, background: 'var(--primary)', color: '#fff', border: 'none' }}
           >
             列印本頁（依目前選擇範圍）
           </button>
@@ -747,7 +747,7 @@ export default function ClassSummaryPage() {
           <button
             onClick={() => handleBatchPrintClass(false, 'docx')}
             className="no-print"
-            style={{ fontSize: 12, padding: '4px 12px', borderRadius: 6, background: '#2C6E9E', color: '#fff', border: 'none' }}
+            style={{ fontSize: 12, padding: '4px 12px', borderRadius: 6, background: 'var(--primary)', color: '#fff', border: 'none' }}
           >
             批次列印全班成績單（Word 合併列印）
           </button>
@@ -762,13 +762,13 @@ export default function ClassSummaryPage() {
       )}
 
       {!classId && !loading && (
-        <p style={{ fontSize: 13, color: '#999' }}>目前沒有可查看的班級（若您是任課教師，請改用「學生成績登錄」頁登錄成績）。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有可查看的班級（若您是任課教師，請改用「學生成績登錄」頁登錄成績）。</p>
       )}
 
       {canLock && (
         <div className="no-print" style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 6 }}>
           {!locksLoaded ? (
-            <p style={{ fontSize: 13, color: '#999', margin: 0 }}>鎖定狀態讀取中…</p>
+            <p style={{ fontSize: 13, color: 'var(--sub)', margin: 0 }}>鎖定狀態讀取中…</p>
           ) : (
             (['期中考', '期末考', '平時分'] as const).map((et) =>
               lockedByType[et] ? (
@@ -780,7 +780,7 @@ export default function ClassSummaryPage() {
                   key={et}
                   onClick={() => handleLockExamType(et)}
                   disabled={locking === et}
-                  style={{ padding: '8px 16px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, alignSelf: 'flex-start' }}
+                  style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, alignSelf: 'flex-start' }}
                 >
                   {locking === et ? '鎖定中…' : `確認送出並鎖定${et}（提前結束輸入）`}
                 </button>
@@ -791,7 +791,7 @@ export default function ClassSummaryPage() {
       )}
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         classId && (
           // 【本輪修正】反映事項「科目往下滑動看不見」「名字蓋到第一科期中考分數」
@@ -823,7 +823,7 @@ export default function ClassSummaryPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr ref={headRow1Ref}>
-                <th style={{ textAlign: 'left', padding: 6, position: 'sticky', left: 0, top: 0, background: '#fff', zIndex: 4, width: 48, minWidth: 48, maxWidth: 48 }}>
+                <th style={{ textAlign: 'left', padding: 6, position: 'sticky', left: 0, top: 0, background: 'var(--surface)', zIndex: 4, width: 48, minWidth: 48, maxWidth: 48 }}>
                   座號
                 </th>
                 <th
@@ -833,7 +833,7 @@ export default function ClassSummaryPage() {
                     position: 'sticky',
                     left: 48,
                     top: 0,
-                    background: '#fff',
+                    background: 'var(--surface)',
                     zIndex: 4,
                     width: 92,
                     minWidth: 92,
@@ -843,10 +843,10 @@ export default function ClassSummaryPage() {
                   姓名
                 </th>
                 {subjects.map((s) => (
-                  <th key={s} colSpan={visibleExamTypes.length} style={{ padding: 6, borderLeft: SUBJECT_DIVIDER, position: 'sticky', top: 0, background: '#fff', zIndex: 3 }}>
+                  <th key={s} colSpan={visibleExamTypes.length} style={{ padding: 6, borderLeft: SUBJECT_DIVIDER, position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 3 }}>
                     {s}
                     {subjectWeights[s] !== undefined && (
-                      <span style={{ display: 'block', fontSize: 11, fontWeight: 'normal', color: '#999' }}>
+                      <span style={{ display: 'block', fontSize: 11, fontWeight: 'normal', color: 'var(--sub)' }}>
                         {(subjectWeights[s] * 100).toFixed(0)}%
                       </span>
                     )}
@@ -854,13 +854,13 @@ export default function ClassSummaryPage() {
                 ))}
                 {/* 【本輪新增】反映事項「檢視/列印範圍【全部】的全勤紀錄右邊增加一欄『獎懲』」 */}
                 {viewMode === 'all' && (
-                  <th rowSpan={2} style={{ padding: 6, borderLeft: '1px solid #eee', position: 'sticky', top: 0, background: '#fff', zIndex: 3 }}>
+                  <th rowSpan={2} style={{ padding: 6, borderLeft: '1px solid var(--line)', position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 3 }}>
                     獎懲
-                    <span style={{ display: 'block', fontSize: 10, fontWeight: 'normal', color: '#999' }}>（本學期）</span>
+                    <span style={{ display: 'block', fontSize: 10, fontWeight: 'normal', color: 'var(--sub)' }}>（本學期）</span>
                   </th>
                 )}
                 {visibleExamTypes.map((et) => (
-                  <th key={'grp-' + et} colSpan={4} style={{ padding: 6, borderLeft: SUBJECT_DIVIDER, position: 'sticky', top: 0, background: '#fff', zIndex: 3 }}>
+                  <th key={'grp-' + et} colSpan={4} style={{ padding: 6, borderLeft: SUBJECT_DIVIDER, position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 3 }}>
                     {EXAM_TYPE_LABEL[et]}總分／排名
                     {/* 反映事項：勾選排除出缺席時，期中/期末/平時三個總分／排名的標題要補上
                         「(未含出缺席加扣分)」，讓老師一眼看出這三欄現在不含出缺席，跟
@@ -873,14 +873,14 @@ export default function ClassSummaryPage() {
                   </th>
                 ))}
                 {viewMode === 'all' && (
-                  <th colSpan={3} style={{ padding: 6, borderLeft: '1px solid #eee', position: 'sticky', top: 0, background: '#fff', zIndex: 3 }}>
+                  <th colSpan={3} style={{ padding: 6, borderLeft: '1px solid var(--line)', position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 3 }}>
                     總表（期中*比例＋期末*比例＋平時*比例）
                     {/* 反映事項「總表的分數與排名只有計算期中、期末、平時，不包括敘獎分數」——
                         資料庫這裡本來就只有 subject_weighted_scores（各科加權分數）＋
                         attendance_adjustment（出缺席自動加扣分），沒有把 conduct_events／
                         敘獎點數算進來（見 sql/3calculations.sql student_total_scores、
                         sql/46 的 student_adjustments），這裡額外標註清楚，不用再另外猜。 */}
-                    <span style={{ display: 'block', fontSize: 10, fontWeight: 'normal', color: '#999' }}>
+                    <span style={{ display: 'block', fontSize: 10, fontWeight: 'normal', color: 'var(--sub)' }}>
                       (不含敘獎分數)
                     </span>
                   </th>
@@ -891,23 +891,23 @@ export default function ClassSummaryPage() {
                     導師評語中間自己獨立的一欄。 */}
                 {viewMode === 'all' && (
                   <th
-                    style={{ padding: 6, borderLeft: '1px solid #eee', position: 'sticky', top: 0, background: '#fff', zIndex: 3 }}
+                    style={{ padding: 6, borderLeft: '1px solid var(--line)', position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 3 }}
                     title="此分數為升級依據，不參與排名"
                   >
                     綜合表現
-                    <span style={{ display: 'block', fontSize: 10, fontWeight: 'normal', color: '#999' }}>
+                    <span style={{ display: 'block', fontSize: 10, fontWeight: 'normal', color: 'var(--sub)' }}>
                       （敘獎分數+學業分數，此分數為升級依據，不參與排名）
                     </span>
                   </th>
                 )}
                 {canSeeRemarks && (
-                  <th style={{ textAlign: 'left', padding: 6, position: 'sticky', top: 0, background: '#fff', zIndex: 3 }}>導師評語</th>
+                  <th style={{ textAlign: 'left', padding: 6, position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 3 }}>導師評語</th>
                 )}
-                {canSeeRemarks && <th style={{ padding: 6, position: 'sticky', top: 0, background: '#fff', zIndex: 3 }}>成績單</th>}
+                {canSeeRemarks && <th style={{ padding: 6, position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 3 }}>成績單</th>}
               </tr>
-              <tr style={{ fontSize: 11, color: '#999' }}>
-                <th style={{ position: 'sticky', left: 0, top: headRow1Height, background: '#fff', zIndex: 4, width: 48, minWidth: 48, maxWidth: 48 }}></th>
-                <th style={{ position: 'sticky', left: 48, top: headRow1Height, background: '#fff', zIndex: 4, width: 92, minWidth: 92, maxWidth: 92 }}></th>
+              <tr style={{ fontSize: 11, color: 'var(--sub)' }}>
+                <th style={{ position: 'sticky', left: 0, top: headRow1Height, background: 'var(--surface)', zIndex: 4, width: 48, minWidth: 48, maxWidth: 48 }}></th>
+                <th style={{ position: 'sticky', left: 48, top: headRow1Height, background: 'var(--surface)', zIndex: 4, width: 92, minWidth: 92, maxWidth: 92 }}></th>
                 {subjects.map((s) =>
                   visibleExamTypes.map((et, eti) => (
                     <th
@@ -916,7 +916,7 @@ export default function ClassSummaryPage() {
                         borderLeft: eti === 0 ? SUBJECT_DIVIDER : EXAMTYPE_DIVIDER,
                         position: 'sticky',
                         top: headRow1Height,
-                        background: '#fff',
+                        background: 'var(--surface)',
                         zIndex: 2,
                       }}
                     >
@@ -929,42 +929,42 @@ export default function ClassSummaryPage() {
                     {/* 反映事項「期中、期末、平時項下的『總分』改為『原始分數總分』」——
                         跟右邊「總表」、「綜合表現」區分清楚：這裡是單一考試類別、單純
                         科目加權後的分數，不含出缺席／敘獎這些額外加扣分。 */}
-                    <th key={et + '-total'} style={{ position: 'sticky', top: headRow1Height, background: '#fff', zIndex: 2 }}>
+                    <th key={et + '-total'} style={{ position: 'sticky', top: headRow1Height, background: 'var(--surface)', zIndex: 2 }}>
                       原始分數總分
                     </th>
-                    <th key={et + '-avg'} style={{ position: 'sticky', top: headRow1Height, background: '#fff', zIndex: 2 }}>
+                    <th key={et + '-avg'} style={{ position: 'sticky', top: headRow1Height, background: 'var(--surface)', zIndex: 2 }}>
                       平均(*比重)
                     </th>
-                    <th key={et + '-crank'} style={{ position: 'sticky', top: headRow1Height, background: '#fff', zIndex: 2 }}>
+                    <th key={et + '-crank'} style={{ position: 'sticky', top: headRow1Height, background: 'var(--surface)', zIndex: 2 }}>
                       班排名
                     </th>
-                    <th key={et + '-grank'} style={{ position: 'sticky', top: headRow1Height, background: '#fff', zIndex: 2 }}>
+                    <th key={et + '-grank'} style={{ position: 'sticky', top: headRow1Height, background: 'var(--surface)', zIndex: 2 }}>
                       年級排名
                     </th>
                   </Fragment>
                 ))}
                 {viewMode === 'all' && (
                   <>
-                    <th style={{ position: 'sticky', top: headRow1Height, background: '#fff', zIndex: 2 }}>總分</th>
-                    <th style={{ position: 'sticky', top: headRow1Height, background: '#fff', zIndex: 2 }}>班排名</th>
-                    <th style={{ position: 'sticky', top: headRow1Height, background: '#fff', zIndex: 2 }}>年級排名</th>
+                    <th style={{ position: 'sticky', top: headRow1Height, background: 'var(--surface)', zIndex: 2 }}>總分</th>
+                    <th style={{ position: 'sticky', top: headRow1Height, background: 'var(--surface)', zIndex: 2 }}>班排名</th>
+                    <th style={{ position: 'sticky', top: headRow1Height, background: 'var(--surface)', zIndex: 2 }}>年級排名</th>
                   </>
                 )}
-                {viewMode === 'all' && <th style={{ position: 'sticky', top: headRow1Height, background: '#fff', zIndex: 2 }}></th>}
-                {canSeeRemarks && <th style={{ position: 'sticky', top: headRow1Height, background: '#fff', zIndex: 2 }}></th>}
-                {canSeeRemarks && <th style={{ position: 'sticky', top: headRow1Height, background: '#fff', zIndex: 2 }}></th>}
+                {viewMode === 'all' && <th style={{ position: 'sticky', top: headRow1Height, background: 'var(--surface)', zIndex: 2 }}></th>}
+                {canSeeRemarks && <th style={{ position: 'sticky', top: headRow1Height, background: 'var(--surface)', zIndex: 2 }}></th>}
+                {canSeeRemarks && <th style={{ position: 'sticky', top: headRow1Height, background: 'var(--surface)', zIndex: 2 }}></th>}
               </tr>
             </thead>
             <tbody>
               {enrollments.map((en) => (
-                <tr key={en.id} style={{ borderTop: '1px solid #eee' }}>
-                  <td style={{ padding: 6, position: 'sticky', left: 0, background: '#fff', zIndex: 1, width: 48, minWidth: 48, maxWidth: 48 }}>{en.seat_no}</td>
+                <tr key={en.id} style={{ borderTop: '1px solid var(--line)' }}>
+                  <td style={{ padding: 6, position: 'sticky', left: 0, background: 'var(--surface)', zIndex: 1, width: 48, minWidth: 48, maxWidth: 48 }}>{en.seat_no}</td>
                   <td
                     style={{
                       padding: 6,
                       position: 'sticky',
                       left: 48,
-                      background: '#fff',
+                      background: 'var(--surface)',
                       zIndex: 1,
                       whiteSpace: 'nowrap',
                       width: 92,
@@ -1001,7 +1001,7 @@ export default function ClassSummaryPage() {
                   {/* 【本輪新增】獎懲欄內容：只列出有登記、次數>0 的類別，次數=0的類別不顯示，
                       例如「嘉獎2支、小功1支」；這學期完全沒有紀錄就顯示—。 */}
                   {viewMode === 'all' && (
-                    <td style={{ padding: 6, textAlign: 'center', borderLeft: '1px solid #eee', fontSize: 12 }}>
+                    <td style={{ padding: 6, textAlign: 'center', borderLeft: '1px solid var(--line)', fontSize: 12 }}>
                       {(() => {
                         const counts = conductByStudent[en.student_no]?.counts ?? {};
                         const parts = CONDUCT_TYPE_ORDER.filter((t) => counts[t] > 0).map((t) => `${t}${counts[t]}支`);
@@ -1014,7 +1014,7 @@ export default function ClassSummaryPage() {
                       <td key={en.id + et + '-total'} style={{ padding: 6, textAlign: 'center', borderLeft: SUBJECT_DIVIDER }}>
                         {classRank[en.id]?.[EXAM_TYPE_TOTAL_FIELD[et]] ?? '—'}
                       </td>
-                      <td key={en.id + et + '-avg'} style={{ padding: 6, textAlign: 'center', color: '#666' }}>
+                      <td key={en.id + et + '-avg'} style={{ padding: 6, textAlign: 'center', color: 'var(--sub)' }}>
                         {classRank[en.id]?.[EXAM_TYPE_AVERAGE_FIELD[et]] ?? '—'}
                       </td>
                       <td key={en.id + et + '-crank'} style={{ padding: 6, textAlign: 'center' }}>
@@ -1027,7 +1027,7 @@ export default function ClassSummaryPage() {
                   ))}
                   {viewMode === 'all' && (
                     <>
-                      <td style={{ padding: 6, textAlign: 'center', borderLeft: '1px solid #eee' }}>{classRank[en.id]?.total_score ?? '—'}</td>
+                      <td style={{ padding: 6, textAlign: 'center', borderLeft: '1px solid var(--line)' }}>{classRank[en.id]?.total_score ?? '—'}</td>
                       <td style={{ padding: 6, textAlign: 'center' }}>{classRank[en.id]?.class_rank ?? '—'}</td>
                       <td style={{ padding: 6, textAlign: 'center' }}>{gradeRank[en.id]?.grade_rank ?? '—'}</td>
                     </>
@@ -1038,7 +1038,7 @@ export default function ClassSummaryPage() {
                       加權後的總分，不含敘獎）。學業分數還沒算出來（例如還沒三個類別都
                       鎖定）就先顯示—，不要顯示只有敘獎分數、沒有學業分數的半套數字。 */}
                   {viewMode === 'all' && (
-                    <td style={{ padding: 6, textAlign: 'center', borderLeft: '1px solid #eee' }} title="此分數為升級依據，不參與排名">
+                    <td style={{ padding: 6, textAlign: 'center', borderLeft: '1px solid var(--line)' }} title="此分數為升級依據，不參與排名">
                       {(() => {
                         const academic = classRank[en.id]?.total_score;
                         if (academic === undefined || academic === null) return '—';
@@ -1059,7 +1059,7 @@ export default function ClassSummaryPage() {
                             onClick={() => handlePrintReportCard(en.id, 'docx')}
                             className="no-print"
                             title="Word 合併列印"
-                            style={{ fontSize: 12, padding: '2px 8px', color: '#2C6E9E', border: '1px solid #2C6E9E', borderRadius: 4, background: '#fff' }}
+                            style={{ fontSize: 12, padding: '2px 8px', color: 'var(--primary-ink)', border: '1px solid var(--primary)', borderRadius: 4, background: 'var(--surface)' }}
                           >
                             Word
                           </button>
@@ -1067,7 +1067,7 @@ export default function ClassSummaryPage() {
                             onClick={() => handlePrintReportCard(en.id, 'xlsx')}
                             className="no-print"
                             title="Excel 範本"
-                            style={{ fontSize: 12, padding: '2px 8px', color: '#1E7B45', border: '1px solid #1E7B45', borderRadius: 4, background: '#fff' }}
+                            style={{ fontSize: 12, padding: '2px 8px', color: '#1E7B45', border: '1px solid #1E7B45', borderRadius: 4, background: 'var(--surface)' }}
                           >
                             Excel
                           </button>
@@ -1085,7 +1085,7 @@ export default function ClassSummaryPage() {
               ))}
               {enrollments.length === 0 && (
                 <tr>
-                  <td colSpan={99} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                  <td colSpan={99} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                     這個班級目前沒有在學學生
                   </td>
                 </tr>

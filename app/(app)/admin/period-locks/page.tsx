@@ -112,7 +112,7 @@ export default function PeriodLocksPage() {
     <div style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>共同科目時間鎖定</h1>
       {loadError && <p style={{ color: '#A32D2D', fontSize: 12 }}>{loadError}</p>}
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         設定某個範圍（全校／部別／班級）某星期某節，鎖定給共同科目使用（例如：升旗、朝會、班會、聯課活動）。
         鎖定後，這個時段會顯示在【排課系統】工具內，提醒排課時不要把一般課程排進去；本頁只負責登記鎖定，
         共同科目本身怎麼安排、由誰帶班不由本系統處理。
@@ -192,7 +192,7 @@ export default function PeriodLocksPage() {
           onChange={(e) => setForm({ ...form, note: e.target.value })}
           style={{ width: 120, padding: 6 }}
         />
-        <button type="submit" style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+        <button type="submit" style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
           {canWriteDirect ? '新增鎖定' : '送出新增申請'}
         </button>
       </form>
@@ -212,7 +212,7 @@ export default function PeriodLocksPage() {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+            <tr key={r.id} style={{ borderTop: '1px solid var(--line)' }}>
               <td style={{ padding: 6 }}>{r.academic_year} {r.term}</td>
               <td style={{ padding: 6 }}>{r.scope}{r.scope_ref ? `（${r.scope_ref}）` : ''}</td>
               <td style={{ padding: 6 }}>星期{WEEKDAY_LABEL[r.weekday]} 第{r.period_no}節</td>

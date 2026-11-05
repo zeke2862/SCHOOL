@@ -86,14 +86,14 @@ export default function VotePage() {
       <main style={{ maxWidth: 720, margin: '0 auto', padding: 16 }}>
         <h1 style={{ fontSize: 16 }}>作品投票</h1>
         <p style={{ ...hint, marginTop: 8 }}>只有本校教職員可以投票，或找不到這個投票項目。</p>
-        <Link href="/competitions" style={{ color: '#1f4e79', fontSize: 13 }}>← 回競賽活動</Link>
+        <Link href="/competitions" style={{ color: 'var(--primary-ink)', fontSize: 13 }}>← 回競賽活動</Link>
       </main>
     );
   }
 
   return (
     <main style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
-      <Link href={`/competitions/${item.event_id}`} style={{ color: '#1f4e79', fontSize: 12 }}>← 回賽事</Link>
+      <Link href={`/competitions/${item.event_id}`} style={{ color: 'var(--primary-ink)', fontSize: 12 }}>← 回賽事</Link>
       <h1 style={{ fontSize: 16, margin: '4px 0' }}>{title}</h1>
       <p style={{ ...hint, marginBottom: 8 }}>
         {phase === 'upcoming' && `投票尚未開始（${fmtTime(cfg.vote_open_at)} 開放）。`}
@@ -109,9 +109,9 @@ export default function VotePage() {
           const voted = votes.some((v) => v.entry_id === e.id);
           const canVote = phase === 'open' && (voted || remaining === null || remaining > 0);
           return (
-            <figure key={e.id} style={{ margin: 0, border: voted ? '2px solid #1f4e79' : '1px solid #e5e5e5', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
+            <figure key={e.id} style={{ margin: 0, border: voted ? '2px solid var(--primary)' : '1px solid var(--line)', borderRadius: 10, overflow: 'hidden', background: 'var(--surface)' }}>
               <button onClick={() => setZoom(e)} aria-label={`放大 ${e.entry_no} 號作品`} className="keep-size"
-                style={{ display: 'block', width: '100%', padding: 0, border: 0, background: '#f3f3f3', cursor: 'zoom-in', minHeight: 0 }}>
+                style={{ display: 'block', width: '100%', padding: 0, border: 0, background: 'var(--primary-soft)', cursor: 'zoom-in', minHeight: 0 }}>
                 {urls[e.id] ? <img src={urls[e.id]} alt={`${e.entry_no} 號作品${e.title ? '：' + e.title : ''}`} style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block' }} /> : <div style={{ height: 200 }} />}
               </button>
               <figcaption style={{ padding: 10, display: 'flex', alignItems: 'center', gap: 8 }}>

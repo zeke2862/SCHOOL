@@ -844,7 +844,7 @@ export default function ScoreEntryPage() {
       <ErrorBanner message={loadError} />
 
       {classOptions.length === 0 && !loadError && (
-        <p style={{ fontSize: 13, color: '#999', marginBottom: 12 }}>
+        <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 12 }}>
           目前沒有可登錄成績的班級，請聯絡管理員在「任課教師設定」／「班級與導師設定」頁確認配課。
         </p>
       )}
@@ -853,7 +853,7 @@ export default function ScoreEntryPage() {
         // 手機版：批次上傳（要選檔案、通常在桌機用試算表準備好資料再傳）預設收合，
         // 平常用手機一列一列輸入分數的情境不會被這塊佔掉版面；點「批次上傳」才展開。
         <details style={{ marginBottom: 8 }}>
-          <summary style={{ fontSize: 13, color: '#666', cursor: 'pointer' }}>
+          <summary style={{ fontSize: 13, color: 'var(--sub)', cursor: 'pointer' }}>
             {siteContent['page_hint.scores_entry'] ?? '批次上傳'}
           </summary>
           <div style={{ marginTop: 8 }}>
@@ -866,7 +866,7 @@ export default function ScoreEntryPage() {
         </details>
       ) : (
         <>
-          <h2 style={{ fontSize: 13, color: '#666', marginBottom: 4 }}>{siteContent['page_hint.scores_entry'] ?? '批次上傳（格式同「成績、出缺輸入表」工作表）'}</h2>
+          <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 4 }}>{siteContent['page_hint.scores_entry'] ?? '批次上傳（格式同「成績、出缺輸入表」工作表）'}</h2>
           <TemplateDownloadButton
             label={classId ? `下載範本（${classLabel} 真實名冊）` : '下載成績輸入範本'}
             onClick={handleDownloadClassTemplate}
@@ -904,7 +904,7 @@ export default function ScoreEntryPage() {
         )}
 
         {effectiveSubject && subjectWeights[effectiveSubject] !== undefined && (
-          <span style={{ display: 'flex', alignItems: 'center', fontSize: 12, color: '#666', padding: '0 4px' }}>
+          <span style={{ display: 'flex', alignItems: 'center', fontSize: 12, color: 'var(--sub)', padding: '0 4px' }}>
             「{effectiveSubject}」佔學期成績 {(subjectWeights[effectiveSubject] * 100).toFixed(0)}%
           </span>
         )}
@@ -929,15 +929,15 @@ export default function ScoreEntryPage() {
       </div>
 
       {classId && subjectOptions.length === 0 && !canPickAnySubject && (
-        <p style={{ fontSize: 13, color: '#999', marginBottom: 8 }}>您目前沒有被指派這個班級的任何科目。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 8 }}>您目前沒有被指派這個班級的任何科目。</p>
       )}
       {classId && subjectOptions.length === 0 && canPickAnySubject && subject !== CUSTOM_SUBJECT_VALUE && (
-        <p style={{ fontSize: 13, color: '#999', marginBottom: 8 }}>
+        <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 8 }}>
           {classLabel} 目前還沒有任課教師/科目資料，可以選「其他（自行輸入科目名稱）」直接登錄。
         </p>
       )}
       {classId && effectiveSubject && !examType && (
-        <p style={{ fontSize: 13, color: '#999', marginBottom: 8 }}>請選擇「期中考」「期末考」或「平時分」後開始輸入分數。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 8 }}>請選擇「期中考」「期末考」或「平時分」後開始輸入分數。</p>
       )}
 
       {classId && examType === '平時分' && canEditRemarks && (
@@ -946,8 +946,8 @@ export default function ScoreEntryPage() {
             {showRemarks ? '收合導師評語 ▲' : '📝 輸入導師評語 ▼'}
           </button>
           {showRemarks && (
-            <div style={{ border: '1px solid #eee', borderRadius: 8, padding: 12, marginTop: 8 }}>
-              <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+            <div style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12, marginTop: 8 }}>
+              <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
                 每位學生一段評語，會跟著成績單一起印出（只有導師本人與管理員看得到，任課教師不會看到）。
                 點開其他欄位或離開輸入框會自動儲存。
               </p>
@@ -966,7 +966,7 @@ export default function ScoreEntryPage() {
                     rows={2}
                     style={{ flex: 1, padding: 6, fontSize: 13 }}
                   />
-                  {savingRemark === enrollmentId && <span style={{ fontSize: 12, color: '#999', paddingTop: 6 }}>儲存中…</span>}
+                  {savingRemark === enrollmentId && <span style={{ fontSize: 12, color: 'var(--sub)', paddingTop: 6 }}>儲存中…</span>}
                 </div>
               ))}
             </div>
@@ -984,7 +984,7 @@ export default function ScoreEntryPage() {
               「整體佔比與加扣分規則」頁。
             </p>
           )}
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666', marginBottom: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
             <span>已填 {filledCount} / {rows.length}</span>
             <span>分數範圍 0–100</span>
           </div>
@@ -1002,7 +1002,7 @@ export default function ScoreEntryPage() {
                   fontSize: 12,
                   borderRadius: 6,
                   border: '1px solid #A36A2D',
-                  background: corrMode ? '#A36A2D' : '#fff',
+                  background: corrMode ? '#A36A2D' : 'var(--surface)',
                   color: corrMode ? '#fff' : '#A36A2D',
                 }}
               >
@@ -1011,19 +1011,19 @@ export default function ScoreEntryPage() {
             </div>
           )}
           {!locked && filledCount > 0 && canLockExamType && (
-            <p style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>
+            <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
               分數存好後，記得按「鎖定」才算提前完成——只有「儲存」的話，這個班這次考試仍會視為尚未完成。
             </p>
           )}
           {!locked && filledCount > 0 && !canLockExamType && (
-            <p style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>
+            <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
               分數存好後，這個班這次考試要等導師或管理員鎖定，才算提前完成、排名才會顯示。
             </p>
           )}
 
           {!locked && selected.size > 0 && (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 8, padding: 8, background: '#F5F5F3', borderRadius: 6 }}>
-              <span style={{ fontSize: 12, color: '#666' }}>已選取 {selected.size} 位</span>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 8, padding: 8, background: 'var(--primary-soft)', borderRadius: 6 }}>
+              <span style={{ fontSize: 12, color: 'var(--sub)' }}>已選取 {selected.size} 位</span>
               {armedAction === null && (
                 <>
                   <input
@@ -1049,7 +1049,7 @@ export default function ScoreEntryPage() {
               {armedAction === 'edit' && (
                 <>
                   <span style={{ fontSize: 12 }}>確定要把這 {selected.size} 位的分數都改成 {batchScoreValue} 嗎？</span>
-                  <button onClick={handleBatchSetScore} style={{ fontSize: 12, padding: '4px 10px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 4 }}>
+                  <button onClick={handleBatchSetScore} style={{ fontSize: 12, padding: '4px 10px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 4 }}>
                     確定
                   </button>
                   <button onClick={() => setArmedAction(null)} style={{ fontSize: 12, padding: '4px 10px' }}>
@@ -1085,11 +1085,11 @@ export default function ScoreEntryPage() {
                 alignItems: 'center',
                 gap: 6,
                 fontSize: 12,
-                color: '#666',
+                color: 'var(--sub)',
                 padding: '4px 0',
                 position: 'sticky',
                 top: 0,
-                background: '#fff',
+                background: 'var(--surface)',
                 zIndex: 2,
               }}
             >
@@ -1101,7 +1101,7 @@ export default function ScoreEntryPage() {
           {rows.map((r) => (
             <div
               key={r.enrollment_id}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? '12px 0' : '8px 0', borderBottom: '1px solid #eee' }}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isMobile ? '12px 0' : '8px 0', borderBottom: '1px solid var(--line)' }}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: isMobile ? 16 : 14 }}>
                 <input
@@ -1110,7 +1110,7 @@ export default function ScoreEntryPage() {
                   onChange={() => toggleSelect(r.enrollment_id)}
                   disabled={locked}
                 />
-                <span style={{ color: '#999', marginRight: 6 }}>{r.seat_no}</span>
+                <span style={{ color: 'var(--sub)', marginRight: 6 }}>{r.seat_no}</span>
                 {r.name}
               </span>
               <input
@@ -1134,7 +1134,7 @@ export default function ScoreEntryPage() {
             </div>
           ))}
 
-          {rows.length === 0 && <p style={{ fontSize: 13, color: '#999' }}>這個班級目前沒有在學學生。</p>}
+          {rows.length === 0 && <p style={{ fontSize: 13, color: 'var(--sub)' }}>這個班級目前沒有在學學生。</p>}
 
           {locked && corrMode && (
             <div style={{ marginTop: 12, padding: 12, border: '1px solid #A36A2D', borderRadius: 8, background: '#FFFBF7' }}>
@@ -1160,14 +1160,14 @@ export default function ScoreEntryPage() {
             <button
               onClick={() => setShowEntered(true)}
               disabled={rows.length === 0}
-              style={{ flex: 1, padding: isMobile ? 16 : 12, fontSize: isMobile ? 16 : 14, borderRadius: 8, background: '#fff', color: '#2C2C2A', border: '1px solid #2C2C2A' }}
+              style={{ flex: 1, padding: isMobile ? 16 : 12, fontSize: isMobile ? 16 : 14, borderRadius: 8, background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--primary)' }}
             >
               查看已輸入成績
             </button>
             <button
               onClick={handleSave}
               disabled={locked || rows.length === 0}
-              style={{ flex: 1, padding: isMobile ? 16 : 12, fontSize: isMobile ? 16 : 14, borderRadius: 8, background: '#2C2C2A', color: '#fff', border: 'none' }}
+              style={{ flex: 1, padding: isMobile ? 16 : 12, fontSize: isMobile ? 16 : 14, borderRadius: 8, background: 'var(--primary)', color: '#fff', border: 'none' }}
             >
               儲存
             </button>
@@ -1182,7 +1182,7 @@ export default function ScoreEntryPage() {
                 padding: isMobile ? 16 : 12,
                 fontSize: isMobile ? 16 : 14,
                 borderRadius: 8,
-                background: '#fff',
+                background: 'var(--surface)',
                 color: '#A32D2D',
                 border: '1px solid #A32D2D',
               }}
@@ -1196,17 +1196,17 @@ export default function ScoreEntryPage() {
       {/* ---------- 個人成績單：預覽／列印（僅導師本人／管理員看得到，跟目前選的科目無關） ---------- */}
       {classId && canSeeReportCards && (
         <details style={{ marginTop: 20 }} open={showReportCards} onToggle={(e) => setShowReportCards((e.target as HTMLDetailsElement).open)}>
-          <summary style={{ fontSize: 13, color: '#666', cursor: 'pointer', marginBottom: 8 }}>個人成績單（預覽／列印）</summary>
-          <p style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>
+          <summary style={{ fontSize: 13, color: 'var(--sub)', cursor: 'pointer', marginBottom: 8 }}>個人成績單（預覽／列印）</summary>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
             需要期中考、期末考、平時分「三項都鎖定」後才能產出正式成績單；未完成的部分請先回到上面完成輸入並鎖定。
           </p>
           {classStudents.map((s) => (
             <div
               key={s.enrollment_id}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #eee' }}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--line)' }}
             >
               <span style={{ fontSize: 14 }}>
-                <span style={{ color: '#999', marginRight: 6 }}>{s.seat_no}</span>
+                <span style={{ color: 'var(--sub)', marginRight: 6 }}>{s.seat_no}</span>
                 {s.name}
               </span>
               <button onClick={() => handlePrintReportCard(s.enrollment_id)} style={{ fontSize: 12, padding: '4px 10px' }}>
@@ -1214,7 +1214,7 @@ export default function ScoreEntryPage() {
               </button>
             </div>
           ))}
-          {classStudents.length === 0 && <p style={{ fontSize: 13, color: '#999' }}>這個班級目前沒有在學學生。</p>}
+          {classStudents.length === 0 && <p style={{ fontSize: 13, color: 'var(--sub)' }}>這個班級目前沒有在學學生。</p>}
         </details>
       )}
 
@@ -1232,11 +1232,11 @@ export default function ScoreEntryPage() {
           onClick={() => setShowEntered(false)}
         >
           <div
-            style={{ background: '#fff', borderRadius: 8, padding: 24, width: 420, maxWidth: '92vw', boxSizing: 'border-box', maxHeight: '80vh', overflowY: 'auto' }}
+            style={{ background: 'var(--surface)', borderRadius: 8, padding: 24, width: 420, maxWidth: '92vw', boxSizing: 'border-box', maxHeight: '80vh', overflowY: 'auto' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 style={{ fontSize: 15, marginBottom: 4 }}>已輸入成績</h2>
-            <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
+            <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
               {classLabel}｜{effectiveSubject}｜{examType}（共 {rows.filter((r) => r.score !== '').length} 位已填）
             </p>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -1251,7 +1251,7 @@ export default function ScoreEntryPage() {
                 {rows
                   .filter((r) => r.score !== '')
                   .map((r) => (
-                    <tr key={r.enrollment_id} style={{ borderTop: '1px solid #eee' }}>
+                    <tr key={r.enrollment_id} style={{ borderTop: '1px solid var(--line)' }}>
                       <td style={{ padding: 4 }}>{r.seat_no}</td>
                       <td style={{ padding: 4 }}>{r.name}</td>
                       <td style={{ padding: 4, textAlign: 'right' }}>{r.score}</td>
@@ -1259,7 +1259,7 @@ export default function ScoreEntryPage() {
                   ))}
                 {rows.filter((r) => r.score !== '').length === 0 && (
                   <tr>
-                    <td colSpan={3} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                    <td colSpan={3} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                       目前還沒有任何已輸入的分數
                     </td>
                   </tr>

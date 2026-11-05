@@ -352,11 +352,11 @@ export default function ImportStudentPage() {
     <div style={{ maxWidth: 420, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>既有學生快速建檔（精簡版）</h1>
       <ErrorBanner message={loadError} />
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         給轉學生或舊資料匯入使用，只填必要欄位。若要登記完整入學資料（家庭資料、原校資料等），請改用「新生入學登記」。
       </p>
 
-      <h2 style={{ fontSize: 13, color: '#666', marginBottom: 4 }}>批次上傳（格式同「既有學生快速建檔（精簡版）」工作表）</h2>
+      <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 4 }}>批次上傳（格式同「既有學生快速建檔（精簡版）」工作表）</h2>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 8 }}>
         <input
           type="number"
@@ -375,7 +375,7 @@ export default function ImportStudentPage() {
       />
       <ExcelUploadButton onFile={handleUploadFile} />
 
-      <h2 style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>手動新增單一學生</h2>
+      <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 8 }}>手動新增單一學生</h2>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <input placeholder="學號" value={form.student_no} onChange={(e) => setForm({ ...form, student_no: e.target.value })} style={{ padding: 8 }} required />
@@ -401,13 +401,13 @@ export default function ImportStudentPage() {
           style={{ padding: 8 }}
           required
         />
-        {seatNote && <div style={{ fontSize: 12, color: '#888' }}>{seatNote}</div>}
-        <button type="submit" style={{ padding: 12, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 8 }}>
+        {seatNote && <div style={{ fontSize: 12, color: 'var(--sub)' }}>{seatNote}</div>}
+        <button type="submit" style={{ padding: 12, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8 }}>
           建檔並編班
         </button>
       </form>
 
-      <h2 style={{ fontSize: 13, color: '#666', marginBottom: 8, marginTop: 24 }}>目前已建檔學生（確認上傳/新增結果）</h2>
+      <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 8, marginTop: 24 }}>目前已建檔學生（確認上傳/新增結果）</h2>
       <select value={filterClassId} onChange={(e) => setFilterClassId(e.target.value)} style={{ padding: 6, marginBottom: 10, width: '100%' }}>
         <option value="">全部班級</option>
         {classes.map((c) => (
@@ -418,8 +418,8 @@ export default function ImportStudentPage() {
       </select>
 
       {selected.size > 0 && (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, padding: 8, background: '#F5F5F3', borderRadius: 6 }}>
-          <span style={{ fontSize: 12, color: '#666' }}>已選取 {selected.size} 筆</span>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, padding: 8, background: 'var(--primary-soft)', borderRadius: 6 }}>
+          <span style={{ fontSize: 12, color: 'var(--sub)' }}>已選取 {selected.size} 筆</span>
           {armedAction === null && (
             <>
               <select value={batchClassId} onChange={(e) => setBatchClassId(e.target.value)} style={{ padding: 4, fontSize: 12 }}>
@@ -459,7 +459,7 @@ export default function ImportStudentPage() {
                 {batchSeatNo ? `、座號改成 ${batchSeatNo}` : ''}
                 嗎？
               </span>
-              <button onClick={handleBatchEdit} style={{ fontSize: 12, padding: '4px 10px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 4 }}>
+              <button onClick={handleBatchEdit} style={{ fontSize: 12, padding: '4px 10px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 4 }}>
                 確定
               </button>
               <button onClick={() => setArmedAction(null)} style={{ fontSize: 12, padding: '4px 10px' }}>
@@ -513,7 +513,7 @@ export default function ImportStudentPage() {
         </thead>
         <tbody>
           {students.map((s) => (
-            <tr key={s.id} style={{ borderTop: '1px solid #eee' }}>
+            <tr key={s.id} style={{ borderTop: '1px solid var(--line)' }}>
               <td style={{ padding: 6 }}>
                 <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggleSelect(s.id)} />
               </td>
@@ -526,7 +526,7 @@ export default function ImportStudentPage() {
           ))}
           {students.length === 0 && (
             <tr>
-              <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+              <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                 目前沒有資料。若剛上傳完看到這裡是空的，代表上傳很可能沒有實際寫入成功，請往上看批次上傳結果訊息裡有沒有錯誤。
               </td>
             </tr>

@@ -105,18 +105,18 @@ export default function StatusRequestReview() {
       return n;
     });
   const th: React.CSSProperties = { textAlign: 'left', padding: 8, fontSize: 13 };
-  const td: React.CSSProperties = { padding: 8, fontSize: 13, borderTop: '1px solid #eee' };
+  const td: React.CSSProperties = { padding: 8, fontSize: 13, borderTop: '1px solid var(--line)' };
 
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', padding: 24 }}>
       <h1 style={{ marginBottom: 4 }}>學籍異動申請</h1>
-      <p style={{ fontSize: 13, color: '#666', marginBottom: 14, lineHeight: 1.7 }}>
+      <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 14, lineHeight: 1.7 }}>
         導師在點名單送出的休學／轉學／轉班申請。{canDecide ? '按「同意」後系統立刻修正班級名單：' : '教務處同意後系統會立刻修正班級名單：'}
         <b>休學、轉學</b>＝該生所有資料隱藏（僅教務處、管理員A、S 可查閱）、家長／學生入口帳號停權，座號保留、其他同學號碼不變；
         <b>轉班</b>＝換到新班，座號接在新班最後一號。
       </p>
       {error && <p style={{ color: '#A32D2D', fontSize: 13 }}>{error}</p>}
-      {loading && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+      {loading && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
       {!loading && pending.length === 0 && !error && <p style={{ fontSize: 14, color: '#3B6D11' }}>✅ 目前沒有待審核的申請。</p>}
 
       {pending.length > 0 && (
@@ -130,14 +130,14 @@ export default function StatusRequestReview() {
               <button
                 disabled={busy || selected.size === 0}
                 onClick={() => decide(pending.filter((r) => selected.has(r.id)), true)}
-                style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, opacity: busy || selected.size === 0 ? 0.5 : 1 }}
+                style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, opacity: busy || selected.size === 0 ? 0.5 : 1 }}
               >
                 {busy ? '處理中…' : `同意勾選的 ${selected.size} 筆`}
               </button>
               <button
                 disabled={busy || selected.size === 0}
                 onClick={() => decide(pending.filter((r) => selected.has(r.id)), false)}
-                style={{ padding: '6px 14px', background: '#fff', border: '1px solid #A32D2D', color: '#A32D2D', borderRadius: 6, opacity: busy || selected.size === 0 ? 0.5 : 1 }}
+                style={{ padding: '6px 14px', background: 'var(--surface)', border: '1px solid #A32D2D', color: '#A32D2D', borderRadius: 6, opacity: busy || selected.size === 0 ? 0.5 : 1 }}
               >
                 駁回勾選的
               </button>
@@ -145,7 +145,7 @@ export default function StatusRequestReview() {
           )}
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#fafafa' }}>
+              <tr style={{ background: 'var(--primary-soft)' }}>
                 {canDecide && <th style={th} />}
                 <th style={th}>類別</th>
                 <th style={th}>學生</th>
@@ -166,11 +166,11 @@ export default function StatusRequestReview() {
                   )}
                   <td style={td}>
                     <b>{r.request_type}</b>
-                    {r.target_class_label ? <div style={{ color: '#666' }}>→ {r.target_class_label}</div> : null}
+                    {r.target_class_label ? <div style={{ color: 'var(--sub)' }}>→ {r.target_class_label}</div> : null}
                   </td>
                   <td style={td}>
                     {r.student_name ?? r.student_no}
-                    <div style={{ color: '#999' }}>{r.student_no}</div>
+                    <div style={{ color: 'var(--sub)' }}>{r.student_no}</div>
                   </td>
                   <td style={td}>
                     {r.class_label}
@@ -198,7 +198,7 @@ export default function StatusRequestReview() {
 
       {done.length > 0 && (
         <div style={{ marginTop: 24 }}>
-          <button onClick={() => setShowDone(!showDone)} style={{ fontSize: 13, border: 'none', background: 'none', textDecoration: 'underline', color: '#666' }}>
+          <button onClick={() => setShowDone(!showDone)} style={{ fontSize: 13, border: 'none', background: 'none', textDecoration: 'underline', color: 'var(--sub)' }}>
             {showDone ? '收起' : '顯示'}已處理紀錄（{done.length}）
           </button>
           {showDone && (

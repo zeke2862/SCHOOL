@@ -94,7 +94,7 @@ export default function ScheduleLookupPage() {
   return (
     <main style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>查詢教師/班級課表</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         選一位老師或一個班級，直接看整週課表。{academicYear != null && term ? `目前查詢的學年學期：${academicYear} 學年度／${term}` : ''}
       </p>
 
@@ -121,15 +121,15 @@ export default function ScheduleLookupPage() {
       </div>
 
       {loadError && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{loadError}</p>}
-      {loading && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+      {loading && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
 
       {selectedId && !loading && (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr>
-              <th style={{ padding: 6, border: '1px solid #eee', background: '#F5F5F3' }}></th>
+              <th style={{ padding: 6, border: '1px solid var(--line)', background: 'var(--primary-soft)' }}></th>
               {WEEKDAY_LABELS.map((w) => (
-                <th key={w} style={{ padding: 6, border: '1px solid #eee', background: '#F5F5F3' }}>
+                <th key={w} style={{ padding: 6, border: '1px solid var(--line)', background: 'var(--primary-soft)' }}>
                   星期{w}
                 </th>
               ))}
@@ -138,15 +138,15 @@ export default function ScheduleLookupPage() {
           <tbody>
             {periods.map((p) => (
               <tr key={p}>
-                <td style={{ padding: 6, border: '1px solid #eee', background: '#F5F5F3', textAlign: 'center' }}>第{p}節</td>
+                <td style={{ padding: 6, border: '1px solid var(--line)', background: 'var(--primary-soft)', textAlign: 'center' }}>第{p}節</td>
                 {WEEKDAY_LABELS.map((_, wi) => {
                   const cell = grid[`${wi + 1}-${p}`];
                   return (
-                    <td key={wi} style={{ padding: 6, border: '1px solid #eee', textAlign: 'center' }}>
+                    <td key={wi} style={{ padding: 6, border: '1px solid var(--line)', textAlign: 'center' }}>
                       {cell ? (
                         <>
                           <div>{cell.subject}</div>
-                          <div style={{ fontSize: 11, color: '#888' }}>{mode === 'teacher' ? cell.classLabel : cell.subject === '才藝' ? '' : cell.teacherName}</div>
+                          <div style={{ fontSize: 11, color: 'var(--sub)' }}>{mode === 'teacher' ? cell.classLabel : cell.subject === '才藝' ? '' : cell.teacherName}</div>
                         </>
                       ) : (
                         <span style={{ color: '#ccc' }}>—</span>

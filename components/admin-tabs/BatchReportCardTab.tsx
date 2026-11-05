@@ -228,12 +228,12 @@ export default function BatchReportCardTab() {
   const gradeLevels = Array.from(new Set(classes.map((c) => c.grade_level)));
 
   if (loading) {
-    return <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>;
+    return <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>;
   }
 
   return (
     <div style={{ maxWidth: 720 }}>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
         選擇要批次列印的班級（可複選），或用下面的快速選取。還沒三項（期中/期末/平時分）都鎖定的學生不會被列入，
         列印前會先提示名單，可選擇先印其餘已完成的。
       </p>
@@ -251,7 +251,7 @@ export default function BatchReportCardTab() {
             {g} 全部
           </button>
         ))}
-        <button onClick={clearSelection} style={{ ...btnStyle, color: '#999' }}>
+        <button onClick={clearSelection} style={{ ...btnStyle, color: 'var(--sub)' }}>
           清除選取
         </button>
       </div>
@@ -260,7 +260,7 @@ export default function BatchReportCardTab() {
         style={{
           maxHeight: 320,
           overflowY: 'auto',
-          border: '1px solid #eee',
+          border: '1px solid var(--line)',
           borderRadius: 4,
           padding: 8,
           marginBottom: 16,
@@ -274,14 +274,14 @@ export default function BatchReportCardTab() {
         ))}
       </div>
 
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>已選擇 {selected.size} 個班級</p>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>已選擇 {selected.size} 個班級</p>
 
       <button
         onClick={() => handleBatchPrint(Array.from(selected))}
         disabled={printing || selected.size === 0}
         style={{
           padding: '8px 20px',
-          background: printing ? '#ccc' : '#2C2C2A',
+          background: printing ? '#ccc' : 'var(--primary)',
           color: '#fff',
           border: 'none',
           borderRadius: 4,
@@ -298,7 +298,7 @@ export default function BatchReportCardTab() {
         style={{
           marginLeft: 8,
           padding: '8px 20px',
-          background: printing ? '#ccc' : '#2C6E9E',
+          background: printing ? '#ccc' : 'var(--primary)',
           color: '#fff',
           border: 'none',
           borderRadius: 4,
@@ -349,8 +349,8 @@ export default function BatchReportCardTab() {
 const btnStyle: CSSProperties = {
   padding: '6px 12px',
   fontSize: 12,
-  border: '1px solid #ddd',
+  border: '1px solid var(--line-strong)',
   borderRadius: 4,
-  background: '#fafafa',
+  background: 'var(--primary-soft)',
   cursor: 'pointer',
 };

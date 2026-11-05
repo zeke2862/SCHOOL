@@ -121,8 +121,8 @@ export default function LangSwitch() {
         fontSize: 13,
         minHeight: 0,
         cursor: 'pointer',
-        background: lang === code ? '#2C2C2A' : 'transparent',
-        color: lang === code ? '#fff' : '#2C2C2A',
+        background: lang === code ? 'var(--primary)' : 'transparent',
+        color: lang === code ? '#fff' : 'var(--ink)',
         fontWeight: lang === code ? 700 : 400,
       }}
     >
@@ -134,7 +134,7 @@ export default function LangSwitch() {
     <div
       className="no-print"
       translate="no"
-      style={{ position: 'fixed', left: 12, bottom: 12, zIndex: 9998, display: 'flex', gap: 2, padding: 3, background: '#fff', border: '1px solid #ccc', borderRadius: 999, boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}
+      style={{ position: 'fixed', left: 12, bottom: 12, zIndex: 9998, display: 'flex', gap: 2, padding: 3, background: 'var(--surface)', border: '1px solid var(--line-strong)', borderRadius: 999, boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}
     >
       {btn('zh', '中文')}
       {btn('th', 'ไทย')}

@@ -253,7 +253,7 @@ export default function StudentsRosterTab() {
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>學生名冊</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         選一個班級，直接看目前在學學生的座號、學號、姓名。點任一列可展開該生的個人資料（唯讀）；
         要修改資料請到「學籍設定及查詢→查詢學生」。
       </p>
@@ -273,9 +273,9 @@ export default function StudentsRosterTab() {
       </div>
       {searchError && <p style={{ fontSize: 12, color: '#A32D2D', marginBottom: 8 }}>{searchError}</p>}
       {searchResults && (
-        <div style={{ border: '1px solid #e5e5e0', borderRadius: 6, padding: 10, marginBottom: 16, maxHeight: 220, overflowY: 'auto' }}>
+        <div style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 10, marginBottom: 16, maxHeight: 220, overflowY: 'auto' }}>
           {searchResults.length === 0 ? (
-            <p style={{ fontSize: 12, color: '#999' }}>查無符合的學生（您看不到的學生也不會出現在結果裡）。</p>
+            <p style={{ fontSize: 12, color: 'var(--sub)' }}>查無符合的學生（您看不到的學生也不會出現在結果裡）。</p>
           ) : (
             searchResults.map((r) => (
               <div
@@ -284,9 +284,9 @@ export default function StudentsRosterTab() {
                 style={{
                   padding: '6px 4px',
                   fontSize: 13,
-                  borderTop: '1px solid #eee',
+                  borderTop: '1px solid var(--line)',
                   cursor: r.classId ? 'pointer' : 'default',
-                  color: r.classId ? '#2C2C2A' : '#999',
+                  color: r.classId ? 'var(--ink)' : 'var(--sub)',
                 }}
               >
                 {r.name}（{r.student_no}）— {r.classLabel ? `${r.classLabel}　${r.seatNo ?? '—'} 號` : '目前沒有在學班級資料'}
@@ -305,11 +305,11 @@ export default function StudentsRosterTab() {
         ))}
       </select>
 
-      <p style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>{loading ? '讀取中…' : `共 ${rows.length} 位學生`}</p>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>{loading ? '讀取中…' : `共 ${rows.length} 位學生`}</p>
 
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #ddd' }}>
+          <tr style={{ borderBottom: '1px solid var(--line-strong)' }}>
             <th style={{ textAlign: 'right', padding: 6, width: 60 }}>座號</th>
             <th style={{ textAlign: 'left', padding: 6, width: 120 }}>學號</th>
             <th style={{ textAlign: 'left', padding: 6 }}>姓名</th>
@@ -321,7 +321,7 @@ export default function StudentsRosterTab() {
               <tr
                 key={r.id}
                 onClick={() => toggleOpen(r.student_no)}
-                style={{ borderTop: '1px solid #eee', cursor: 'pointer', background: openStudentNo === r.student_no ? '#F7F5EF' : 'transparent' }}
+                style={{ borderTop: '1px solid var(--line)', cursor: 'pointer', background: openStudentNo === r.student_no ? '#F7F5EF' : 'transparent' }}
               >
                 <td style={{ padding: 6, textAlign: 'right' }}>{r.seat_no ?? '—'}</td>
                 <td style={{ padding: 6 }}>{r.student_no}</td>
@@ -330,13 +330,13 @@ export default function StudentsRosterTab() {
               {openStudentNo === r.student_no && (
                 <tr key={r.id + '-detail'} style={{ background: '#FBFAF6' }}>
                   <td colSpan={3} style={{ padding: '10px 16px' }}>
-                    {detailLoading && <p style={{ fontSize: 12, color: '#999' }}>讀取中…</p>}
+                    {detailLoading && <p style={{ fontSize: 12, color: 'var(--sub)' }}>讀取中…</p>}
                     {detailError && <p style={{ fontSize: 12, color: '#A32D2D' }}>{detailError}</p>}
                     {detail && (
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 24px', fontSize: 12 }}>
                         {DETAIL_FIELDS.map(({ key, label }) => (
                           <div key={key}>
-                            <span style={{ color: '#999' }}>{label}：</span>
+                            <span style={{ color: 'var(--sub)' }}>{label}：</span>
                             {detail[key] || '—'}
                           </div>
                         ))}
@@ -344,7 +344,7 @@ export default function StudentsRosterTab() {
                     )}
                     {guardianPhones && (
                       <div style={{ fontSize: 12 }}>
-                        <p style={{ color: '#999', marginBottom: 4 }}>
+                        <p style={{ color: 'var(--sub)', marginBottom: 4 }}>
                           您不是這位學生的導師，僅顯示監護人電話；完整個人資料請洽該生導師。
                         </p>
                         {guardianPhones.length === 0 ? (

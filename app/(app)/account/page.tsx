@@ -117,7 +117,7 @@ export default function AccountSettingsPage() {
   return (
     <main style={{ maxWidth: 420, margin: '40px auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>帳號設定</h1>
-      <p style={{ fontSize: 13, color: '#666', marginBottom: 20 }}>目前登入信箱：{currentEmail ?? '載入中…'}</p>
+      <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 20 }}>目前登入信箱：{currentEmail ?? '載入中…'}</p>
 
       <h2 style={{ fontSize: 14, marginBottom: 8 }}>更換登入信箱</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -126,7 +126,7 @@ export default function AccountSettingsPage() {
           placeholder="新信箱"
           value={newEmail}
           onChange={(e) => setNewEmail(e.target.value)}
-          style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+          style={{ padding: 10, borderRadius: 8, border: '1px solid var(--line-strong)' }}
           required
         />
         <input
@@ -134,7 +134,7 @@ export default function AccountSettingsPage() {
           placeholder="目前密碼（確認身分用）"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+          style={{ padding: 10, borderRadius: 8, border: '1px solid var(--line-strong)' }}
           required
         />
         {error && <p style={{ color: '#A32D2D', fontSize: 13 }}>{error}</p>}
@@ -142,7 +142,7 @@ export default function AccountSettingsPage() {
         <button
           type="submit"
           disabled={submitting}
-          style={{ padding: 12, background: submitting ? '#999' : '#2C2C2A', color: '#fff', border: 'none', borderRadius: 8 }}
+          style={{ padding: 12, background: submitting ? '#999' : 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8 }}
         >
           {submitting ? '更換中…' : '更換信箱'}
         </button>
@@ -156,7 +156,7 @@ export default function AccountSettingsPage() {
             <span>
               有新的待處理通知（例如家長／學生帳號申請、考場名冊、審核）時，寄信到登入信箱提醒我。
               <br />
-              <span style={{ color: '#888' }}>信裡只寫通知類別，不含學生個資，詳細內容要登入系統查看。</span>
+              <span style={{ color: 'var(--sub)' }}>信裡只寫通知類別，不含學生個資，詳細內容要登入系統查看。</span>
             </span>
           </label>
         </>
@@ -170,7 +170,7 @@ export default function AccountSettingsPage() {
           value={oldPw}
           onChange={(e) => setOldPw(e.target.value)}
           autoComplete="current-password"
-          style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+          style={{ padding: 10, borderRadius: 8, border: '1px solid var(--line-strong)' }}
           required
         />
         <input
@@ -179,7 +179,7 @@ export default function AccountSettingsPage() {
           value={newPw}
           onChange={(e) => setNewPw(e.target.value)}
           autoComplete="new-password"
-          style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+          style={{ padding: 10, borderRadius: 8, border: '1px solid var(--line-strong)' }}
           required
         />
         <input
@@ -188,7 +188,7 @@ export default function AccountSettingsPage() {
           value={newPw2}
           onChange={(e) => setNewPw2(e.target.value)}
           autoComplete="new-password"
-          style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+          style={{ padding: 10, borderRadius: 8, border: '1px solid var(--line-strong)' }}
           required
         />
         {pwError && <p style={{ color: '#A32D2D', fontSize: 13 }}>{pwError}</p>}
@@ -196,7 +196,7 @@ export default function AccountSettingsPage() {
         <button
           type="submit"
           disabled={pwBusy}
-          style={{ padding: 12, background: pwBusy ? '#999' : '#2C2C2A', color: '#fff', border: 'none', borderRadius: 8 }}
+          style={{ padding: 12, background: pwBusy ? '#999' : 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8 }}
         >
           {pwBusy ? '更改中…' : '更改密碼'}
         </button>

@@ -123,7 +123,7 @@ export default function ExamSeatingPage() {
   return (
     <main style={{ maxWidth: 980, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 18, marginBottom: 4 }}>考試分班</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         新增考試 → 系統自動把所有班級設為考場，勾選需要共用考場的班級（按一次【儲存應試班級】即可）→ 試算各考場人數（雙驗證後儲存）→ 產生梅花座位表並確認 → 全部考場完成後發送通知各班導師。
       </p>
       <ErrorBanner message={error} />
@@ -134,7 +134,7 @@ export default function ExamSeatingPage() {
       )}
 
       {/* ---------- 新增考試 ---------- */}
-      <section style={{ border: '1px solid #eee', borderRadius: 8, padding: 12, marginBottom: 16 }}>
+      <section style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12, marginBottom: 16 }}>
         <h2 style={{ fontSize: 14, marginBottom: 8 }}>新增考試</h2>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <input placeholder="考試名稱，例如：期中考" value={newName} onChange={(e) => setNewName(e.target.value)} style={{ fontSize: 13, padding: '4px 8px', width: 220 }} />
@@ -157,9 +157,9 @@ export default function ExamSeatingPage() {
       {/* ---------- 考試清單 ---------- */}
       <section style={{ marginBottom: 16 }}>
         {loading ? (
-          <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+          <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
         ) : sessions.length === 0 ? (
-          <p style={{ fontSize: 13, color: '#999' }}>尚未建立任何考試。</p>
+          <p style={{ fontSize: 13, color: 'var(--sub)' }}>尚未建立任何考試。</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {sessions.map((s) => (
@@ -170,9 +170,9 @@ export default function ExamSeatingPage() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '8px 12px',
-                  border: '1px solid ' + (s.id === selectedSessionId ? '#B08968' : '#eee'),
+                  border: '1px solid ' + (s.id === selectedSessionId ? '#B08968' : 'var(--line)'),
                   borderRadius: 6,
-                  background: s.id === selectedSessionId ? '#FBF3EC' : '#fff',
+                  background: s.id === selectedSessionId ? '#FBF3EC' : 'var(--surface)',
                 }}
               >
                 <button
@@ -180,7 +180,7 @@ export default function ExamSeatingPage() {
                   style={{ fontSize: 13, background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', flex: 1 }}
                 >
                   {s.name}（{s.academic_year} {s.term}）－
-                  <span style={{ color: s.status === '已發送' ? '#2D6A2D' : '#999' }}> {s.status}</span>
+                  <span style={{ color: s.status === '已發送' ? '#2D6A2D' : 'var(--sub)' }}> {s.status}</span>
                 </button>
                 <button onClick={() => handleDeleteSession(s.id)} style={{ fontSize: 12, padding: '2px 10px', color: '#A32D2D' }}>
                   刪除考試
@@ -481,12 +481,12 @@ function ExamSessionEditor({
     }
   }
 
-  if (loading) return <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>;
+  if (loading) return <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>;
 
   const allRostersSubmitted = rosterStatus.length > 0 && rosterStatus.every((rs) => rs.submitted);
 
   return (
-    <section style={{ borderTop: '2px solid #eee', paddingTop: 16 }}>
+    <section style={{ borderTop: '2px solid var(--line)', paddingTop: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
         <h2 style={{ fontSize: 15 }}>
           {session.name}（{session.academic_year} {session.term}）
@@ -513,9 +513,9 @@ function ExamSessionEditor({
 
       {/* ---- 不擔任考場班級（批次勾選完，按【儲存】才會套用，下面的考場清單才會自動排除） ---- */}
       {session.status === '編排中' && (
-        <div style={{ border: '1px solid #eee', borderRadius: 8, padding: 12, marginBottom: 16 }}>
+        <div style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12, marginBottom: 16 }}>
           <div style={{ fontSize: 13, marginBottom: 6 }}>不擔任考場班級</div>
-          <p style={{ fontSize: 12, color: '#999', marginBottom: 6 }}>勾選的班級不會被自動建立成考場（教室不方便當考場時使用），但該班學生仍可以被安排到其他班級的考場應試。勾選完按【儲存】後，下面的考場清單才會套用。</p>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 6 }}>勾選的班級不會被自動建立成考場（教室不方便當考場時使用），但該班學生仍可以被安排到其他班級的考場應試。勾選完按【儲存】後，下面的考場清單才會套用。</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 4, maxHeight: 160, overflowY: 'auto', marginBottom: 8 }}>
             {classOptions.map((c) => (
               <label key={c.id} style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -533,19 +533,19 @@ function ExamSessionEditor({
 
       {/* ---- 考場清單（所有班級自動設為考場，座位數＝該班目前在校人數） ---- */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 10 }}>
-        {rooms.length === 0 && <p style={{ fontSize: 13, color: '#999' }}>目前沒有可用的考場（可能是還沒有任何班級有在校學生）。</p>}
+        {rooms.length === 0 && <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有可用的考場（可能是還沒有任何班級有在校學生）。</p>}
         {rooms.map((room) => {
           const myClasses = roomClasses.filter((rc) => rc.exam_room_id === room.id);
           const submittedCount = rosterStatus.filter((rs) => myClasses.some((mc) => mc.class_id === rs.class_id) && rs.submitted).length;
           const ownerId = labelToClassId[room.room_name];
           return (
-            <div key={room.id} style={{ border: '1px solid #eee', borderRadius: 6, padding: '8px 12px' }}>
+            <div key={room.id} style={{ border: '1px solid var(--line)', borderRadius: 6, padding: '8px 12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
                 <div style={{ fontSize: 13 }}>
                   <strong>{room.room_name}</strong>（座位數 {room.seat_capacity}，{room.grid_size}×{room.grid_size}方形）
-                  {room.confirmed ? <span style={{ color: '#2D6A2D', marginLeft: 8 }}>已確認座位表</span> : <span style={{ color: '#999', marginLeft: 8 }}>尚未確認</span>}
+                  {room.confirmed ? <span style={{ color: '#2D6A2D', marginLeft: 8 }}>已確認座位表</span> : <span style={{ color: 'var(--sub)', marginLeft: 8 }}>尚未確認</span>}
                   {(session.status === '已發送' || session.status === '已完成') && myClasses.length > 0 && (
-                    <span style={{ color: '#666', marginLeft: 8 }}>
+                    <span style={{ color: 'var(--sub)', marginLeft: 8 }}>
                       名單提交：{submittedCount}/{myClasses.length} 班
                     </span>
                   )}
@@ -569,7 +569,7 @@ function ExamSessionEditor({
                 )
               ) : (
                 myClasses.length > 0 && (
-                  <p style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                  <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 4 }}>
                     應試班級：{myClasses.map((mc) => `${classLabelMap[mc.class_id] ?? mc.class_id}(${mc.allocated_count}人)`).join('、')}
                   </p>
                 )
@@ -590,7 +590,7 @@ function ExamSessionEditor({
 
       {/* ---- 步驟3-4：試算各考場人數＋雙驗證（依分組簡化，只顯示有共用考場的班級群組） ---- */}
       {session.status === '編排中' && roomClasses.length > 0 && (
-        <div style={{ border: '1px solid #eee', borderRadius: 8, padding: 12, marginBottom: 16 }}>
+        <div style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12, marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
             <h3 style={{ fontSize: 13 }}>試算各考場人數（可手動修改，橫向／縱向加總一致才能儲存）</h3>
             <div style={{ display: 'flex', gap: 6 }}>
@@ -608,14 +608,14 @@ function ExamSessionEditor({
             (() => {
               const multiGroups = savedGroups.filter((g) => g.length > 1);
               if (multiGroups.length === 0) {
-                return <p style={{ fontSize: 12, color: '#999' }}>目前沒有共用考場的班級群組（每班都各自使用自己的考場，人數自動等於班級人數，不需要試算）。</p>;
+                return <p style={{ fontSize: 12, color: 'var(--sub)' }}>目前沒有共用考場的班級群組（每班都各自使用自己的考場，人數自動等於班級人數，不需要試算）。</p>;
               }
               return multiGroups.map((group, i) => {
                 const groupRooms = group.map((cid) => rooms.find((r) => r.room_name === classLabelMap[cid])).filter((r): r is ExamRoom => !!r);
                 const groupClassOptions = classOptions.filter((c) => group.includes(c.id));
                 return (
                   <div key={i} style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>群組：{groupClassOptions.map((c) => c.label).join('、')}</div>
+                    <div style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 4 }}>群組：{groupClassOptions.map((c) => c.label).join('、')}</div>
                     <AllocationMatrix matrix={matrix} rooms={groupRooms} classOptions={groupClassOptions} onEditCell={editMatrixCell} />
                   </div>
                 );
@@ -654,7 +654,7 @@ function ExamSessionEditor({
           <button onClick={handleSend} disabled={!allConfirmed} style={{ fontSize: 13, padding: '6px 16px', fontWeight: 600, marginLeft: 8 }}>
             發送考場表
           </button>
-          <span style={{ fontSize: 12, color: '#666', marginLeft: 8 }}>
+          <span style={{ fontSize: 12, color: 'var(--sub)', marginLeft: 8 }}>
             {rooms.filter((r) => r.confirmed).length}/{rooms.length} 個考場已確認
           </span>
           {!allConfirmed && <p style={{ fontSize: 12, color: '#B08968', marginTop: 6 }}>提示：所有考場都需完成座位表【確認】後，才能發送考場表。</p>}
@@ -714,8 +714,8 @@ function GroupPicker({
   const labelOf = (id: string) => classOptions.find((c) => c.id === id)?.label ?? id;
 
   return (
-    <div style={{ marginTop: 8, borderTop: '1px dashed #eee', paddingTop: 8 }}>
-      <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
+    <div style={{ marginTop: 8, borderTop: '1px dashed var(--line)', paddingTop: 8 }}>
+      <div style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 4 }}>
         應試班級（最多 {MAX_CLASSES_PER_ROOM} 班，已選 {group.length}/{MAX_CLASSES_PER_ROOM}）
       </div>
       <div style={{ fontSize: 12, color: '#2D6A2D', marginBottom: 4 }}>✓ {ownerLabel}（本班教室，一定包含）</div>
@@ -730,7 +730,7 @@ function GroupPicker({
             const disabled = takenElsewhere || full;
             const title = takenElsewhere ? `已安排在「${elsewhereGroup.map(labelOf).join('、')}」共用考場` : undefined;
             return (
-              <label key={c.id} style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, color: disabled ? '#bbb' : '#333' }} title={title}>
+              <label key={c.id} style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, color: disabled ? '#bbb' : 'var(--ink)' }} title={title}>
                 <input type="checkbox" checked={checked} disabled={disabled} onChange={() => onToggle(ownerId, c.id)} />
                 {c.label}（{c.headcount}人）
               </label>
@@ -765,7 +765,7 @@ function AllocationMatrix({
               <th key={r.id} style={cellStyle}>
                 {r.room_name}
                 <br />
-                <span style={{ color: '#999', fontWeight: 400 }}>座位{r.seat_capacity}</span>
+                <span style={{ color: 'var(--sub)', fontWeight: 400 }}>座位{r.seat_capacity}</span>
               </th>
             ))}
             <th style={cellStyle}>總人數</th>
@@ -813,7 +813,7 @@ function AllocationMatrix({
   );
 }
 
-const cellStyle: React.CSSProperties = { border: '1px solid #eee', padding: '4px 8px', textAlign: 'center' };
+const cellStyle: React.CSSProperties = { border: '1px solid var(--line)', padding: '4px 8px', textAlign: 'center' };
 
 // ============================================================
 // 瀏覽所有考場的梅花座位表，一鍵確認（點兩個座位可以互換，必要時手動微調）
@@ -898,14 +898,14 @@ function AllRoomsSeatReview({
   if (rooms.length === 0) {
     return (
       <ModalShell title="所有考場座位表" onClose={onClose}>
-        <p style={{ fontSize: 13, color: '#999' }}>目前沒有可以確認的考場（可能都已確認，或還沒有考場已儲存分配人數）。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有可以確認的考場（可能都已確認，或還沒有考場已儲存分配人數）。</p>
       </ModalShell>
     );
   }
 
   return (
     <ModalShell title={`所有考場座位表（共 ${rooms.length} 間）`} onClose={onClose}>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 10 }}>
         點一個座位、再點另一個座位可以互換兩人的座位（僅限同一個考場內）；每間考場也可以單獨按【重新排列】。確認後會直接套用到全部考場。
       </p>
       {rooms.map((room) => {
@@ -914,7 +914,7 @@ function AllRoomsSeatReview({
         const palette = ['#F4D7C3', '#CDE7D8', '#CFE0F4', '#F4EBC3', '#E3D3F4', '#F4C3D7', '#C3F4E9', '#DDE0E3'];
         myClasses.forEach((rc, i) => (colorFor[rc.class_id] = palette[i % palette.length]));
         return (
-          <div key={room.id} style={{ marginBottom: 20, borderBottom: '1px solid #eee', paddingBottom: 14 }}>
+          <div key={room.id} style={{ marginBottom: 20, borderBottom: '1px solid var(--line)', paddingBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
               <strong style={{ fontSize: 13 }}>
                 {room.room_name}（{room.grid_size}×{room.grid_size}）
@@ -982,9 +982,9 @@ function SeatGrid({
               style={{
                 width: 56,
                 height: 44,
-                border: highlighted ? '2px solid #B08968' : '1px solid #ccc',
+                border: highlighted ? '2px solid #B08968' : '1px solid var(--line-strong)',
                 borderRadius: 4,
-                background: seat.classId ? colorFor[seat.classId] ?? '#eee' : '#f7f7f7',
+                background: seat.classId ? colorFor[seat.classId] ?? '#eee' : 'var(--primary-soft)',
                 fontSize: 10,
                 padding: 2,
                 display: 'flex',
@@ -995,7 +995,7 @@ function SeatGrid({
                 cursor: onSeatClick ? 'pointer' : 'default',
               }}
             >
-              <div style={{ color: '#666' }}>#{seat.seatNo}</div>
+              <div style={{ color: 'var(--sub)' }}>#{seat.seatNo}</div>
               <div>{seatContent ? seatContent(seat.seatNo) : labelFor(seat.classId)}</div>
             </div>
           );
@@ -1062,13 +1062,13 @@ function RoomDetailModal({
       for (let col = 0; col < room.grid_size; col++) {
         const seat = bySeat.get(`${row}-${col}`);
         if (!seat) {
-          gridHtml += `<div style="border:1px solid #ddd;border-radius:3px;height:52px;"></div>`;
+          gridHtml += `<div style="border:1px solid var(--line-strong);border-radius:3px;height:52px;"></div>`;
           continue;
         }
         const stu = seat.exam_seat_students;
         const cls = seat.class_id ? classLabelMap[seat.class_id] ?? '' : '';
         gridHtml += `<div style="border:1px solid #999;border-radius:3px;height:52px;padding:2px;font-size:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
-          <div style="color:#666;">#${seat.seat_no}</div>
+          <div style="color:var(--sub);">#${seat.seat_no}</div>
           <div style="font-weight:600;">${escapeHtml(cls)}</div>
           <div>${stu?.class_seat_no != null ? `座號${escapeHtml(stu.class_seat_no)} ` : ''}${escapeHtml(stu?.students?.name ?? '')}</div>
         </div>`;
@@ -1105,7 +1105,7 @@ function RoomDetailModal({
   return (
     <ModalShell title={`${room.room_name}－名單與座位預覽`} onClose={onClose}>
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <>
           <SeatGrid
@@ -1146,7 +1146,7 @@ function RoomDetailModal({
 function ModalShell({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16 }}>
-      <div style={{ background: '#fff', borderRadius: 10, padding: 20, maxWidth: 720, width: '100%', maxHeight: '86vh', overflowY: 'auto' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 10, padding: 20, maxWidth: 720, width: '100%', maxHeight: '86vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <h3 style={{ fontSize: 14 }}>{title}</h3>
           <button onClick={onClose} style={{ fontSize: 12, padding: '3px 10px' }}>

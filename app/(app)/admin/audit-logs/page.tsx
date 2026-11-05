@@ -183,7 +183,7 @@ export default function AuditLogsPage() {
   return (
     <main style={{ padding: 24, maxWidth: 1100 }}>
       <h1 style={{ fontSize: 18, marginBottom: 4 }}>修正／解鎖紀錄</h1>
-      <p style={{ fontSize: 13, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 16 }}>
         僅系統管理員S、管理員A看得到。分別是：導師/管理員對出缺勤紀錄的每一筆修改；教師對成績的每一筆新增/修改/刪除
         （含「鎖定又解開後」教師再次修改的內容）；以及「成績上傳時間設定表」裡，設定從「已鎖定」被重新打開的紀錄
         （含操作者與原因）。
@@ -193,8 +193,8 @@ export default function AuditLogsPage() {
         <button
           onClick={() => setTab('attendance')}
           style={{
-            fontSize: 13, padding: '6px 14px', borderRadius: 999, border: '1px solid #ccc',
-            background: tab === 'attendance' ? '#2C2C2A' : '#fff', color: tab === 'attendance' ? '#fff' : '#2C2C2A',
+            fontSize: 13, padding: '6px 14px', borderRadius: 999, border: '1px solid var(--line-strong)',
+            background: tab === 'attendance' ? 'var(--primary)' : 'var(--surface)', color: tab === 'attendance' ? '#fff' : 'var(--ink)',
           }}
         >
           出缺勤修改紀錄
@@ -202,8 +202,8 @@ export default function AuditLogsPage() {
         <button
           onClick={() => setTab('score')}
           style={{
-            fontSize: 13, padding: '6px 14px', borderRadius: 999, border: '1px solid #ccc',
-            background: tab === 'score' ? '#2C2C2A' : '#fff', color: tab === 'score' ? '#fff' : '#2C2C2A',
+            fontSize: 13, padding: '6px 14px', borderRadius: 999, border: '1px solid var(--line-strong)',
+            background: tab === 'score' ? 'var(--primary)' : 'var(--surface)', color: tab === 'score' ? '#fff' : 'var(--ink)',
           }}
         >
           成績修改紀錄
@@ -211,8 +211,8 @@ export default function AuditLogsPage() {
         <button
           onClick={() => setTab('window')}
           style={{
-            fontSize: 13, padding: '6px 14px', borderRadius: 999, border: '1px solid #ccc',
-            background: tab === 'window' ? '#2C2C2A' : '#fff', color: tab === 'window' ? '#fff' : '#2C2C2A',
+            fontSize: 13, padding: '6px 14px', borderRadius: 999, border: '1px solid var(--line-strong)',
+            background: tab === 'window' ? 'var(--primary)' : 'var(--surface)', color: tab === 'window' ? '#fff' : 'var(--ink)',
           }}
         >
           成績/出缺勤鎖定 解鎖紀錄
@@ -222,13 +222,13 @@ export default function AuditLogsPage() {
       {loadError && <p style={{ color: '#A32D2D', fontSize: 13, marginBottom: 12 }}>{loadError}</p>}
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : tab === 'attendance' ? (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ background: '#f5f5f5' }}>
+            <tr style={{ background: 'var(--primary-soft)' }}>
               {['修改時間', '學生', '日期／節次', '修改前', '修改後', '操作者'].map((h) => (
-                <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
+                <th key={h} style={{ border: '1px solid var(--line-strong)', padding: 6, textAlign: 'left' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -248,7 +248,7 @@ export default function AuditLogsPage() {
             })}
             {attRows.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>目前沒有紀錄</td>
+                <td colSpan={6} style={{ ...tdStyle, textAlign: 'center', color: 'var(--sub)' }}>目前沒有紀錄</td>
               </tr>
             )}
           </tbody>
@@ -256,9 +256,9 @@ export default function AuditLogsPage() {
       ) : tab === 'score' ? (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ background: '#f5f5f5' }}>
+            <tr style={{ background: 'var(--primary-soft)' }}>
               {['修改時間', '學生', '考試類型／科目', '修改前', '修改後', '操作者'].map((h) => (
-                <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
+                <th key={h} style={{ border: '1px solid var(--line-strong)', padding: 6, textAlign: 'left' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -278,7 +278,7 @@ export default function AuditLogsPage() {
             })}
             {scoreRows.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>目前沒有紀錄</td>
+                <td colSpan={6} style={{ ...tdStyle, textAlign: 'center', color: 'var(--sub)' }}>目前沒有紀錄</td>
               </tr>
             )}
           </tbody>
@@ -286,9 +286,9 @@ export default function AuditLogsPage() {
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ background: '#f5f5f5' }}>
+            <tr style={{ background: 'var(--primary-soft)' }}>
               {['解鎖時間', '學年/學期', '類別', '範圍', '原因', '操作者'].map((h) => (
-                <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
+                <th key={h} style={{ border: '1px solid var(--line-strong)', padding: 6, textAlign: 'left' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -305,7 +305,7 @@ export default function AuditLogsPage() {
             ))}
             {winRows.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>目前沒有紀錄</td>
+                <td colSpan={6} style={{ ...tdStyle, textAlign: 'center', color: 'var(--sub)' }}>目前沒有紀錄</td>
               </tr>
             )}
           </tbody>
@@ -315,4 +315,4 @@ export default function AuditLogsPage() {
   );
 }
 
-const tdStyle: React.CSSProperties = { border: '1px solid #eee', padding: 6 };
+const tdStyle: React.CSSProperties = { border: '1px solid var(--line)', padding: 6 };

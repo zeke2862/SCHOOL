@@ -220,7 +220,7 @@ export default function TimetablePrint() {
 
   // 預覽：用跟下載的 Excel 同一套版面（TimetableSheet），所見即所印
   const sheetBox: React.CSSProperties = { margin: '0 0 28px', overflowX: 'auto' };
-  const sheetCaption: React.CSSProperties = { fontSize: 12, color: '#888', margin: '0 0 6px' };
+  const sheetCaption: React.CSSProperties = { fontSize: 12, color: 'var(--sub)', margin: '0 0 6px' };
 
   const classPages = (list: ClassRow[]) =>
     list.map((c) => (
@@ -435,17 +435,17 @@ export default function TimetablePrint() {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            style={{ ...btn, background: tab === t.key ? '#2C2C2A' : '#fff', color: tab === t.key ? '#fff' : '#2C2C2A', border: '1px solid #2C2C2A', borderRadius: 6 }}
+            style={{ ...btn, background: tab === t.key ? 'var(--primary)' : 'var(--surface)', color: tab === t.key ? '#fff' : 'var(--ink)', border: '1px solid var(--primary)', borderRadius: 6 }}
           >
             {t.label}
           </button>
         ))}
-        <span style={{ fontSize: 12, color: '#888', alignSelf: 'center', marginLeft: 8 }}>
+        <span style={{ fontSize: 12, color: 'var(--sub)', alignSelf: 'center', marginLeft: 8 }}>
           {term ? `${term.academic_year} 學年度 ${term.term}` : ''}
         </span>
       </div>
 
-      {loading && <p style={{ fontSize: 13, color: '#999' }}>讀取課表中…</p>}
+      {loading && <p style={{ fontSize: 13, color: 'var(--sub)' }}>讀取課表中…</p>}
       {error && <p style={{ fontSize: 13, color: '#A32D2D' }}>{error}</p>}
 
       {!loading && tab !== 'template' && (
@@ -472,7 +472,7 @@ export default function TimetablePrint() {
           {tab === 'classes' && skippedClasses.length > 0 && (
             <span style={{ fontSize: 12, color: '#A36A00' }}>沒有導師、不列印的班級：{skippedClasses.join('、')}</span>
           )}
-          <span style={{ fontSize: 11, color: '#999' }}>版面沿用原本的課程表系統（A4 橫向），下載後用 Excel 直接列印整本。下方是預覽。</span>
+          <span style={{ fontSize: 11, color: 'var(--sub)' }}>版面沿用原本的課程表系統（A4 橫向），下載後用 Excel 直接列印整本。下方是預覽。</span>
         </div>
       )}
 
@@ -480,7 +480,7 @@ export default function TimetablePrint() {
         <>
           {tab === 'template' ? (
             <div style={{ maxWidth: 760 }}>
-              <p style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>
+              <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 10 }}>
                 這裡改的是課表上的文字：標題、課表下方的說明與備註、各節上課時間。標題與備註裡可以寫 <b>{'{學年度}'}</b>、<b>{'{學期}'}</b>，列印時會自動換成目前學期。
                 儲存後「各班課表」「各教師課表」「全校教師任課表」「值日教師參考」都會套用。
               </p>
@@ -517,21 +517,21 @@ export default function TimetablePrint() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <button onClick={doSave} style={{ ...btn, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>儲存模板</button>
+                <button onClick={doSave} style={{ ...btn, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>儲存模板</button>
                 <button onClick={() => setDraft(DEFAULT_TEMPLATE)} style={btn}>還原成預設文字</button>
                 <span style={{ fontSize: 12 }}>{saveMsg}</span>
               </div>
-              <h3 style={{ fontSize: 13, margin: '20px 0 8px', color: '#555' }}>預覽（用第一個有導師的班級；尚未儲存的修改也會即時顯示）</h3>
+              <h3 style={{ fontSize: 13, margin: '20px 0 8px', color: 'var(--sub)' }}>預覽（用第一個有導師的班級；尚未儲存的修改也會即時顯示）</h3>
               <PreviewBox draft={draft} term={term} cls={printableClasses[0]} />
             </div>
           ) : (
-            <div style={{ border: '1px solid #ddd', borderRadius: 6, background: '#fafafa', padding: 8, overflowX: 'auto' }}>
+            <div style={{ border: '1px solid var(--line-strong)', borderRadius: 6, background: 'var(--primary-soft)', padding: 8, overflowX: 'auto' }}>
               <style>{CSS}</style>
               <div>
                 {tab === 'all' && allTeachersPage}
                 {tab === 'duty' && dutyPage}
-                {tab === 'classes' && (pickedClasses.length ? classPages(pickedClasses) : <p style={{ fontSize: 13, color: '#999' }}>沒有可列印的班級（需要有導師且有排課）。</p>)}
-                {tab === 'teachers' && (pickedTeachers.length ? teacherPages(pickedTeachers) : <p style={{ fontSize: 13, color: '#999' }}>沒有排課的教師。</p>)}
+                {tab === 'classes' && (pickedClasses.length ? classPages(pickedClasses) : <p style={{ fontSize: 13, color: 'var(--sub)' }}>沒有可列印的班級（需要有導師且有排課）。</p>)}
+                {tab === 'teachers' && (pickedTeachers.length ? teacherPages(pickedTeachers) : <p style={{ fontSize: 13, color: 'var(--sub)' }}>沒有排課的教師。</p>)}
               </div>
             </div>
           )}
@@ -544,7 +544,7 @@ export default function TimetablePrint() {
 // 模板預覽：用未儲存的草稿文字，示範一張班級課表（版面跟下載的 Excel 相同）
 function PreviewBox({ draft, term, cls }: { draft: TimetableTemplate; term: { academic_year: number; term: string } | null; cls?: ClassRow }) {
   return (
-    <div style={{ border: '1px solid #ddd', padding: 8, background: '#fff', overflowX: 'auto' }}>
+    <div style={{ border: '1px solid var(--line-strong)', padding: 8, background: 'var(--surface)', overflowX: 'auto' }}>
       <TimetableSheet
         kind="class"
         tpl={draft}

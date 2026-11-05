@@ -95,7 +95,7 @@ export default function UnreadNotifier() {
         maxWidth: 420,
         marginLeft: 'auto',
         zIndex: 9999,
-        background: '#2C2C2A',
+        background: 'var(--primary)',
         color: '#fff',
         borderRadius: 12,
         padding: '12px 14px',
@@ -125,7 +125,7 @@ export default function UnreadNotifier() {
             router.push(target.href);
           }}
           className="keep-size"
-          style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: 'none', background: '#FFD166', color: '#2C2C2A', fontWeight: 700, cursor: 'pointer', fontSize: 14, minHeight: 0 }}
+          style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: 'none', background: '#FFD166', color: 'var(--ink)', fontWeight: 700, cursor: 'pointer', fontSize: 14, minHeight: 0 }}
         >
           前往處理
         </button>

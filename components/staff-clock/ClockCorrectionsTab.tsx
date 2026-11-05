@@ -127,7 +127,7 @@ export default function ClockCorrectionsTab({ employees, teacherNames, userId }:
       {message && <p style={{ fontSize: 13, color: /失敗|請|已經/.test(message) ? '#c00' : '#2e7d32' }}>{message}</p>}
 
       <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', margin: '12px 0 20px' }}>
-        <div style={{ border: '1px solid #e5e5e5', borderRadius: 8, padding: 12 }}>
+        <div style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12 }}>
           <b style={{ fontSize: 14 }}>① 補打卡</b>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '8px 0' }}>
             <input type="date" value={addDate} onChange={(e) => setAddDate(e.target.value)} style={input} />
@@ -138,7 +138,7 @@ export default function ClockCorrectionsTab({ employees, teacherNames, userId }:
             補上這筆打卡
           </button>
         </div>
-        <div style={{ border: '1px solid #e5e5e5', borderRadius: 8, padding: 12 }}>
+        <div style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12 }}>
           <b style={{ fontSize: 14 }}>③ 單日更正（請假／公出／視為正常／休假）</b>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '8px 0' }}>
             <input type="date" value={ovDate} onChange={(e) => setOvDate(e.target.value)} style={input} />
@@ -162,7 +162,7 @@ export default function ClockCorrectionsTab({ employees, teacherNames, userId }:
             <tr key={o.id}>
               <td style={td}>{o.punch_date}</td>
               <td style={td}>{o.status}</td>
-              <td style={{ ...td, color: '#666' }}>{o.note}</td>
+              <td style={{ ...td, color: 'var(--sub)' }}>{o.note}</td>
               <td style={td}>
                 <button style={btn} onClick={() => removeOverride(o)}>
                   移除
@@ -172,7 +172,7 @@ export default function ClockCorrectionsTab({ employees, teacherNames, userId }:
           ))}
           {overrides.length === 0 && (
             <tr>
-              <td style={{ ...td, color: '#999' }}>這個月沒有單日更正</td>
+              <td style={{ ...td, color: 'var(--sub)' }}>這個月沒有單日更正</td>
             </tr>
           )}
         </tbody>
@@ -196,7 +196,7 @@ export default function ClockCorrectionsTab({ employees, teacherNames, userId }:
                 <td style={td}>{r.punch_date}</td>
                 <td style={td}>{timeOf(r.punched_at)}</td>
                 <td style={td}>{r.source === 'manual' ? '補卡' : r.method === 'FACE' ? '人臉' : r.method === 'FP' ? '指紋' : r.method ?? ''}</td>
-                <td style={{ ...td, color: '#666', textDecoration: 'none' }}>{r.voided ? r.voided_reason : r.note}</td>
+                <td style={{ ...td, color: 'var(--sub)', textDecoration: 'none' }}>{r.voided ? r.voided_reason : r.note}</td>
                 <td style={{ ...td, textDecoration: 'none', whiteSpace: 'nowrap' }}>
                   {r.voided ? (
                     <button style={btn} disabled={busy} onClick={() => setVoided(r, false)}>
@@ -220,7 +220,7 @@ export default function ClockCorrectionsTab({ employees, teacherNames, userId }:
             ))}
             {records.length === 0 && (
               <tr>
-                <td style={{ ...td, color: '#999' }} colSpan={5}>
+                <td style={{ ...td, color: 'var(--sub)' }} colSpan={5}>
                   這個月沒有打卡紀錄
                 </td>
               </tr>

@@ -109,12 +109,12 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
       <p style={{ margin: '0 0 8px' }}>
         <b>{src.year} 學年度 {src.term}</b> → <b>{tgt.year} 學年度 {tgt.term}</b>
       </p>
-      {loading && <p style={{ color: '#2C6E9E' }}>計算中…</p>}
+      {loading && <p style={{ color: 'var(--primary-ink)' }}>計算中…</p>}
       {error && <p style={{ color: '#A32D2D' }}>{error}</p>}
       {result && <p style={{ color: '#3B6D11', fontWeight: 'bold' }}>{result}</p>}
 
       {preview && preview.students === 0 && !result && (
-        <p style={{ color: '#888' }}>沒有需要升級的學生（可能已經升級過，或這個學期還沒有學籍資料）。</p>
+        <p style={{ color: 'var(--sub)' }}>沒有需要升級的學生（可能已經升級過，或這個學期還沒有學籍資料）。</p>
       )}
 
       {preview && preview.students > 0 && (
@@ -127,14 +127,14 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
                 ? `：升一年級${preview.graduating ? `，其中 ${preview.graduating} 位已是最高年級` : ''}${preview.newClasses ? `；新學年需新增 ${preview.newClasses} 個班` : ''}。`
                 : `：維持原年級（不升級）${preview.newClasses ? `；新學年需新增 ${preview.newClasses} 個班` : ''}。`}
           </p>
-          <button type="button" onClick={() => setShowMap((v) => !v)} style={{ fontSize: 12, background: 'none', border: 'none', color: '#2C6E9E', cursor: 'pointer', padding: 0, marginBottom: 6 }}>
+          <button type="button" onClick={() => setShowMap((v) => !v)} style={{ fontSize: 12, background: 'none', border: 'none', color: 'var(--primary-ink)', cursor: 'pointer', padding: 0, marginBottom: 6 }}>
             {showMap ? '▾ 收起各班去向' : '▸ 查看各班去向／併班、擴班、改班名'}{mapRules.length ? `（已設定 ${mapRules.length} 筆改編）` : ''}
           </button>
           {showMap && (
-            <div style={{ border: '1px solid #eee', borderRadius: 6, margin: '4px 0 8px', maxHeight: 280, overflow: 'auto' }}>
+            <div style={{ border: '1px solid var(--line)', borderRadius: 6, margin: '4px 0 8px', maxHeight: 280, overflow: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
-                  <tr style={{ background: '#f5f5f3', textAlign: 'left' }}>
+                  <tr style={{ background: 'var(--primary-soft)', textAlign: 'left' }}>
                     <th style={{ padding: 4 }}>現在的班</th>
                     <th style={{ padding: 4 }}>人數</th>
                     <th style={{ padding: 4 }}>升級後</th>
@@ -147,7 +147,7 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
                     const key = `${c.dept}|${c.grade}|${c.class}`;
                     const e = edits[key] ?? { to_class: '', to_grade: '' };
                     return (
-                      <tr key={key} style={{ borderTop: '1px solid #f0f0f0', background: c.remapped ? '#FFF8E1' : undefined }}>
+                      <tr key={key} style={{ borderTop: '1px solid var(--line)', background: c.remapped ? '#FFF8E1' : undefined }}>
                         <td style={{ padding: 4 }}>{c.grade}{c.class}</td>
                         <td style={{ padding: 4 }}>{c.n}</td>
                         <td style={{ padding: 4 }}>{c.graduating ? '畢業' : `${c.to_grade}${c.to_class}`}</td>
@@ -167,7 +167,7 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
                   })}
                 </tbody>
               </table>
-              <p style={{ fontSize: 11, color: '#888', margin: 6 }}>
+              <p style={{ fontSize: 11, color: 'var(--sub)', margin: 6 }}>
                 併班：把幾個班的「改編：班別」填成同一個名字（例如 5年孝、5年忠 都填「忠」，升級後就合成一班）。
                 擴班（一班拆兩班）：先在這裡把整班升上去，之後在「學生名冊」把部分學生調到新班。
               </p>
@@ -190,7 +190,7 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
               </label>
             )}
             {sameYear ? (
-              <span style={{ fontSize: 12, color: '#888' }}>科目比重與整體佔比（期中／期末／平時）會自動沿用上學期；有變動的科目之後再到「科目比重」自行修改。</span>
+              <span style={{ fontSize: 12, color: 'var(--sub)' }}>科目比重與整體佔比（期中／期末／平時）會自動沿用上學期；有變動的科目之後再到「科目比重」自行修改。</span>
             ) : (
               <label>
                 <input type="checkbox" checked={inheritSettings} onChange={(e) => setInheritSettings(e.target.checked)} /> 沿用{src.term}的科目比重與整體佔比（有變動的科目之後再自行修改；已輸入的不會被蓋掉）
@@ -206,14 +206,14 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
                 </select>
               </label>
             )}
-            <span style={{ fontSize: 12, color: '#888' }}>座號預設：每班依學號由小到大重新排 1、2、3…；選「先男女、再學號」則男生在前、女生在後（性別空白的排最後），同性別內依學號。舊學期的學籍與成績都會保留，不會被覆蓋。</span>
+            <span style={{ fontSize: 12, color: 'var(--sub)' }}>座號預設：每班依學號由小到大重新排 1、2、3…；選「先男女、再學號」則男生在前、女生在後（性別空白的排最後），同性別內依學號。舊學期的學籍與成績都會保留，不會被覆蓋。</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={run} disabled={busy} style={{ ...btn, background: '#2C2C2A', color: '#fff', border: 'none' }}>
+            <button onClick={run} disabled={busy} style={{ ...btn, background: 'var(--primary)', color: '#fff', border: 'none' }}>
               {busy ? '處理中…' : `執行升級（${preview.students} 位）`}
             </button>
             {onCancel && (
-              <button onClick={onCancel} disabled={busy} style={{ ...btn, background: '#fff', border: '1px solid #ccc' }}>
+              <button onClick={onCancel} disabled={busy} style={{ ...btn, background: 'var(--surface)', border: '1px solid var(--line-strong)' }}>
                 {cancelLabel ?? '稍後再說'}
               </button>
             )}
@@ -221,7 +221,7 @@ export default function RolloverPanel(props: { src: TermRef; tgt: TermRef; onDon
         </>
       )}
       {(result || (preview && preview.students === 0)) && onCancel && (
-        <button onClick={onCancel} style={{ ...btn, background: '#fff', border: '1px solid #ccc', marginTop: 8 }}>
+        <button onClick={onCancel} style={{ ...btn, background: 'var(--surface)', border: '1px solid var(--line-strong)', marginTop: 8 }}>
           關閉
         </button>
       )}

@@ -20,13 +20,13 @@ export default function PendingChangesOverviewPage() {
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>送審總覽</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         彙整各部門的送審申請（教務/訓導/總務/開發人員承辦人員送出的新增/修改/刪除申請），核准/駁回後會自動生效，
         不用再分別跑去各功能頁面個別查看。
       </p>
 
       {departmentsICanReview.length === 0 && (
-        <p style={{ fontSize: 13, color: '#999' }}>您目前不是任何部門的主管，沒有需要核准的送審清單。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>您目前不是任何部門的主管，沒有需要核准的送審清單。</p>
       )}
 
       {departmentsICanReview.map((dept) => (

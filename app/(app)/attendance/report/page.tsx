@@ -300,7 +300,7 @@ function AttendanceReportPageInner() {
     return (
       <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 4 }}>學生出席紀錄查詢</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>目前沒有可查看的班級（本頁僅提供導師與管理員使用）。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有可查看的班級（本頁僅提供導師與管理員使用）。</p>
       </main>
     );
   }
@@ -347,7 +347,7 @@ function AttendanceReportPageInner() {
 
       {rangeNote && <p style={{ fontSize: 12, color: '#A36A2D', marginBottom: 8 }}>{rangeNote}</p>}
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
@@ -363,7 +363,7 @@ function AttendanceReportPageInner() {
           </thead>
           <tbody>
             {students.map((s) => (
-              <tr key={s.student_no} style={{ borderTop: '1px solid #eee' }}>
+              <tr key={s.student_no} style={{ borderTop: '1px solid var(--line)' }}>
                 <td style={{ padding: 6 }}>{s.seat_no}</td>
                 <td style={{ padding: 6 }}>
                   <button
@@ -382,7 +382,7 @@ function AttendanceReportPageInner() {
             ))}
             {students.length === 0 && (
               <tr>
-                <td colSpan={2 + STATUS_OPTIONS.length} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                <td colSpan={2 + STATUS_OPTIONS.length} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                   這個班級目前沒有在學學生
                 </td>
               </tr>
@@ -398,16 +398,16 @@ function AttendanceReportPageInner() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ background: '#fff', borderRadius: 8, padding: 20, width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto' }}
+            style={{ background: 'var(--surface)', borderRadius: 8, padding: 20, width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto' }}
           >
             <h2 style={{ fontSize: 15, marginBottom: 4 }}>
               {detailStudent.seat_no} 號 {detailStudent.name}　出缺席明細
             </h2>
-            <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
+            <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
               {viewMode === 'month' ? `${monthValue} 月` : '本學期'}（只列出曠課、遲到、病假、事假、公假）
             </p>
             {(exceptions[detailStudent.student_no] ?? []).length === 0 ? (
-              <p style={{ fontSize: 13, color: '#999' }}>這段期間沒有任何曠課、遲到、病假、事假、公假紀錄。</p>
+              <p style={{ fontSize: 13, color: 'var(--sub)' }}>這段期間沒有任何曠課、遲到、病假、事假、公假紀錄。</p>
             ) : (
               EXCEPTION_STATUSES.map((st) => {
                 const list = (exceptions[detailStudent.student_no] ?? []).filter((r) => r.status === st);

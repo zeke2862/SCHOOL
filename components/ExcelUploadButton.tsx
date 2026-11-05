@@ -32,7 +32,7 @@ export default function ExcelUploadButton({
   return (
     <div style={{ marginBottom: 16 }}>
       <input ref={inputRef} type="file" accept=".xlsx" onChange={handleChange} disabled={busy} style={{ fontSize: 13 }} />
-      {busy && <p style={{ fontSize: 12, color: '#666' }}>處理中，資料量大時可能要等一下…</p>}
+      {busy && <p style={{ fontSize: 12, color: 'var(--sub)' }}>處理中，資料量大時可能要等一下…</p>}
       {result && (
         <div style={{ fontSize: 12, marginTop: 4 }}>
           <p style={{ color: '#3B6D11' }}>

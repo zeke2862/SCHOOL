@@ -72,7 +72,7 @@ export default function PortalAccountsPage() {
   return (
     <main style={{ maxWidth: 520, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>家長／學生登入查詢</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         現在不用手動建立家長／學生的登入帳號了：家長／學生自己在【家長／學生查詢入口】輸入登入代碼（家長 HY+學號、學生本人
         HYS+學號）跟登記在學籍資料裡的手機號碼，系統會自動核對、自動建立登入。這頁純粹是輸入學號查詢「目前學籍資料登記的手機號碼是什麼」，
         方便您把代碼交給家長/學生之前，先確認資料齊全、電話正確——如果手機號碼是空的或登記錯誤，麻煩先到學籍資料頁補上/更正，
@@ -87,7 +87,7 @@ export default function PortalAccountsPage() {
           style={{ padding: 8, flex: 1 }}
           required
         />
-        <button type="submit" disabled={loading} style={{ padding: '8px 16px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+        <button type="submit" disabled={loading} style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
           {loading ? '查詢中…' : '查詢'}
         </button>
       </form>
@@ -100,16 +100,16 @@ export default function PortalAccountsPage() {
             <strong>{result.studentName}</strong>（學號 {result.studentNo}）
           </p>
 
-          <div style={{ background: '#FAFAF8', border: '1px solid #eee', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+          <div style={{ background: 'var(--primary-soft)', border: '1px solid var(--line)', borderRadius: 8, padding: 12, marginBottom: 12 }}>
             <p style={{ fontWeight: 600, marginBottom: 4 }}>
               學生本人代碼：HYS{result.studentNo}　{result.hysLinked && <span style={{ color: '#3B6D11' }}>（已登入過）</span>}
             </p>
-            <p style={{ color: result.studentPhone ? '#2C2C2A' : '#A32D2D' }}>
+            <p style={{ color: result.studentPhone ? 'var(--ink)' : '#A32D2D' }}>
               學籍資料登記的手機號碼：{result.studentPhone || '（尚未登記，需先補上才能登入）'}
             </p>
           </div>
 
-          <div style={{ background: '#FAFAF8', border: '1px solid #eee', borderRadius: 8, padding: 12 }}>
+          <div style={{ background: 'var(--primary-soft)', border: '1px solid var(--line)', borderRadius: 8, padding: 12 }}>
             <p style={{ fontWeight: 600, marginBottom: 4 }}>
               家長代碼：HY{result.studentNo}　{result.hyLinked && <span style={{ color: '#3B6D11' }}>（已登入過）</span>}
             </p>
@@ -117,13 +117,13 @@ export default function PortalAccountsPage() {
               <p style={{ color: '#A32D2D' }}>尚未登記任何監護人資料，需先補上才能登入。</p>
             ) : (
               result.guardians.map((g, i) => (
-                <p key={i} style={{ color: g.phone ? '#2C2C2A' : '#A32D2D' }}>
+                <p key={i} style={{ color: g.phone ? 'var(--ink)' : '#A32D2D' }}>
                   {g.relation}
                   {g.name ? `（${g.name}）` : ''}：{g.phone || '（尚未登記手機號碼）'}
                 </p>
               ))
             )}
-            <p style={{ fontSize: 12, color: '#999', marginTop: 4 }}>家長用任一位監護人登記的手機號碼都能登入。</p>
+            <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 4 }}>家長用任一位監護人登記的手機號碼都能登入。</p>
           </div>
         </div>
       )}

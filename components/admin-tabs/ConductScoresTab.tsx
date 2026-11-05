@@ -176,12 +176,12 @@ export default function ConductScoresTab() {
   }
 
   if (!isAdmin && !homeroomClassId) {
-    return <p style={{ fontSize: 13, color: '#999' }}>操行成績評分只有導師本人與管理員可以使用，你目前不是任何班級的導師。</p>;
+    return <p style={{ fontSize: 13, color: 'var(--sub)' }}>操行成績評分只有導師本人與管理員可以使用，你目前不是任何班級的導師。</p>;
   }
 
   return (
     <div>
-      <h2 style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>
+      <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 8 }}>
         操行成績「禮貌／衣著／服務／紀律」四個分項評分（只有本人與管理員看得到，任課教師不可見）
       </h2>
       <TermViewSelect value={viewTerm} onChange={setViewTerm} style={{ padding: isMobile ? 10 : 6, fontSize: isMobile ? 15 : 13, marginBottom: 12, marginRight: 8 }} />
@@ -196,7 +196,7 @@ export default function ConductScoresTab() {
         </select>
       )}
 
-      {loading && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+      {loading && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
 
       {!loading && rows.length > 0 && (
         <>
@@ -206,21 +206,21 @@ export default function ConductScoresTab() {
               填哪一欄；外層包一個有固定高度、可以自己垂直捲動的容器，標題列用
               position:sticky 釘在容器頂端。「姓名」欄（連同左邊的「座號」）也一樣
               用 sticky 釘在最左邊，橫向捲動時不會跟著不見。 */}
-          <div style={{ maxHeight: '70vh', overflow: 'auto', border: '1px solid #ddd' }}>
+          <div style={{ maxHeight: '70vh', overflow: 'auto', border: '1px solid var(--line-strong)' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#f5f5f5' }}>
+                <tr style={{ background: 'var(--primary-soft)' }}>
                   {['座號', '姓名', '禮貌', '衣著', '服務', '紀律', '操行成績（自動平均）'].map((h, i) => (
                     <th
                       key={h}
                       style={{
-                        border: '1px solid #ddd',
+                        border: '1px solid var(--line-strong)',
                         padding: 6,
                         textAlign: 'left',
                         position: 'sticky',
                         top: 0,
                         left: i === 0 ? 0 : i === 1 ? 40 : undefined,
-                        background: '#f5f5f5',
+                        background: 'var(--primary-soft)',
                         zIndex: i <= 1 ? 3 : 2,
                       }}
                     >
@@ -232,14 +232,14 @@ export default function ConductScoresTab() {
               <tbody>
                 {rows.map((r, rowIndex) => (
                   <tr key={r.enrollment_id}>
-                    <td style={{ border: '1px solid #eee', padding: 6, position: 'sticky', left: 0, background: '#fff', zIndex: 1 }}>
+                    <td style={{ border: '1px solid var(--line)', padding: 6, position: 'sticky', left: 0, background: 'var(--surface)', zIndex: 1 }}>
                       {r.seat_no}
                     </td>
-                    <td style={{ border: '1px solid #eee', padding: 6, position: 'sticky', left: 40, background: '#fff', zIndex: 1, whiteSpace: 'nowrap' }}>
+                    <td style={{ border: '1px solid var(--line)', padding: 6, position: 'sticky', left: 40, background: 'var(--surface)', zIndex: 1, whiteSpace: 'nowrap' }}>
                       {r.name}
                     </td>
                     {FIELDS.map((field, fieldIndex) => (
-                    <td key={field} style={{ border: '1px solid #eee', padding: 4 }}>
+                    <td key={field} style={{ border: '1px solid var(--line)', padding: 4 }}>
                       <input
                         type="number"
                         min={0}
@@ -259,7 +259,7 @@ export default function ConductScoresTab() {
                       />
                     </td>
                   ))}
-                  <td style={{ border: '1px solid #eee', padding: 6, color: '#666' }}>{average(r)}</td>
+                  <td style={{ border: '1px solid var(--line)', padding: 6, color: 'var(--sub)' }}>{average(r)}</td>
                 </tr>
               ))}
               </tbody>
@@ -268,13 +268,13 @@ export default function ConductScoresTab() {
           <button
             onClick={handleSaveAll}
             disabled={saving}
-            style={{ marginTop: 12, padding: '8px 20px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13 }}
+            style={{ marginTop: 12, padding: '8px 20px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13 }}
           >
             {saving ? '儲存中…' : '儲存全部'}
           </button>
         </>
       )}
-      {!loading && classId && rows.length === 0 && <p style={{ fontSize: 13, color: '#999' }}>這個班級目前沒有在學學生。</p>}
+      {!loading && classId && rows.length === 0 && <p style={{ fontSize: 13, color: 'var(--sub)' }}>這個班級目前沒有在學學生。</p>}
     </div>
   );
 }

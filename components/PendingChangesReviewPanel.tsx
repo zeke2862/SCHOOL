@@ -72,7 +72,7 @@ export default function PendingChangesReviewPanel({
       </div>
       {loadError && <p style={{ color: '#A32D2D', fontSize: 12 }}>{loadError}</p>}
       {rows.length === 0 ? (
-        <p style={{ fontSize: 12, color: '#999' }}>目前沒有待審核的申請。</p>
+        <p style={{ fontSize: 12, color: 'var(--sub)' }}>目前沒有待審核的申請。</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
@@ -87,7 +87,7 @@ export default function PendingChangesReviewPanel({
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} style={{ borderTop: '1px solid #ddd' }}>
+              <tr key={r.id} style={{ borderTop: '1px solid var(--line-strong)' }}>
                 <td style={{ padding: 4 }}>{new Date(r.requested_at).toLocaleString()}</td>
                 <td style={{ padding: 4 }}>{r.table_name}</td>
                 <td style={{ padding: 4 }}>{OP_LABEL[r.operation] ?? r.operation}</td>
@@ -112,7 +112,7 @@ export default function PendingChangesReviewPanel({
                       </button>
                     </div>
                   ) : (
-                    <span style={{ color: '#999' }}>{r.review_note || '—'}</span>
+                    <span style={{ color: 'var(--sub)' }}>{r.review_note || '—'}</span>
                   )}
                 </td>
               </tr>

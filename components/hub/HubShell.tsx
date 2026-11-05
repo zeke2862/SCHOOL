@@ -35,13 +35,13 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
   const tabHint = (k: string, fallback?: string) => texts[tabHintKey(hubKey, k)] ?? fallback ?? '';
   const titleLines = maxTitleLines(tabs.map((t) => tabName(t.key, t.label)), tm);
 
-  if (loading) return <p style={{ padding: 24, fontSize: 13, color: '#999' }}>載入中…</p>;
+  if (loading) return <p style={{ padding: 24, fontSize: 13, color: 'var(--sub)' }}>載入中…</p>;
 
   if (!caps || tabs.length === 0) {
     return (
       <main style={{ maxWidth: 480, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 8 }}>沒有可用的功能</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>
           「{hubName}」目前沒有開放給您的身分使用。如果您認為應該要有，請聯絡學校管理員確認您的職務設定。
         </p>
       </main>
@@ -57,7 +57,7 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
         <h1 className="no-print" style={{ textAlign: 'center', margin: '0 0 6px' }}>
           {hubName}
         </h1>
-        <p className="no-print" style={{ fontSize: tm.mobile ? 15 : 14, color: '#888', textAlign: 'center', margin: '0 0 18px' }}>
+        <p className="no-print" style={{ fontSize: tm.mobile ? 15 : 14, color: 'var(--sub)', textAlign: 'center', margin: '0 0 18px' }}>
           請選擇要使用的功能
         </p>
         <div className="no-print" style={{ display: 'grid', gridTemplateColumns: `repeat(${tm.cols}, minmax(0, 1fr))`, gap: tm.gap }}>
@@ -90,7 +90,7 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
                 {tabName(t.key, t.label)}
               </span>
               {tabHint(t.key, t.hint) && tm.tileH >= 110 + (titleLines - 1) * tm.titleSize && (
-                <span style={{ fontSize: tm.descSize, color: '#888', lineHeight: 1.35 }}>{tabHint(t.key, t.hint)}</span>
+                <span style={{ fontSize: tm.descSize, color: 'var(--sub)', lineHeight: 1.35 }}>{tabHint(t.key, t.hint)}</span>
               )}
             </button>
           ))}
@@ -105,17 +105,17 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
     <div className="hub-content" style={{ maxWidth: 1180, margin: '0 auto', padding: '16px 12px' }}>
       <nav className="no-print" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, margin: '0 12px 6px', fontSize: 14 }}>
         {tabs.length > 1 ? (
-          <Link href={hub.href} style={{ color: '#2C6E9E', textDecoration: 'none' }}>
+          <Link href={hub.href} style={{ color: 'var(--primary-ink)', textDecoration: 'none' }}>
             {hubName}
           </Link>
         ) : (
-          <span style={{ color: '#888' }}>{hubName}</span>
+          <span style={{ color: 'var(--sub)' }}>{hubName}</span>
         )}
-        <span style={{ color: '#aaa' }}>›</span>
+        <span style={{ color: 'var(--sub)' }}>›</span>
         <b>{tabName(current.key, current.label)}</b>
       </nav>
       {tabs.length > 1 && (
-        <div className="no-print" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '0 12px 8px', paddingBottom: 8, borderBottom: '1px solid #eee' }}>
+        <div className="no-print" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '0 12px 8px', paddingBottom: 8, borderBottom: '1px solid var(--line)' }}>
           {tabs
             .filter((t) => t.key !== current.key)
             .map((t) => (
@@ -123,7 +123,7 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
                 key={t.key}
                 type="button"
                 onClick={() => router.push(`${hub.href}?tab=${t.key}`)}
-                style={{ padding: '3px 10px', fontSize: 12, border: '1px solid #e0ddd4', background: '#fafaf8', borderRadius: 999, color: '#6b6b66', cursor: 'pointer' }}
+                style={{ padding: '3px 10px', fontSize: 12, border: '1px solid var(--line)', background: 'var(--primary-soft)', borderRadius: 999, color: '#6b6b66', cursor: 'pointer' }}
               >
                 {tabName(t.key, t.label)}
               </button>
@@ -137,7 +137,7 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
 
 export default function HubShell(props: { hubKey: string; renderers: Record<string, () => ReactNode> }) {
   return (
-    <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: '#999' }}>載入中…</p>}>
+    <Suspense fallback={<p style={{ padding: 24, fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}>
       <HubShellInner {...props} />
     </Suspense>
   );

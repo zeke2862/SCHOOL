@@ -177,7 +177,7 @@ export default function SchoolRankingsPage() {
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>全校排行榜</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         只有該班「期中考／期末考／平時分」三項都已鎖定，才會出現在這裡（總分排名需要三項都鎖定才完整、才開放顯示）。
       </p>
       <ErrorBanner message={loadError} />
@@ -197,21 +197,21 @@ export default function SchoolRankingsPage() {
           type="button"
           onClick={downloadExcel}
           disabled={loading || (classTop.length === 0 && gradeTop.length === 0)}
-          style={{ padding: '8px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+          style={{ padding: '8px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
         >
           下載 Excel
         </button>
       </div>
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <>
           <h2 style={{ fontSize: 14, marginBottom: 8 }}>全校各班前三名</h2>
-          {classGroups.size === 0 && <p style={{ fontSize: 13, color: '#999', marginBottom: 20 }}>目前沒有已鎖定的班級排名資料</p>}
+          {classGroups.size === 0 && <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 20 }}>目前沒有已鎖定的班級排名資料</p>}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, marginBottom: 28 }}>
             {sortedClassGroups.map(([classId, rows]) => (
-              <div key={classId} style={{ border: '1px solid #eee', borderRadius: 8, padding: 12 }}>
+              <div key={classId} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12 }}>
                 <p style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 6 }}>{classLabels[classId] ?? classId}</p>
                 {rows
                   .sort((a, b) => a.class_rank - b.class_rank)
@@ -225,10 +225,10 @@ export default function SchoolRankingsPage() {
           </div>
 
           <h2 style={{ fontSize: 14, marginBottom: 8 }}>全校各年級前三名</h2>
-          {gradeGroups.size === 0 && <p style={{ fontSize: 13, color: '#999' }}>目前沒有已鎖定的年級排名資料</p>}
+          {gradeGroups.size === 0 && <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有已鎖定的年級排名資料</p>}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
             {sortedGradeGroups.map(([key, rows]) => (
-              <div key={key} style={{ border: '1px solid #eee', borderRadius: 8, padding: 12 }}>
+              <div key={key} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12 }}>
                 <p style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 6 }}>{key}</p>
                 {rows
                   .sort((a, b) => a.grade_rank - b.grade_rank)

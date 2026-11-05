@@ -435,7 +435,7 @@ export default function SalesInventoryPage({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h1 style={{ fontSize: 16, marginBottom: 4 }}>{title}</h1>
-            <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>{hint}</p>
+            <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>{hint}</p>
           </div>
           <button
             onClick={() => setSidebarOpen((v) => !v)}
@@ -458,7 +458,7 @@ export default function SalesInventoryPage({
           onReviewed={load}
         />
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14, borderBottom: '2px solid #ddd', paddingBottom: 10 }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14, borderBottom: '2px solid var(--line-strong)', paddingBottom: 10 }}>
           {(['sale', 'purchase', 'print'] as Mode[]).map((m) => (
             <button
               key={m}
@@ -471,7 +471,7 @@ export default function SalesInventoryPage({
                 cursor: 'pointer',
                 fontSize: 14,
                 background: mode === m ? (m === 'sale' ? '#27ae60' : m === 'purchase' ? '#2980b9' : '#8e44ad') : '#e0e0e0',
-                color: mode === m ? '#fff' : '#555',
+                color: mode === m ? '#fff' : 'var(--sub)',
               }}
             >
               {m === 'sale' ? '🏷️ 販賣作業（出貨）' : m === 'purchase' ? '🛒 採購作業（進貨）' : '📋 表格下載'}
@@ -483,13 +483,13 @@ export default function SalesInventoryPage({
           <>
             <div style={{ display: 'flex', justifyContent: 'space-around', background: '#eef2f5', padding: 12, borderRadius: 8, marginBottom: 20 }}>
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ margin: 0, color: '#555', fontSize: 13 }}>
+                <h3 style={{ margin: 0, color: 'var(--sub)', fontSize: 13 }}>
                   {mode === 'sale' ? `今日總收入（${formatDate(new Date())}）` : `今日總支出（${formatDate(new Date())}）`}
                 </h3>
                 <p style={{ margin: '5px 0 0', fontSize: 20, fontWeight: 700, color: '#2c3e50' }}>${todayRevenue}</p>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ margin: 0, color: '#555', fontSize: 13 }}>{mode === 'sale' ? '本次結帳總額' : '本次採購總額'}</h3>
+                <h3 style={{ margin: 0, color: 'var(--sub)', fontSize: 13 }}>{mode === 'sale' ? '本次結帳總額' : '本次採購總額'}</h3>
                 <p style={{ margin: '5px 0 0', fontSize: 20, fontWeight: 700, color: '#2c3e50' }}>${currentTotal}</p>
               </div>
             </div>
@@ -504,7 +504,7 @@ export default function SalesInventoryPage({
                 return (
                   <div
                     key={i.id}
-                    style={{ background: '#fff', border: '1px solid #ddd', padding: 10, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                    style={{ background: 'var(--surface)', border: '1px solid var(--line-strong)', padding: 10, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                       <input type="checkbox" checked={!!sel?.checked} onChange={() => toggleItem(i.id)} style={{ marginTop: 4 }} />
@@ -524,13 +524,13 @@ export default function SalesInventoryPage({
                         max={mode === 'sale' ? Math.max(i.quantity_on_hand, 1) : 999}
                         value={sel.qty}
                         onChange={(e) => setQty(i.id, e.target.value)}
-                        style={{ width: 50, padding: 5, border: '1px solid #ccc', borderRadius: 4 }}
+                        style={{ width: 50, padding: 5, border: '1px solid var(--line-strong)', borderRadius: 4 }}
                       />
                     )}
                   </div>
                 );
               })}
-              {items.length === 0 && <p style={{ color: '#999', fontSize: 13 }}>目前沒有品項，請從右側「新進商品並自動上架」新增。</p>}
+              {items.length === 0 && <p style={{ color: 'var(--sub)', fontSize: 13 }}>目前沒有品項，請從右側「新進商品並自動上架」新增。</p>}
             </div>
 
             <button
@@ -552,11 +552,11 @@ export default function SalesInventoryPage({
             </button>
           </>
         ) : (
-          <div style={{ background: '#fff', padding: 20, borderRadius: 6, border: '1px solid #ddd' }}>
+          <div style={{ background: 'var(--surface)', padding: 20, borderRadius: 6, border: '1px solid var(--line-strong)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
               <h3 style={{ margin: 0, color: '#2c3e50' }}>📋 {title}（Excel 格式）</h3>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={handleDownloadTable} style={{ background: '#2C6E9E', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 4, fontWeight: 700, cursor: 'pointer' }}>
+                <button onClick={handleDownloadTable} style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 4, fontWeight: 700, cursor: 'pointer' }}>
                   ⬇️ 下載 Excel
                 </button>
                 <button onClick={() => window.print()} style={{ background: '#8e44ad', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 4, fontWeight: 700, cursor: 'pointer' }}>
@@ -566,7 +566,7 @@ export default function SalesInventoryPage({
             </div>
             <div style={{ textAlign: 'center', marginBottom: 10 }}>
               <h2 style={{ margin: '0 0 5px', fontSize: 18, color: '#000' }}>{title}</h2>
-              <p style={{ margin: 0, fontSize: 13, color: '#333' }}>日期：_______年_______月_______日　填表人：____________</p>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--ink)' }}>日期：_______年_______月_______日　填表人：____________</p>
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
@@ -597,15 +597,15 @@ export default function SalesInventoryPage({
       </div>
 
       {sidebarOpen && (
-        <div style={{ width: 340, maxWidth: '100%', flexShrink: 1, background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: 16, position: 'sticky', top: 16, maxHeight: 'calc(100vh - 32px)', overflowY: 'auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #eee', paddingBottom: 10, marginBottom: 12 }}>
+        <div style={{ width: 340, maxWidth: '100%', flexShrink: 1, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, padding: 16, position: 'sticky', top: 16, maxHeight: 'calc(100vh - 32px)', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--line)', paddingBottom: 10, marginBottom: 12 }}>
             <h2 style={{ fontSize: 14, margin: 0 }}>資訊面板</h2>
             <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#7f8c8d' }}>
               ✕
             </button>
           </div>
 
-          <details open style={{ marginBottom: 14, border: '1px solid #ddd', borderRadius: 5, padding: 10, background: '#fafafa' }}>
+          <details open style={{ marginBottom: 14, border: '1px solid var(--line-strong)', borderRadius: 5, padding: 10, background: 'var(--primary-soft)' }}>
             <summary style={{ fontWeight: 700, cursor: 'pointer', color: '#2c3e50', fontSize: 14 }}>⚠️ 庫存不足警示（{lowStockItems.length}）</summary>
             <div style={{ maxHeight: 150, overflowY: 'auto', marginTop: 8 }}>
               {lowStockItems.length === 0 ? (
@@ -623,7 +623,7 @@ export default function SalesInventoryPage({
             </div>
           </details>
 
-          <details style={{ marginBottom: 14, border: '1px solid #ddd', borderRadius: 5, padding: 10, background: '#fafafa' }}>
+          <details style={{ marginBottom: 14, border: '1px solid var(--line-strong)', borderRadius: 5, padding: 10, background: 'var(--primary-soft)' }}>
             <summary style={{ fontWeight: 700, cursor: 'pointer', color: '#2c3e50', fontSize: 14 }}>🖼️ 上傳販賣物品樣本</summary>
             <div style={{ padding: '5px 0' }}>
               <div style={{ border: '2px dashed #3498db', padding: 10, borderRadius: 6, background: '#f8fafc', textAlign: 'center', marginBottom: 10 }}>
@@ -644,15 +644,15 @@ export default function SalesInventoryPage({
               >
                 清除樣本圖片
               </button>
-              <p style={{ fontSize: 11, color: '#999', marginTop: 6 }}>樣本圖片僅在本機瀏覽器預覽，不會上傳或保存，重新整理頁面就會消失。</p>
+              <p style={{ fontSize: 11, color: 'var(--sub)', marginTop: 6 }}>樣本圖片僅在本機瀏覽器預覽，不會上傳或保存，重新整理頁面就會消失。</p>
             </div>
           </details>
 
-          <details open style={{ marginBottom: 14, border: '1px solid #ddd', borderRadius: 5, padding: 10, background: '#fafafa' }}>
+          <details open style={{ marginBottom: 14, border: '1px solid var(--line-strong)', borderRadius: 5, padding: 10, background: 'var(--primary-soft)' }}>
             <summary style={{ fontWeight: 700, cursor: 'pointer', color: '#2c3e50', fontSize: 14 }}>➕ 快速補貨與新商品上架</summary>
             <div style={{ padding: '5px 0' }}>
               <h4 style={{ margin: '5px 0', fontSize: 13, color: '#34495e' }}>📦 現有商品直接補貨</h4>
-              <select value={restockItemId} onChange={(e) => setRestockItemId(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 5, border: '1px solid #ccc', borderRadius: 4, boxSizing: 'border-box' }}>
+              <select value={restockItemId} onChange={(e) => setRestockItemId(e.target.value)} style={{ width: '100%', padding: 6, marginBottom: 5, border: '1px solid var(--line-strong)', borderRadius: 4, boxSizing: 'border-box' }}>
                 <option value="">選擇商品</option>
                 {items.map((i) => (
                   <option key={i.id} value={i.id}>
@@ -666,7 +666,7 @@ export default function SalesInventoryPage({
                 value={restockQty}
                 onChange={(e) => setRestockQty(e.target.value)}
                 placeholder="補貨數量"
-                style={{ width: '100%', padding: 6, marginBottom: 5, border: '1px solid #ccc', borderRadius: 4, boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: 6, marginBottom: 5, border: '1px solid var(--line-strong)', borderRadius: 4, boxSizing: 'border-box' }}
               />
               <button
                 onClick={handleQuickRestock}
@@ -681,7 +681,7 @@ export default function SalesInventoryPage({
                   placeholder={`新${itemLabel}名稱`}
                   value={newItem.name}
                   onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                  style={{ padding: 6, border: '1px solid #ccc', borderRadius: 4, boxSizing: 'border-box' }}
+                  style={{ padding: 6, border: '1px solid var(--line-strong)', borderRadius: 4, boxSizing: 'border-box' }}
                 />
                 <div style={{ display: 'flex', gap: 5 }}>
                   <input
@@ -690,7 +690,7 @@ export default function SalesInventoryPage({
                     placeholder="價格 ($)"
                     value={newItem.price}
                     onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
-                    style={{ flex: 1, padding: 6, border: '1px solid #ccc', borderRadius: 4, boxSizing: 'border-box' }}
+                    style={{ flex: 1, padding: 6, border: '1px solid var(--line-strong)', borderRadius: 4, boxSizing: 'border-box' }}
                   />
                   <input
                     type="number"
@@ -698,7 +698,7 @@ export default function SalesInventoryPage({
                     placeholder="初始庫存"
                     value={newItem.stock}
                     onChange={(e) => setNewItem({ ...newItem, stock: e.target.value })}
-                    style={{ flex: 1, padding: 6, border: '1px solid #ccc', borderRadius: 4, boxSizing: 'border-box' }}
+                    style={{ flex: 1, padding: 6, border: '1px solid var(--line-strong)', borderRadius: 4, boxSizing: 'border-box' }}
                   />
                 </div>
                 <input
@@ -707,7 +707,7 @@ export default function SalesInventoryPage({
                   placeholder="警戒值"
                   value={newItem.threshold}
                   onChange={(e) => setNewItem({ ...newItem, threshold: e.target.value })}
-                  style={{ padding: 6, border: '1px solid #ccc', borderRadius: 4, boxSizing: 'border-box' }}
+                  style={{ padding: 6, border: '1px solid var(--line-strong)', borderRadius: 4, boxSizing: 'border-box' }}
                 />
                 <button
                   onClick={handleAddNewItem}
@@ -718,7 +718,7 @@ export default function SalesInventoryPage({
               </div>
 
               <h4 style={{ margin: '14px 0 5px', fontSize: 13, color: '#34495e' }}>📤 一鍵上傳（整批新商品）</h4>
-              <p style={{ fontSize: 11, color: '#666', margin: '0 0 6px' }}>
+              <p style={{ fontSize: 11, color: 'var(--sub)', margin: '0 0 6px' }}>
                 一次要上架很多個新{itemLabel}時用這個，不用一筆一筆手動填上面的表單。
               </p>
               <TemplateDownloadButton label={`下載${itemLabel}一鍵上傳範本`} onClick={handleDownloadUploadTemplate} />
@@ -726,7 +726,7 @@ export default function SalesInventoryPage({
             </div>
           </details>
 
-          <details style={{ marginBottom: 14, border: '1px solid #ddd', borderRadius: 5, padding: 10, background: '#fafafa' }}>
+          <details style={{ marginBottom: 14, border: '1px solid var(--line-strong)', borderRadius: 5, padding: 10, background: 'var(--primary-soft)' }}>
             <summary style={{ fontWeight: 700, cursor: 'pointer', color: '#2c3e50', fontSize: 14 }}>✏️ 品項名稱與價格/庫存設定</summary>
             <div style={{ maxHeight: 240, overflowY: 'auto', marginTop: 8 }}>
               <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
@@ -746,7 +746,7 @@ export default function SalesInventoryPage({
                         <input
                           defaultValue={i.name}
                           onBlur={(e) => e.target.value.trim() !== i.name && handleUpdateItem(i, { name: e.target.value })}
-                          style={{ width: 90, padding: 3, fontSize: 12, border: '1px solid #ccc', borderRadius: 3 }}
+                          style={{ width: 90, padding: 3, fontSize: 12, border: '1px solid var(--line-strong)', borderRadius: 3 }}
                         />
                       </td>
                       <td style={{ padding: 4 }}>
@@ -755,7 +755,7 @@ export default function SalesInventoryPage({
                           min={0}
                           defaultValue={i.unit_price ?? 0}
                           onBlur={(e) => Number(e.target.value) !== (i.unit_price ?? 0) && handleUpdateItem(i, { unit_price: Number(e.target.value) })}
-                          style={{ width: 55, padding: 3, fontSize: 12, border: '1px solid #ccc', borderRadius: 3, textAlign: 'center' }}
+                          style={{ width: 55, padding: 3, fontSize: 12, border: '1px solid var(--line-strong)', borderRadius: 3, textAlign: 'center' }}
                         />
                       </td>
                       <td style={{ padding: 4, fontWeight: 700, color: i.quantity_on_hand <= i.low_stock_threshold ? 'red' : undefined }}>{i.quantity_on_hand}</td>
@@ -780,7 +780,7 @@ export default function SalesInventoryPage({
             </div>
           </details>
 
-          <details style={{ marginBottom: 4, border: '1px solid #ddd', borderRadius: 5, padding: 10, background: '#fafafa' }}>
+          <details style={{ marginBottom: 4, border: '1px solid var(--line-strong)', borderRadius: 5, padding: 10, background: 'var(--primary-soft)' }}>
             <summary style={{ fontWeight: 700, cursor: 'pointer', color: '#2c3e50', fontSize: 14 }}>📜 歷史營運與交易紀錄</summary>
             <div style={{ maxHeight: 280, overflowY: 'auto', marginTop: 8 }}>
               <h4 style={{ margin: '5px 0', fontSize: 13, color: '#34495e' }}>📅 每日統計</h4>
@@ -795,7 +795,7 @@ export default function SalesInventoryPage({
                 <tbody>
                   {dailySummary.length === 0 ? (
                     <tr>
-                      <td colSpan={3} style={{ color: '#888', padding: 4 }}>
+                      <td colSpan={3} style={{ color: 'var(--sub)', padding: 4 }}>
                         尚無紀錄
                       </td>
                     </tr>
@@ -824,7 +824,7 @@ export default function SalesInventoryPage({
                 <tbody>
                   {txs.length === 0 ? (
                     <tr>
-                      <td colSpan={4} style={{ color: '#888', padding: 4 }}>
+                      <td colSpan={4} style={{ color: 'var(--sub)', padding: 4 }}>
                         尚無紀錄
                       </td>
                     </tr>

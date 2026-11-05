@@ -18,9 +18,9 @@ type Scan = {
 
 const btn = (primary = false): React.CSSProperties => ({
   padding: '8px 16px',
-  background: primary ? '#2C6E9E' : '#fff',
-  color: primary ? '#fff' : '#2C6E9E',
-  border: '1px solid #2C6E9E',
+  background: primary ? 'var(--primary)' : 'var(--surface)',
+  color: primary ? '#fff' : 'var(--primary-ink)',
+  border: '1px solid var(--primary)',
   borderRadius: 6,
   fontSize: 13,
   cursor: 'pointer',
@@ -87,7 +87,7 @@ export default function ScheduleDuplicatesPanel() {
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
       <h2 style={{ fontSize: 15, marginBottom: 6 }}>課表資料整理（任課教師設定重複列）</h2>
-      <p style={{ fontSize: 12, color: '#666', lineHeight: 1.7, marginBottom: 12 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', lineHeight: 1.7, marginBottom: 12 }}>
         課表資料表裡，有一種資料是「這個班這一科由誰教」（沒有星期、沒有節次）。以前每次上傳「任課教師設定」或在排課工具按存檔，
         只要同一班同一科已經有 2 筆以上，程式就會多新增一筆，越積越多。這裡可以先檢查有多少重複，再一鍵清掉多餘的（每組保留 1 筆）。
         <b> 有排星期、節次的正式課表完全不會動。</b>
@@ -95,7 +95,7 @@ export default function ScheduleDuplicatesPanel() {
       <button type="button" style={btn(true)} disabled={busy} onClick={doScan}>
         檢查重複
       </button>
-      {busy && <p style={{ fontSize: 12, color: '#2C6E9E', marginTop: 8 }}>{msg || '處理中…'}</p>}
+      {busy && <p style={{ fontSize: 12, color: 'var(--primary-ink)', marginTop: 8 }}>{msg || '處理中…'}</p>}
       {error && <p style={{ fontSize: 12, color: '#A32D2D', marginTop: 8 }}>發生問題：{error}</p>}
       {doneMsg && <p style={{ fontSize: 13, color: '#3B6D11', marginTop: 8 }}>✅ {doneMsg}</p>}
 
@@ -112,7 +112,7 @@ export default function ScheduleDuplicatesPanel() {
                 ['有排星期節次的正式課表列', scan.slotRows],
               ].map(([k, v]) => (
                 <tr key={String(k)}>
-                  <td style={{ padding: '3px 12px 3px 0', color: '#666' }}>{k}</td>
+                  <td style={{ padding: '3px 12px 3px 0', color: 'var(--sub)' }}>{k}</td>
                   <td style={{ padding: '3px 0', fontWeight: 'bold', color: k === '可以刪掉的多餘列' && Number(v) > 0 ? '#A32D2D' : undefined }}>{v}</td>
                 </tr>
               ))}
@@ -135,7 +135,7 @@ export default function ScheduleDuplicatesPanel() {
               <summary style={{ cursor: 'pointer' }}>看重複明細（前 {scan.detail.length} 組）</summary>
               <table style={{ borderCollapse: 'collapse', marginTop: 6 }}>
                 <thead>
-                  <tr style={{ textAlign: 'left', color: '#666' }}>
+                  <tr style={{ textAlign: 'left', color: 'var(--sub)' }}>
                     <th style={{ padding: '2px 8px' }}>班級</th>
                     <th style={{ padding: '2px 8px' }}>科目</th>
                     <th style={{ padding: '2px 8px' }}>老師</th>
@@ -145,7 +145,7 @@ export default function ScheduleDuplicatesPanel() {
                 </thead>
                 <tbody>
                   {scan.detail.map((d, i) => (
-                    <tr key={i} style={{ borderTop: '1px solid #eee' }}>
+                    <tr key={i} style={{ borderTop: '1px solid var(--line)' }}>
                       <td style={{ padding: '2px 8px' }}>{d.cls}</td>
                       <td style={{ padding: '2px 8px' }}>{d.subject}</td>
                       <td style={{ padding: '2px 8px' }}>{d.teacher}</td>

@@ -58,7 +58,7 @@ export default function AttendanceScoreExclusionPanel() {
     setEnabled(next);
   }
 
-  if (enabled === null && !error) return <p style={{ fontSize: 12, color: '#999' }}>載入中…</p>;
+  if (enabled === null && !error) return <p style={{ fontSize: 12, color: 'var(--sub)' }}>載入中…</p>;
 
   return (
     <div>
@@ -67,7 +67,7 @@ export default function AttendanceScoreExclusionPanel() {
         <input type="checkbox" checked={!!enabled} onChange={handleToggle} disabled={saving} />
         出缺席成績不含蓋在期中、期末、平時個別三部分分數
       </label>
-      <p style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 4 }}>
         開啟後，【成績相關設定及查詢】{'>'} 【班級成績總表】的期中／期末／平時三部分成績及排名，
         不會再受出缺席狀態影響（全勤／出缺席這個科目會從這三部分排除），不管期中考／期末考／
         平時分三大表有沒有送出、鎖定都一樣；家長／學生查詢入口歷年成績裡的期中／期末／平時

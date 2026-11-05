@@ -78,7 +78,7 @@ export default function ClockImportTab({ onImported }: { onImported: () => void 
 
   return (
     <div>
-      <div style={{ border: '1px solid #e5e5e5', borderRadius: 8, padding: 12, marginBottom: 16, background: stale ? '#fffbf0' : '#f7fbf7' }}>
+      <div style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12, marginBottom: 16, background: stale ? '#fffbf0' : '#f7fbf7' }}>
         <div style={{ fontSize: 13 }}>
           資料庫中最新一筆打卡：<b>{fmt(lastAt)}</b>（泰國時間）
         </div>
@@ -87,7 +87,7 @@ export default function ClockImportTab({ onImported }: { onImported: () => void 
 
       <div style={{ marginBottom: 20 }}>
         <b style={{ fontSize: 14 }}>手動上傳打卡機 CSV</b>
-        <p style={{ fontSize: 12, color: '#777', margin: '4px 0 8px' }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', margin: '4px 0 8px' }}>
           直接選打卡機匯出的檔案即可（泰文編碼會自動辨識；整份歷史資料也可以，重複的打卡會自動略過）。
         </p>
         <label style={{ ...btnPrimary, display: 'inline-block', opacity: busy ? 0.6 : 1 }}>
@@ -125,7 +125,7 @@ export default function ClockImportTab({ onImported }: { onImported: () => void 
               <tr key={l.id}>
                 <td style={td}>{fmt(l.created_at)}</td>
                 <td style={td}>{SOURCE_LABEL[l.source] ?? l.source}</td>
-                <td style={{ ...td, color: '#666' }}>{l.file_name ?? ''}</td>
+                <td style={{ ...td, color: 'var(--sub)' }}>{l.file_name ?? ''}</td>
                 <td style={td}>{l.rows_received}</td>
                 <td style={td}>{l.rows_inserted}</td>
                 <td style={td}>{l.rows_duplicate}</td>
@@ -137,7 +137,7 @@ export default function ClockImportTab({ onImported }: { onImported: () => void 
             ))}
             {logs.length === 0 && (
               <tr>
-                <td style={{ ...td, color: '#999' }} colSpan={10}>
+                <td style={{ ...td, color: 'var(--sub)' }} colSpan={10}>
                   還沒有匯入紀錄
                 </td>
               </tr>
@@ -146,7 +146,7 @@ export default function ClockImportTab({ onImported }: { onImported: () => void 
         </table>
       </div>
 
-      <details style={{ marginTop: 20, fontSize: 13, color: '#444' }}>
+      <details style={{ marginTop: 20, fontSize: 13, color: 'var(--ink)' }}>
         <summary style={{ cursor: 'pointer' }}>如何設定「每天自動從電腦讀取」？</summary>
         <ol style={{ lineHeight: 1.8 }}>
           <li>在 Vercel 專案的環境變數新增 <code>CLOCK_SYNC_TOKEN</code>（自己編一串 30 字以上的亂碼），重新部署。</li>

@@ -100,7 +100,7 @@ export default function RegistrationsTab({ event, groups, items }: Props) {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {perItem.map(({ i, n }) => (
             <button key={i.id} onClick={() => setItemId(itemId === i.id ? '' : i.id)}
-              style={{ ...btn, ...(itemId === i.id ? { background: '#e8f0fa', borderColor: '#1f4e79' } : {}) }}>
+              style={{ ...btn, ...(itemId === i.id ? { background: '#e8f0fa', borderColor: 'var(--primary)' } : {}) }}>
               {itemInfo.get(i.id)?.label}：<b>{n}</b>{i.quota ? ` / ${i.quota}` : ''}
             </button>
           ))}
@@ -139,7 +139,7 @@ export default function RegistrationsTab({ event, groups, items }: Props) {
                     <td style={td}>{r.status === 'registered' ? <button onClick={() => withdraw(r)} style={btnDanger}>撤回</button> : '已撤回'}</td>
                   </tr>
                 ))}
-                {shown.length === 0 && <tr><td colSpan={9} style={{ ...td, color: '#999' }}>沒有符合的報名資料。</td></tr>}
+                {shown.length === 0 && <tr><td colSpan={9} style={{ ...td, color: 'var(--sub)' }}>沒有符合的報名資料。</td></tr>}
               </tbody>
             </table>
           </div>

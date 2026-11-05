@@ -197,7 +197,7 @@ export default function ClubGradingPage() {
     return (
       <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16 }}>社團成績輸入</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>目前沒有指派給您的社團，如有需要請洽教務處。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有指派給您的社團，如有需要請洽教務處。</p>
       </main>
     );
   }
@@ -209,11 +209,11 @@ export default function ClubGradingPage() {
   return (
     <main style={{ maxWidth: 960, margin: '0 auto', padding: isMobile ? '16px 12px' : 24 }}>
       <h1 style={{ fontSize: isMobile ? 18 : 16, marginBottom: 4 }}>社團成績輸入</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 4 }}>
         請先選擇要輸入的項目（期中考／期末考／平時分），三項各自獨立。還沒打完先按「暫存」；確認無誤再按「正式送出並鎖定」，這一項才會回寫進學期總成績的「才藝」科目，其他兩項不受影響。如需修改已鎖定的成績請洽教務處協助解鎖。
       </p>
       {weights && (
-        <p style={{ fontSize: 12, color: '#999', marginBottom: 16 }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
           本學期加權比例（與其他科目相同，於教務處「成績設定」調整）：期中 {Math.round(weights.midterm_weight * 100)}% ／期末 {Math.round(weights.final_weight * 100)}% ／平時{' '}
           {Math.round(weights.daily_weight * 100)}%
         </p>
@@ -244,8 +244,8 @@ export default function ClubGradingPage() {
               style={{
                 padding: isMobile ? '10px 16px' : '6px 16px',
                 borderRadius: 6,
-                border: '1px solid #ccc',
-                background: itemKey === i.key ? '#EAF3DE' : '#fff',
+                border: '1px solid var(--line-strong)',
+                background: itemKey === i.key ? '#EAF3DE' : 'var(--surface)',
                 fontWeight: itemKey === i.key ? 600 : 400,
               }}
             >
@@ -260,10 +260,10 @@ export default function ClubGradingPage() {
       {saveMsg && <p style={{ fontSize: 13, color: '#2D7A3A', marginBottom: 12 }}>{saveMsg}</p>}
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <>
-          <p style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>在社共 {rows.length} 人</p>
+          <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 6 }}>在社共 {rows.length} 人</p>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 16, minWidth: 480 }}>
               <thead>
@@ -280,7 +280,7 @@ export default function ClubGradingPage() {
                 {rows.map((r, idx) => {
                   const locked = r[item.flagField];
                   return (
-                    <tr key={r.student_no} style={{ borderTop: '1px solid #eee' }}>
+                    <tr key={r.student_no} style={{ borderTop: '1px solid var(--line)' }}>
                       <td style={{ padding: 6 }}>{idx + 1}</td>
                       <td style={{ padding: 6 }}>{r.student_no}</td>
                       <td style={{ padding: 6 }}>{r.class_label}</td>
@@ -296,13 +296,13 @@ export default function ClubGradingPage() {
                           style={{ width: 72, padding: 4, textAlign: 'right' }}
                         />
                       </td>
-                      <td style={{ padding: 6, textAlign: 'center', color: locked ? '#2D7A3A' : '#999' }}>{locked ? '已送出' : r[item.scoreField] === null ? '未輸入' : '暫存中'}</td>
+                      <td style={{ padding: 6, textAlign: 'center', color: locked ? '#2D7A3A' : 'var(--sub)' }}>{locked ? '已送出' : r[item.scoreField] === null ? '未輸入' : '暫存中'}</td>
                     </tr>
                   );
                 })}
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                    <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                       這個社團目前沒有在社學生
                     </td>
                   </tr>
@@ -318,7 +318,7 @@ export default function ClubGradingPage() {
               正式送出{item.label}並鎖定
             </button>
           </div>
-          {lockedCount > 0 && <p style={{ fontSize: 12, color: '#999', marginTop: 8 }}>已送出的學生{item.label}會鎖定無法再自行修改，如需更正請洽教務處協助解鎖。</p>}
+          {lockedCount > 0 && <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 8 }}>已送出的學生{item.label}會鎖定無法再自行修改，如需更正請洽教務處協助解鎖。</p>}
         </>
       )}
     </main>

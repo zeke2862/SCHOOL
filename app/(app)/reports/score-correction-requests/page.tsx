@@ -115,7 +115,7 @@ export default function ScoreCorrectionRequestsPage() {
     return (
       <main style={{ maxWidth: 560, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 4 }}>成績結算後修正申請審核</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>{perms.loading ? '載入中…' : '本頁提供教務處、管理員A、系統管理員S使用。'}</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>{perms.loading ? '載入中…' : '本頁提供教務處、管理員A、系統管理員S使用。'}</p>
       </main>
     );
   }
@@ -123,11 +123,11 @@ export default function ScoreCorrectionRequestsPage() {
   return (
     <main style={{ maxWidth: 760, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>成績結算後修正申請審核</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         成績鎖定（結算）後要修改，流程是：教務處審核 → 管理員A批示 →（A 認為需要時）送管理員S。核准後系統自動寫回成績；同一個人不能連審兩關。
       </p>
       <ErrorBanner message={loadError} />
-      {batches.length === 0 && <p style={{ fontSize: 13, color: '#666' }}>目前沒有待處理的成績修正申請。</p>}
+      {batches.length === 0 && <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有待處理的成績修正申請。</p>}
       {batches.map((b) => {
         const notSameAsHandler = !(b.handler_by === myUserId && !perms.isSystemAdmin) && !(b.requested_by === myUserId && !perms.isSystemAdmin);
         const canAct =
@@ -137,20 +137,20 @@ export default function ScoreCorrectionRequestsPage() {
               ? isStageA && notSameAsHandler
               : perms.isSystemAdmin;
         return (
-          <div key={b.id} style={{ padding: 12, border: b.status === '待教務審核' ? '1px solid #eee' : '2px solid #D9A400', borderRadius: 8, marginBottom: 10 }}>
+          <div key={b.id} style={{ padding: 12, border: b.status === '待教務審核' ? '1px solid var(--line)' : '2px solid #D9A400', borderRadius: 8, marginBottom: 10 }}>
             <p style={{ fontSize: 13 }}>
               <b>{userNames[b.requested_by] ?? '申請人'}</b>：{classLabels[b.class_id] ?? ''}　{b.subject}／{b.exam_type}（{b.academic_year} {b.term}），共 {b.cell_count} 位
               <span style={{ marginLeft: 8, fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#FFF6D9' }}>{b.status}</span>
             </p>
-            <p style={{ fontSize: 13, color: '#666' }}>理由：{b.reason}</p>
-            {b.handler_note && <p style={{ fontSize: 12, color: '#666' }}>教務意見：{b.handler_note}</p>}
-            {b.a_note && <p style={{ fontSize: 12, color: '#666' }}>管理員A意見：{b.a_note}</p>}
+            <p style={{ fontSize: 13, color: 'var(--sub)' }}>理由：{b.reason}</p>
+            {b.handler_note && <p style={{ fontSize: 12, color: 'var(--sub)' }}>教務意見：{b.handler_note}</p>}
+            {b.a_note && <p style={{ fontSize: 12, color: 'var(--sub)' }}>管理員A意見：{b.a_note}</p>}
             <table style={{ fontSize: 12, borderCollapse: 'collapse', margin: '6px 0' }}>
               <tbody>
                 {(items[b.id] ?? []).map((it) => (
-                  <tr key={it.enrollment_id} style={{ borderTop: '1px solid #eee' }}>
+                  <tr key={it.enrollment_id} style={{ borderTop: '1px solid var(--line)' }}>
                     <td style={{ padding: '2px 8px' }}>{names[it.enrollment_id] ?? it.enrollment_id}</td>
-                    <td style={{ padding: '2px 8px', color: '#999' }}>{it.old_score ?? '（空）'}</td>
+                    <td style={{ padding: '2px 8px', color: 'var(--sub)' }}>{it.old_score ?? '（空）'}</td>
                     <td style={{ padding: '2px 8px' }}>→</td>
                     <td style={{ padding: '2px 8px', fontWeight: 600 }}>{it.new_score ?? '（清除）'}</td>
                   </tr>
@@ -177,7 +177,7 @@ export default function ScoreCorrectionRequestsPage() {
                     <button
                       disabled={busyId === b.id}
                       onClick={() => decide(b, '送S')}
-                      style={{ padding: '4px 12px', background: '#fff', color: '#2C2C2A', border: '1px solid #2C2C2A', borderRadius: 6 }}
+                      style={{ padding: '4px 12px', background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--primary)', borderRadius: 6 }}
                     >
                       送管理員S決定
                     </button>
@@ -192,7 +192,7 @@ export default function ScoreCorrectionRequestsPage() {
                 </div>
               </>
             ) : (
-              <p style={{ fontSize: 12, color: '#999' }}>
+              <p style={{ fontSize: 12, color: 'var(--sub)' }}>
                 {b.status === '待教務審核' ? '等待教務處審核。' : b.status === '待A批示' ? '等待管理員A批示（不能與前一關同一人）。' : '等待管理員S批示。'}
               </p>
             )}

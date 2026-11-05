@@ -108,7 +108,7 @@ export default function AttendanceAlertSettingsPage() {
     return (
       <main style={{ maxWidth: 480, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 4 }}>出缺席示警門檻設定</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>本頁僅提供訓導處人員使用。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>本頁僅提供訓導處人員使用。</p>
       </main>
     );
   }
@@ -142,7 +142,7 @@ export default function AttendanceAlertSettingsPage() {
           />
           節
         </label>
-        <p style={{ fontSize: 11, color: '#999' }}>
+        <p style={{ fontSize: 11, color: 'var(--sub)' }}>
           當某位學生「事假＋病假＋曠課」累計節數達到這個數字時，導師登錄出缺勤畫面會出現「是否寄送通知信」的提示，
           家長/學生查詢頁在達到門檻一半時也會特別放大顯示提醒。
         </p>
@@ -161,7 +161,7 @@ export default function AttendanceAlertSettingsPage() {
           />
           節
         </label>
-        <p style={{ fontSize: 11, color: '#999' }}>
+        <p style={{ fontSize: 11, color: 'var(--sub)' }}>
           累計節數達到這個數字時，該生會出現在「扣考參考名單」提醒訓導處注意，但系統不會自動限制報名考試或登錄成績，
           是否真的扣考仍由訓導處人工審查認定。留空代表不啟用這項提醒。
         </p>
@@ -179,14 +179,14 @@ export default function AttendanceAlertSettingsPage() {
           />
           天
         </label>
-        <p style={{ fontSize: 11, color: '#999' }}>
+        <p style={{ fontSize: 11, color: 'var(--sub)' }}>
           出缺席記錄距離上課日超過這個天數，導師/任課教師就無法再自行補登或修改，需送出「出缺勤鎖定開放申請」給訓導核准後才能補登。
         </p>
       </div>
 
-      <div style={{ marginBottom: 20, padding: 12, border: '1px solid #eee', borderRadius: 8 }}>
+      <div style={{ marginBottom: 20, padding: 12, border: '1px solid var(--line)', borderRadius: 8 }}>
         <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>出缺席「修正申請」需長官批示的門檻</p>
-        <p style={{ fontSize: 11, color: '#999', marginBottom: 8 }}>
+        <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 8 }}>
           導師在一週出缺席頁按「申請修正」後，先由訓導處承辦人審核；只要符合下面任何一項，承辦人同意後還要再由訓導主任（長官）批示才會生效。
         </p>
         <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
@@ -224,7 +224,7 @@ export default function AttendanceAlertSettingsPage() {
       <button
         onClick={handleSave}
         disabled={saving || !dirty}
-        style={{ padding: '8px 16px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}
+        style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}
       >
         {saving ? '儲存中…' : canWriteDirect ? '儲存' : '送出申請'}
       </button>

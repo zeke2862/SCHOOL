@@ -227,20 +227,20 @@ export default function ExamRostersPage() {
   return (
     <main style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 18, marginBottom: 4 }}>輸入考場名單</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         收到考場通知後，在這裡把班級學生填入分配到的考場座位。填完後按【完成名單】送出，送出後即鎖定不得再修改。
       </p>
       <ErrorBanner message={error} />
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <>
           {isPrivileged && (
-            <section style={{ border: '1px solid #eee', borderRadius: 8, padding: 12, marginBottom: 20 }}>
+            <section style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12, marginBottom: 20 }}>
               <h2 style={{ fontSize: 14, marginBottom: 8 }}>管理員／教務處：代替導師安排</h2>
               {allSessions.length === 0 ? (
-                <p style={{ fontSize: 13, color: '#999' }}>目前沒有已發送的考場表。</p>
+                <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有已發送的考場表。</p>
               ) : (
                 <>
                   <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -260,9 +260,9 @@ export default function ExamRostersPage() {
                           <input type="checkbox" checked={allSelectableChecked} onChange={toggleSelectAll} />
                           全選（未送出的班級）
                         </label>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 4, maxHeight: 200, overflowY: 'auto', border: '1px solid #eee', borderRadius: 6, padding: 8 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 4, maxHeight: 200, overflowY: 'auto', border: '1px solid var(--line)', borderRadius: 6, padding: 8 }}>
                           {sessionClasses.map((c) => (
-                            <label key={c.id} style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, color: c.submitted ? '#999' : '#333' }}>
+                            <label key={c.id} style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, color: c.submitted ? 'var(--sub)' : 'var(--ink)' }}>
                               <input type="checkbox" checked={selectedClassIds.has(c.id)} disabled={c.submitted} onChange={() => toggleOneClass(c.id)} />
                               <button
                                 onClick={() => setAdminClassId(c.id)}
@@ -278,7 +278,7 @@ export default function ExamRostersPage() {
                           <button onClick={handleBulkAssign} disabled={bulkAssigning} style={{ fontSize: 13, padding: '5px 14px', fontWeight: 600 }}>
                             {bulkAssigning ? '安排中…' : `一鍵安排所選班級（${selectedClassIds.size}）`}
                           </button>
-                          <span style={{ fontSize: 11, color: '#999' }}>點班級名稱可以在下面打開該班詳細畫面逐一調整。</span>
+                          <span style={{ fontSize: 11, color: 'var(--sub)' }}>點班級名稱可以在下面打開該班詳細畫面逐一調整。</span>
                         </div>
                         {bulkNotice && <p style={{ fontSize: 12, color: '#2D6A2D', marginTop: 6 }}>{bulkNotice}</p>}
                       </div>
@@ -335,7 +335,7 @@ export default function ExamRostersPage() {
               </div>
 
               {sessions.length === 0 ? (
-                <p style={{ fontSize: 13, color: '#999' }}>目前沒有已發送的考場表。</p>
+                <p style={{ fontSize: 13, color: 'var(--sub)' }}>目前沒有已發送的考場表。</p>
               ) : (
                 classId &&
                 sessionId && (
@@ -352,7 +352,7 @@ export default function ExamRostersPage() {
             </section>
           )}
 
-          {!isPrivileged && myClasses.length === 0 && <p style={{ fontSize: 13, color: '#999' }}>這個帳號沒有帶班紀錄，也沒有代管考場名單的權限。</p>}
+          {!isPrivileged && myClasses.length === 0 && <p style={{ fontSize: 13, color: 'var(--sub)' }}>這個帳號沒有帶班紀錄，也沒有代管考場名單的權限。</p>}
         </>
       )}
     </main>
@@ -506,7 +506,7 @@ function ClassRosterEditor({
     w.print();
   }
 
-  if (loading) return <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>;
+  if (loading) return <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>;
 
   return (
     <div>
@@ -518,13 +518,13 @@ function ClassRosterEditor({
         </p>
       )}
       {roomGroups.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#999' }}>這個班還沒有分配到任何考場座位。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>這個班還沒有分配到任何考場座位。</p>
       ) : (
         <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
           <div style={{ minWidth: 200 }}>
             <h3 style={{ fontSize: 13, marginBottom: 6 }}>尚未安排（{unassigned.length}人）</h3>
-            <div style={{ border: '1px solid #eee', borderRadius: 6, padding: 8, maxHeight: 420, overflowY: 'auto', fontSize: 12 }}>
-              {unassigned.length === 0 ? <p style={{ color: '#999' }}>已全部安排完畢</p> : unassigned.map((e) => <div key={e.student_no}>座號{e.seat_no}　{e.name}</div>)}
+            <div style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 8, maxHeight: 420, overflowY: 'auto', fontSize: 12 }}>
+              {unassigned.length === 0 ? <p style={{ color: 'var(--sub)' }}>已全部安排完畢</p> : unassigned.map((e) => <div key={e.student_no}>座號{e.seat_no}　{e.name}</div>)}
             </div>
             {!submitted && (
               <button onClick={randomAssign} style={{ fontSize: 12, padding: '4px 10px', marginTop: 8 }}>
@@ -592,4 +592,4 @@ function ClassRosterEditor({
   );
 }
 
-const cellStyle: React.CSSProperties = { border: '1px solid #eee', padding: '4px 8px', textAlign: 'center' };
+const cellStyle: React.CSSProperties = { border: '1px solid var(--line)', padding: '4px 8px', textAlign: 'center' };

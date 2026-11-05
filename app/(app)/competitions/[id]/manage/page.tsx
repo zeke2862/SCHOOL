@@ -63,20 +63,20 @@ export default function ManageCompetitionPage() {
       <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16 }}>賽事管理</h1>
         <p style={{ ...hint, marginTop: 8 }}>{state === 'denied' ? '只有這場賽事的承辦人可以進入管理頁。' : '找不到這場賽事。'}</p>
-        <Link href="/competitions" style={{ color: '#1f4e79', fontSize: 13 }}>← 回賽事列表</Link>
+        <Link href="/competitions" style={{ color: 'var(--primary-ink)', fontSize: 13 }}>← 回賽事列表</Link>
       </main>
     );
   }
 
   return (
     <main style={{ maxWidth: 1040, margin: '0 auto', padding: 24 }}>
-      <Link href="/competitions" style={{ color: '#1f4e79', fontSize: 12 }}>← 賽事列表</Link>
+      <Link href="/competitions" style={{ color: 'var(--primary-ink)', fontSize: 12 }}>← 賽事列表</Link>
       <h1 style={{ fontSize: 16, margin: '4px 0' }}>{event.title}</h1>
       <p style={{ ...hint, marginBottom: 12 }}>目前狀態：{EVENT_STATUS_LABEL[event.status]}</p>
-      <div role="tablist" style={{ display: 'flex', gap: 4, flexWrap: 'wrap', borderBottom: '2px solid #eee', marginBottom: 16 }}>
+      <div role="tablist" style={{ display: 'flex', gap: 4, flexWrap: 'wrap', borderBottom: '2px solid var(--line)', marginBottom: 16 }}>
         {TABS.map((t) => (
           <button key={t.key} role="tab" aria-selected={tab === t.key} onClick={() => go(t.key)}
-            style={{ padding: '8px 14px', border: 0, borderBottom: tab === t.key ? '3px solid #1f4e79' : '3px solid transparent', background: 'none', cursor: 'pointer', fontWeight: tab === t.key ? 700 : 400, marginBottom: -2 }}>
+            style={{ padding: '8px 14px', border: 0, borderBottom: tab === t.key ? '3px solid var(--primary)' : '3px solid transparent', background: 'none', cursor: 'pointer', fontWeight: tab === t.key ? 700 : 400, marginBottom: -2 }}>
             {t.label}
           </button>
         ))}

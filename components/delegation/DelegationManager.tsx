@@ -54,7 +54,7 @@ export default function DelegationManager() {
     setBusy(false);
   }
 
-  const box: React.CSSProperties = { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, marginBottom: 16 };
+  const box: React.CSSProperties = { background: 'var(--surface)', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, marginBottom: 16 };
   const inp: React.CSSProperties = { padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 8, width: '100%', fontSize: 15 };
   const lbl: React.CSSProperties = { display: 'block', fontSize: 13, color: '#475569', margin: '10px 0 4px' };
 

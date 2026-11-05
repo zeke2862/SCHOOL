@@ -55,7 +55,7 @@ export function MyLeaveList({ teacherId, teacherNames, refreshKey }: { teacherId
       {error && <p style={{ fontSize: 12, color: '#A32D2D' }}>讀取失敗：{error}（請確認 sql/110_leave_and_substitute.sql 是否已執行）</p>}
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #ddd', textAlign: 'left' }}>
+          <tr style={{ borderBottom: '1px solid var(--line-strong)', textAlign: 'left' }}>
             {['日期', '節次', '班級／科目', '假別', '代課老師', '狀態', ''].map((h) => (
               <th key={h} style={{ padding: 8 }}>{h}</th>
             ))}
@@ -63,7 +63,7 @@ export function MyLeaveList({ teacherId, teacherNames, refreshKey }: { teacherId
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.id} style={{ borderBottom: '1px solid #f0f0f0', color: r.status === '已取消' ? '#aaa' : undefined }}>
+            <tr key={r.id} style={{ borderBottom: '1px solid var(--line)', color: r.status === '已取消' ? 'var(--sub)' : undefined }}>
               <td style={{ padding: 8 }}>{r.substitute_date}</td>
               <td style={{ padding: 8 }}>第{r.period_no}節</td>
               <td style={{ padding: 8 }}>{r.classes ? `${r.classes.grade_level}${r.classes.class_name}` : ''}／{r.subject}</td>
@@ -78,7 +78,7 @@ export function MyLeaveList({ teacherId, teacherNames, refreshKey }: { teacherId
             </tr>
           ))}
           {rows.length === 0 && (
-            <tr><td colSpan={7} style={{ padding: 16, color: '#999', textAlign: 'center' }}>還沒有請假紀錄</td></tr>
+            <tr><td colSpan={7} style={{ padding: 16, color: 'var(--sub)', textAlign: 'center' }}>還沒有請假紀錄</td></tr>
           )}
         </tbody>
       </table>
@@ -126,11 +126,11 @@ export function PendingLeavePanel({ term, teachers, onChanged, refreshKey }: { t
   }
 
   if (!term) return null;
-  if (rows.length === 0) return <p style={{ fontSize: 12, color: '#999' }}>目前沒有等待安排代課老師的請假。</p>;
+  if (rows.length === 0) return <p style={{ fontSize: 12, color: 'var(--sub)' }}>目前沒有等待安排代課老師的請假。</p>;
   return (
     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
       <thead>
-        <tr style={{ borderBottom: '1px solid #ddd', textAlign: 'left' }}>
+        <tr style={{ borderBottom: '1px solid var(--line-strong)', textAlign: 'left' }}>
           {['日期', '節次', '班級／科目', '請假老師', '假別／事由', '安排代課老師', ''].map((h) => (
             <th key={h} style={{ padding: 8 }}>{h}</th>
           ))}
@@ -138,7 +138,7 @@ export function PendingLeavePanel({ term, teachers, onChanged, refreshKey }: { t
       </thead>
       <tbody>
         {rows.map((r) => (
-          <tr key={r.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+          <tr key={r.id} style={{ borderBottom: '1px solid var(--line)' }}>
             <td style={{ padding: 8 }}>{r.substitute_date}</td>
             <td style={{ padding: 8 }}>第{r.period_no}節</td>
             <td style={{ padding: 8 }}>{r.classes ? `${r.classes.grade_level}${r.classes.class_name}` : ''}／{r.subject}</td>

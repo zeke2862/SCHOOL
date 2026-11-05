@@ -195,7 +195,7 @@ export default function ScoreSubmissionWindowsPage() {
   return (
     <main style={{ padding: 24, maxWidth: 1000 }}>
       <h1 style={{ fontSize: 18, marginBottom: 4 }}>成績上傳時間設定表</h1>
-      <p style={{ fontSize: 13, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 16 }}>
         設定「期中考／期末考／平時分／出缺勤」各自的開放時間、以及是否已鎖定。<br />
         <b>排名頁面（班排名/年級排名/總成績）要等對應的項目被鎖定(is_locked)後才會顯示對應欄位</b>
         ——這是刻意設計，確保老師還在陸續輸入成績的時候，排名不會顯示不完整的資料。
@@ -205,7 +205,7 @@ export default function ScoreSubmissionWindowsPage() {
 
       {loadError && <p style={{ color: '#A32D2D' }}>{loadError}</p>}
 
-      <form onSubmit={handleSave} style={{ border: '1px solid #ddd', borderRadius: 8, padding: 16, marginBottom: 20, background: '#fafafa' }}>
+      <form onSubmit={handleSave} style={{ border: '1px solid var(--line-strong)', borderRadius: 8, padding: 16, marginBottom: 20, background: 'var(--primary-soft)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
           <label>
             學年度
@@ -283,7 +283,7 @@ export default function ScoreSubmissionWindowsPage() {
       </form>
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <>
           <h2 style={{ fontSize: 15, margin: '0 0 8px' }}>{currentTerm ? `${currentTerm.academic_year}學年度 ${currentTerm.term}（目前學期）` : '全部設定'}</h2>
@@ -305,9 +305,9 @@ export default function ScoreSubmissionWindowsPage() {
     return (
         <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
           <thead>
-            <tr style={{ background: '#f5f5f5' }}>
+            <tr style={{ background: 'var(--primary-soft)' }}>
               {['學年度', '學期', '類別', '範圍', '開放起始', '開放結束', '狀態', ''].map((h) => (
-                <th key={h} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>{h}</th>
+                <th key={h} style={{ border: '1px solid var(--line-strong)', padding: 6, textAlign: 'left' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -322,7 +322,7 @@ export default function ScoreSubmissionWindowsPage() {
                   <td style={tdStyle}>{r.scope}／{scopeLabel(r, classMap)}</td>
                   <td style={tdStyle}>{r.opens_at ? toLocalInputValue(r.opens_at).replace('T', ' ') : ''}</td>
                   <td style={tdStyle}>{r.closes_at ? toLocalInputValue(r.closes_at).replace('T', ' ') : ''}</td>
-                  <td style={{ ...tdStyle, color: effectivelyLocked(r) ? '#2C6E9E' : '#999', fontWeight: effectivelyLocked(r) ? 700 : 400 }}>
+                  <td style={{ ...tdStyle, color: effectivelyLocked(r) ? 'var(--primary-ink)' : 'var(--sub)', fontWeight: effectivelyLocked(r) ? 700 : 400 }}>
                     {r.is_locked ? '已鎖定' : r.closes_at && new Date(r.closes_at) < new Date() ? '已鎖定（時間已到，自動）' : '未鎖定'}
                   </td>
                   <td style={tdStyle}>
@@ -338,7 +338,7 @@ export default function ScoreSubmissionWindowsPage() {
             })}
             {list.length === 0 && (
               <tr>
-                <td colSpan={8} style={{ ...tdStyle, color: '#999', textAlign: 'center' }}>{emptyText}</td>
+                <td colSpan={8} style={{ ...tdStyle, color: 'var(--sub)', textAlign: 'center' }}>{emptyText}</td>
               </tr>
             )}
           </tbody>
@@ -348,4 +348,4 @@ export default function ScoreSubmissionWindowsPage() {
 }
 
 const inputStyle: React.CSSProperties = { display: 'block', width: '100%', padding: 5, fontSize: 13, boxSizing: 'border-box', marginTop: 3 };
-const tdStyle: React.CSSProperties = { border: '1px solid #eee', padding: 6 };
+const tdStyle: React.CSSProperties = { border: '1px solid var(--line)', padding: 6 };

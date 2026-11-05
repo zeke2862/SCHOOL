@@ -120,7 +120,7 @@ export default function SchoolAttendanceOverviewPage() {
     return (
       <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 4 }}>全校出缺席狀況總覽</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>本頁僅提供管理員或訓導部門人員使用。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>本頁僅提供管理員或訓導部門人員使用。</p>
       </main>
     );
   }
@@ -128,7 +128,7 @@ export default function SchoolAttendanceOverviewPage() {
   return (
     <main style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>全校出缺席狀況總覽</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         目前示警門檻：事假＋病假＋曠課 累計達 {threshold} 節（可至「出缺席示警門檻設定」調整）。
         {examDeductionThreshold != null && <>　扣考參考門檻：{examDeductionThreshold} 節（達到會標示「扣考參考」，實際是否扣考仍由訓導處人工認定）。</>}
       </p>
@@ -148,7 +148,7 @@ export default function SchoolAttendanceOverviewPage() {
       </div>
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
@@ -170,7 +170,7 @@ export default function SchoolAttendanceOverviewPage() {
               return (
                 <tr
                   key={r.student_no}
-                  style={{ borderTop: '1px solid #eee', background: overThreshold ? '#FBEFE9' : undefined }}
+                  style={{ borderTop: '1px solid var(--line)', background: overThreshold ? '#FBEFE9' : undefined }}
                 >
                   <td style={{ padding: 6 }}>{r.student_no}</td>
                   <td style={{ padding: 6 }}>{r.name}</td>
@@ -184,7 +184,7 @@ export default function SchoolAttendanceOverviewPage() {
                   <td style={{ padding: 6, textAlign: 'right' }}>{r.personal_leave_periods}</td>
                   <td style={{ padding: 6, textAlign: 'right' }}>{r.sick_leave_periods}</td>
                   <td style={{ padding: 6, textAlign: 'right' }}>{r.truancy_periods}</td>
-                  <td style={{ padding: 6, fontSize: 12, color: '#666' }}>
+                  <td style={{ padding: 6, fontSize: 12, color: 'var(--sub)' }}>
                     {notif
                       ? `${notif.decision}（累計${notif.absence_count}節，${new Date(notif.created_at).toLocaleDateString('zh-TW')}）`
                       : '尚無紀錄'}
@@ -194,7 +194,7 @@ export default function SchoolAttendanceOverviewPage() {
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                <td colSpan={8} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                   沒有符合條件的學生
                 </td>
               </tr>

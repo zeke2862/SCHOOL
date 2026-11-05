@@ -3,11 +3,11 @@
 import { DaySummary, DayStatus, RangeStats, STATUS_COLOR, WEEKDAY_LABEL, fmtHours, shiftMonth } from '@/lib/staffClock';
 import type { ClockTerm } from '@/lib/staffClockData';
 
-export const th: React.CSSProperties = { padding: '6px 8px', borderBottom: '2px solid #ddd', textAlign: 'left', whiteSpace: 'nowrap', background: '#fafafa' };
-export const td: React.CSSProperties = { padding: '6px 8px', borderBottom: '1px solid #eee', verticalAlign: 'top' };
-export const btn: React.CSSProperties = { padding: '6px 12px', border: '1px solid #ccc', borderRadius: 6, background: '#fff', cursor: 'pointer', fontSize: 13 };
-export const btnPrimary: React.CSSProperties = { ...btn, background: '#2C2C2A', color: '#fff', border: '1px solid #2C2C2A' };
-export const input: React.CSSProperties = { padding: '5px 8px', border: '1px solid #ccc', borderRadius: 6, fontSize: 13 };
+export const th: React.CSSProperties = { padding: '6px 8px', borderBottom: '2px solid var(--line-strong)', textAlign: 'left', whiteSpace: 'nowrap', background: 'var(--primary-soft)' };
+export const td: React.CSSProperties = { padding: '6px 8px', borderBottom: '1px solid var(--line)', verticalAlign: 'top' };
+export const btn: React.CSSProperties = { padding: '6px 12px', border: '1px solid var(--line-strong)', borderRadius: 6, background: 'var(--surface)', cursor: 'pointer', fontSize: 13 };
+export const btnPrimary: React.CSSProperties = { ...btn, background: 'var(--primary)', color: '#fff', border: '1px solid var(--primary)' };
+export const input: React.CSSProperties = { padding: '5px 8px', border: '1px solid var(--line-strong)', borderRadius: 6, fontSize: 13 };
 
 export function StatusBadge({ status }: { status: DayStatus }) {
   const c = STATUS_COLOR[status];
@@ -55,7 +55,7 @@ export function TermPicker({
         ))}
       </select>
       {cur && (
-        <span style={{ fontSize: 12, color: '#888' }}>
+        <span style={{ fontSize: 12, color: 'var(--sub)' }}>
           {cur.from} ～ {cur.to}
         </span>
       )}
@@ -81,10 +81,10 @@ export function StatsCards({ stats }: { stats: RangeStats }) {
       {items.map((it) => (
         <div
           key={it.label}
-          style={{ border: '1px solid #e5e5e5', borderRadius: 8, padding: '8px 12px', minWidth: 78, background: it.warn ? '#fff8f0' : '#fff' }}
+          style={{ border: '1px solid var(--line)', borderRadius: 8, padding: '8px 12px', minWidth: 78, background: it.warn ? '#fff8f0' : 'var(--surface)' }}
         >
-          <div style={{ fontSize: 11, color: '#888' }}>{it.label}</div>
-          <div style={{ fontSize: 17, fontWeight: 600, color: it.warn ? '#c2410c' : '#222' }}>{it.value}</div>
+          <div style={{ fontSize: 11, color: 'var(--sub)' }}>{it.label}</div>
+          <div style={{ fontSize: 17, fontWeight: 600, color: it.warn ? '#c2410c' : 'var(--ink)' }}>{it.value}</div>
         </div>
       ))}
     </div>
@@ -114,19 +114,19 @@ export function DayTable({ days, hideEmptyOffDays }: { days: DaySummary[]; hideE
             <tr key={d.date} style={{ background: d.weekday >= 6 ? '#fcfcfc' : undefined }}>
               <td style={td}>{d.date.slice(5).replace('-', '/')}</td>
               <td style={{ ...td, color: d.weekday === 7 ? '#c00' : undefined }}>{WEEKDAY_LABEL[d.weekday]}</td>
-              <td style={{ ...td, color: '#666' }}>{d.shiftLabel || '—'}</td>
+              <td style={{ ...td, color: 'var(--sub)' }}>{d.shiftLabel || '—'}</td>
               <td style={td}>{d.inTime ?? '—'}</td>
               <td style={td}>{d.outTime ?? '—'}</td>
               <td style={td}>
                 <StatusBadge status={d.status} />
               </td>
-              <td style={{ ...td, color: '#666' }}>{d.punches.join('、') || '—'}</td>
-              <td style={{ ...td, color: '#666' }}>{d.note}</td>
+              <td style={{ ...td, color: 'var(--sub)' }}>{d.punches.join('、') || '—'}</td>
+              <td style={{ ...td, color: 'var(--sub)' }}>{d.note}</td>
             </tr>
           ))}
           {list.length === 0 && (
             <tr>
-              <td style={{ ...td, color: '#999' }} colSpan={8}>
+              <td style={{ ...td, color: 'var(--sub)' }} colSpan={8}>
                 這個月沒有資料
               </td>
             </tr>

@@ -157,7 +157,7 @@ export default function NewStudentRegistrationPage() {
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>新生入學登記（完整版）</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 20 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 20 }}>
         對照紙本《新生入學申請表》欄位。若只是既有學生轉入，改用「既有學生快速建檔」即可，不需要填這麼多欄位。
       </p>
 
@@ -227,7 +227,7 @@ export default function NewStudentRegistrationPage() {
         <section>
           <h2 style={{ fontSize: 14, marginBottom: 8 }}>家長／監護人資料</h2>
           {guardians.map((g, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #eee' }}>
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--line)' }}>
               <label style={fieldWrap}>
                 關係
                 <select style={inputStyle} value={g.relation} onChange={(e) => updateGuardian(i, { relation: e.target.value })}>
@@ -283,14 +283,14 @@ export default function NewStudentRegistrationPage() {
               <option value="下學期">下學期</option>
             </select>
             <input type="number" placeholder="座號" style={inputStyle} value={seatNo} onChange={(e) => setSeatNo(e.target.value)} required />
-            {seatNote && <div style={{ fontSize: 12, color: '#888' }}>{seatNote}</div>}
+            {seatNote && <div style={{ fontSize: 12, color: 'var(--sub)' }}>{seatNote}</div>}
           </div>
         </section>
 
         <section>
           <h2 style={{ fontSize: 14, marginBottom: 8 }}>入學申請書（簽名掃描檔）</h2>
-          <p style={{ fontSize: 12, color: '#666', marginBottom: 6 }}>
-            <a href="/templates/入學申請書.docx" download style={{ color: '#2C6E9E' }}>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 6 }}>
+            <a href="/templates/入學申請書.docx" download style={{ color: 'var(--primary-ink)' }}>
               ↓ 下載入學申請書範本（Word）
             </a>
             ，列印給家長/學生簽名後掃描成PDF，於下方上傳，會自動歸檔到這位學生的資料中。
@@ -298,7 +298,7 @@ export default function NewStudentRegistrationPage() {
           <input type="file" multiple accept="application/pdf" onChange={(e) => setAdmissionFiles(e.target.files)} />
         </section>
 
-        <button type="submit" style={{ padding: 12, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 8 }}>
+        <button type="submit" style={{ padding: 12, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8 }}>
           完成登記
         </button>
       </form>

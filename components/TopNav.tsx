@@ -298,7 +298,7 @@ export default function TopNav() {
         {!isPortal && (
         <button
           onClick={() => router.push(homeHref)}
-          style={{ background: 'none', border: 'none', color: '#2C2C2A', cursor: 'pointer', padding: 0, font: 'inherit' }}
+          style={{ background: 'none', border: 'none', color: 'var(--ink)', cursor: 'pointer', padding: 0, font: 'inherit' }}
         >
           {/* 原本是 router.back()「返回上頁」，瀏覽器上一頁常常不是本系統的頁面（例如從外部連結
               進來、或分頁瀏覽紀錄被清過），按了會跳出系統或沒反應。改成固定回到主選單
@@ -306,7 +306,7 @@ export default function TopNav() {
           ← 回主選單
         </button>
         )}
-        <span style={{ color: '#666' }}>{me ? `${me.name}｜${ROLE_LABEL[me.role]}` : ''}</span>
+        <span style={{ color: 'var(--sub)' }}>{me ? `${me.name}｜${ROLE_LABEL[me.role]}` : ''}</span>
         {ident && ident.realRole !== 'system_admin_s' && ident.departments.some((d) => d.department === 'dev') && (
           <span title="開發人員可以查看全部資料，但不能新增、修改或刪除；需要修改請由系統管理員S操作" style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#EEF3FA', color: '#2C5F8A', border: '1px solid #C9D9EC' }}>
             開發人員（唯讀）
@@ -346,9 +346,9 @@ export default function TopNav() {
                   onClick={() => setScale(s)}
                   style={{
                     padding: '2px 6px',
-                    border: '1px solid ' + (scale === s ? '#2C2C2A' : '#ccc'),
-                    background: scale === s ? '#2C2C2A' : '#fff',
-                    color: scale === s ? '#fff' : '#666',
+                    border: '1px solid ' + (scale === s ? 'var(--primary)' : 'var(--line-strong)'),
+                    background: scale === s ? 'var(--primary)' : 'var(--surface)',
+                    color: scale === s ? '#fff' : 'var(--sub)',
                     borderRadius: 4,
                     cursor: 'pointer',
                   }}
@@ -368,7 +368,7 @@ export default function TopNav() {
           </>
         )}
         {!isPortal && me && (
-          <Link href="/notifications" style={{ color: '#2C2C2A' }}>
+          <Link href="/notifications" style={{ color: 'var(--ink)' }}>
             通知
             {unreadCount > 0 && (
               <span style={{ marginLeft: 4, background: '#D93025', color: '#fff', borderRadius: 999, padding: '1px 7px', fontSize: 12, fontWeight: 700 }}>
@@ -378,7 +378,7 @@ export default function TopNav() {
           </Link>
         )}
         {!isPortal && me && (
-          <Link href="/account" style={{ color: '#2C2C2A' }}>
+          <Link href="/account" style={{ color: 'var(--ink)' }}>
             帳號設定
           </Link>
         )}
@@ -386,7 +386,7 @@ export default function TopNav() {
           <span style={{ position: 'relative' }}>
             <button
               onClick={() => setSwitching((v) => !v)}
-              style={{ background: 'none', border: 'none', color: '#2C2C2A', cursor: 'pointer', padding: 0, font: 'inherit' }}
+              style={{ background: 'none', border: 'none', color: 'var(--ink)', cursor: 'pointer', padding: 0, font: 'inherit' }}
             >
               代理／視角 ▾
             </button>
@@ -397,8 +397,8 @@ export default function TopNav() {
                   top: '100%',
                   right: 0,
                   marginTop: 6,
-                  background: '#fff',
-                  border: '1px solid #eee',
+                  background: 'var(--surface)',
+                  border: '1px solid var(--line)',
                   borderRadius: 8,
                   boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                   minWidth: 140,
@@ -415,7 +415,7 @@ export default function TopNav() {
                     代理 {o.principalName}
                   </button>
                 ))}
-                <Link href="/account/proxy" onClick={() => setSwitching(false)} style={{ display: 'block', padding: '8px 12px', color: '#2C2C2A', borderTop: '1px solid #f0f0f0' }}>
+                <Link href="/account/proxy" onClick={() => setSwitching(false)} style={{ display: 'block', padding: '8px 12px', color: 'var(--ink)', borderTop: '1px solid var(--line)' }}>
                   代理人設定…
                 </Link>
                 {canSwitchIdentity && (
@@ -441,7 +441,7 @@ export default function TopNav() {
                   <button
                     onClick={handlePreviewParentOfStudent}
                     title="系統管理員S專用：選一位學生，以唯讀方式預覽家長／學生端畫面"
-                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', borderTop: '1px solid #f0f0f0', cursor: 'pointer', font: 'inherit', color: '#2C2C2A' }}
+                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', borderTop: '1px solid var(--line)', cursor: 'pointer', font: 'inherit', color: 'var(--ink)' }}
                   >
                     預覽家長視角（選學生）
                   </button>
@@ -457,10 +457,10 @@ export default function TopNav() {
                     padding: '8px 12px',
                     background: 'none',
                     border: 'none',
-                    borderTop: '1px solid #f0f0f0',
+                    borderTop: '1px solid var(--line)',
                     cursor: claimingParentView ? 'default' : 'pointer',
                     font: 'inherit',
-                    color: claimingParentView ? '#999' : '#2C2C2A',
+                    color: claimingParentView ? 'var(--sub)' : 'var(--ink)',
                   }}
                 >
                   {claimingParentView ? '切換中…' : '家長視角'}
@@ -469,13 +469,13 @@ export default function TopNav() {
             )}
           </span>
         ) : (
-          <Link href={homeHref} style={{ color: '#2C2C2A' }}>
+          <Link href={homeHref} style={{ color: 'var(--ink)' }}>
             回首頁
           </Link>
         )}
         <button
           onClick={handleLogout}
-          style={{ background: 'none', border: 'none', color: '#2C2C2A', cursor: 'pointer', padding: 0, font: 'inherit' }}
+          style={{ background: 'none', border: 'none', color: 'var(--ink)', cursor: 'pointer', padding: 0, font: 'inherit' }}
         >
           登出
         </button>

@@ -192,8 +192,8 @@ export default function ScoresTab({ event, groups, items, reload }: Props) {
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10, marginTop: 12 }}>
             {entries.map((e) => (
-              <div key={e.id} style={{ border: '1px solid #eee', borderRadius: 6, padding: 6, fontSize: 12 }}>
-                {thumbs[e.id] ? <img src={thumbs[e.id]} alt={`作品 ${e.entry_no}`} style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 4 }} /> : <div style={{ height: 110, background: '#f5f5f5' }} />}
+              <div key={e.id} style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 6, fontSize: 12 }}>
+                {thumbs[e.id] ? <img src={thumbs[e.id]} alt={`作品 ${e.entry_no}`} style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 4 }} /> : <div style={{ height: 110, background: 'var(--primary-soft)' }} />}
                 <div style={{ marginTop: 4 }}><b>{e.entry_no} 號</b> {e.title} <br /><span style={hint}>目前 {votes[e.registration_id ?? ''] ?? 0} 票</span></div>
                 <button onClick={() => removeEntry(e)} style={{ ...btnDanger, marginTop: 4 }}>刪除</button>
               </div>
@@ -248,7 +248,7 @@ export default function ScoresTab({ event, groups, items, reload }: Props) {
                         <td style={td}>{r.draw_number}</td><td style={td}>{r.display_name}</td><td style={td}>{r.school_name}</td>
                         {item.score_type === 'judge' && judges.map((j) => {
                           const s = scores.find((x) => x.registration_id === r.id && x.judge_user_id === j.user_id);
-                          return <td key={j.user_id} style={{ ...td, color: s?.submitted ? undefined : '#aaa' }}>{s?.total ?? '—'}{s && !s.submitted ? '（未送出）' : ''}</td>;
+                          return <td key={j.user_id} style={{ ...td, color: s?.submitted ? undefined : 'var(--sub)' }}>{s?.total ?? '—'}{s && !s.submitted ? '（未送出）' : ''}</td>;
                         })}
                         {!published && item.score_type === 'test' && <td style={td}><input type="number" value={e.score ?? ''} onChange={(ev) => setEdit({ ...edit, [r.id]: { score: ev.target.value } })} style={{ ...smallInput, width: 70 }} aria-label="分數" /></td>}
                         {!published && item.score_type === 'record' && <td style={td}><input type="number" step="any" value={e.value ?? ''} onChange={(ev) => setEdit({ ...edit, [r.id]: { value: ev.target.value } })} style={{ ...smallInput, width: 80 }} aria-label="紀錄" /></td>}
@@ -305,9 +305,9 @@ export default function ScoresTab({ event, groups, items, reload }: Props) {
       {notices.length > 0 && (
         <Section title="這個項目的公告紀錄">
           {notices.map((n) => (
-            <div key={n.id} style={{ borderTop: '1px solid #f0f0f0', padding: '8px 0', fontSize: 13 }}>
+            <div key={n.id} style={{ borderTop: '1px solid var(--line)', padding: '8px 0', fontSize: 13 }}>
               <b>{n.title}</b> <span style={hint}>{fmtTime(n.created_at)}</span>
-              {n.body && <div style={{ whiteSpace: 'pre-wrap', color: '#444', marginTop: 4 }}>{n.body}</div>}
+              {n.body && <div style={{ whiteSpace: 'pre-wrap', color: 'var(--ink)', marginTop: 4 }}>{n.body}</div>}
             </div>
           ))}
         </Section>

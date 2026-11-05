@@ -190,7 +190,7 @@ export default function LeaveForm(props: {
     onDone?.();
   }
 
-  const box: React.CSSProperties = { border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, marginBottom: 12, background: '#fafafa' };
+  const box: React.CSSProperties = { border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, marginBottom: 12, background: 'var(--primary-soft)' };
 
   return (
     <div>
@@ -233,7 +233,7 @@ export default function LeaveForm(props: {
         </label>
       </div>
 
-      {loading && <p style={{ fontSize: 12, color: '#2C6E9E' }}>讀取課表與空堂老師中…</p>}
+      {loading && <p style={{ fontSize: 12, color: 'var(--primary-ink)' }}>讀取課表與空堂老師中…</p>}
       {note && <p style={{ fontSize: 12, color: '#A36A00' }}>{note}</p>}
 
       {days.map((d) => (
@@ -245,7 +245,7 @@ export default function LeaveForm(props: {
             const opt = options[p.key];
             const showAll = showAllFor[p.key];
             return (
-              <div key={p.key} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '4px 0', borderTop: '1px dashed #e5e5e5' }}>
+              <div key={p.key} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '4px 0', borderTop: '1px dashed var(--line)' }}>
                 <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, minWidth: 220 }}>
                   <input type="checkbox" checked={p.selected} onChange={(e) => patch(p.key, { selected: e.target.checked, substituteId: e.target.checked ? p.substituteId : '' })} />
                   第{p.period_no}節　{p.classLabel}／{p.subject}
@@ -265,7 +265,7 @@ export default function LeaveForm(props: {
                     </select>
                     {Array.isArray(opt) && opt.length === 0 && !showAll && <span style={{ fontSize: 11, color: '#A36A00' }}>這節查不到空堂老師</span>}
                     {SHOW_PICK_ALL_TEACHERS && !showAll && (
-                      <button type="button" onClick={() => setShowAllFor((s) => ({ ...s, [p.key]: true }))} style={{ fontSize: 11, background: 'none', border: 'none', color: '#2C6E9E', cursor: 'pointer' }}>
+                      <button type="button" onClick={() => setShowAllFor((s) => ({ ...s, [p.key]: true }))} style={{ fontSize: 11, background: 'none', border: 'none', color: 'var(--primary-ink)', cursor: 'pointer' }}>
                         改從全體老師選
                       </button>
                     )}

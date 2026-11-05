@@ -98,7 +98,7 @@ export default function ReportCardXlsxTemplateTab() {
 
   return (
     <div style={{ maxWidth: 780 }}>
-      <h2 style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
+      <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 12 }}>
         「Excel 範本」是成績單的第三種輸出方式（原本的 PDF、Word 合併列印都不受影響，三種並存）。
         跟 Word 合併列印不同：這裡不是重畫版面，是<strong>直接把資料填進您上傳的這份 Excel 檔案</strong>，
         版面、顏色、框線、公式完全保留原樣，下載回來的檔案打開就跟您在 Excel 裡看到的一模一樣。
@@ -108,7 +108,7 @@ export default function ReportCardXlsxTemplateTab() {
         <button
           onClick={handleDownload}
           disabled={downloading}
-          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #2C6E9E', background: '#fff', color: '#2C6E9E', borderRadius: 6 }}
+          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--primary)', background: 'var(--surface)', color: 'var(--primary-ink)', borderRadius: 6 }}
         >
           {downloading ? '下載中…' : '↓ 下載目前範本（.xlsx）'}
         </button>
@@ -116,9 +116,9 @@ export default function ReportCardXlsxTemplateTab() {
           style={{
             padding: '8px 16px',
             fontSize: 13,
-            border: '1px solid #2C6E9E',
-            background: uploading ? '#eee' : '#fff',
-            color: '#2C6E9E',
+            border: '1px solid var(--primary)',
+            background: uploading ? '#eee' : 'var(--surface)',
+            color: 'var(--primary-ink)',
             borderRadius: 6,
             cursor: uploading ? 'default' : 'pointer',
           }}
@@ -129,14 +129,14 @@ export default function ReportCardXlsxTemplateTab() {
         <button
           onClick={handleRevert}
           disabled={reverting}
-          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #999', background: '#fff', color: '#666', borderRadius: 6 }}
+          style={{ padding: '8px 16px', fontSize: 13, border: '1px solid #999', background: 'var(--surface)', color: 'var(--sub)', borderRadius: 6 }}
         >
           {reverting ? '還原中…' : '還原成系統預設範本'}
         </button>
       </div>
 
       <h3 style={{ fontSize: 13, marginBottom: 8 }}>操作步驟</h3>
-      <ol style={{ fontSize: 12.5, color: '#444', lineHeight: 1.9, paddingLeft: 20, marginBottom: 20 }}>
+      <ol style={{ fontSize: 12.5, color: 'var(--ink)', lineHeight: 1.9, paddingLeft: 20, marginBottom: 20 }}>
         <li>按「下載目前範本」，用 Excel（或 Google 試算表、LibreOffice Calc）打開。</li>
         <li>
           可以自由調整顏色、框線、字型、加註解、調整公式——但<strong>請盡量不要搬動下方表格裡列出的
@@ -148,7 +148,7 @@ export default function ReportCardXlsxTemplateTab() {
       </ol>
 
       <h3 style={{ fontSize: 13, marginBottom: 8 }}>系統會自動算好、填進去的資料</h3>
-      <p style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         範本裡「輸入類」的儲存格（科目名稱/分數、出缺勤次數、懲獎次數、操行分數、班級人數/名次、
         導師評語、學生基本資料）系統會覆蓋成真正的資料；範本裡其他的公式儲存格（例如學業平均、
         操行等第、升留級判斷、全勤判斷）完全不會動，開啟檔案時會自動依照新填入的資料重新計算。
@@ -209,8 +209,8 @@ function TagTable({ title, rows }: { title: string; rows: [string, string][] }) 
         <tbody>
           {rows.map(([tag, desc]) => (
             <tr key={tag}>
-              <td style={{ border: '1px solid #eee', padding: '4px 8px', width: '35%', fontFamily: 'monospace', color: '#2C6E9E' }}>{tag}</td>
-              <td style={{ border: '1px solid #eee', padding: '4px 8px', color: '#666' }}>{desc}</td>
+              <td style={{ border: '1px solid var(--line)', padding: '4px 8px', width: '35%', fontFamily: 'monospace', color: 'var(--primary-ink)' }}>{tag}</td>
+              <td style={{ border: '1px solid var(--line)', padding: '4px 8px', color: 'var(--sub)' }}>{desc}</td>
             </tr>
           ))}
         </tbody>

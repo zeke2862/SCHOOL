@@ -173,7 +173,7 @@ export default function TeacherAccountsPage() {
     <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>教師資料檢查／合併</h1>
       <ErrorBanner message={loadError} />
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         如果某位老師登入後在「成績登錄」「出缺席登錄」等頁面選得到班級/科目，但學生名單一直是空的，
         很可能是同一個人被系統記成了兩筆不同的教師資料——通常一筆是「任課教師設定」或「班級與導師設定」用打字建立、
         沒有連結登入帳號的，另一筆才是真正連結到登入帳號的。用下面的清單找出同名的重複資料，選好「保留哪一筆」後按合併，
@@ -188,13 +188,13 @@ export default function TeacherAccountsPage() {
       {orphans.length > 0 && (
         <div style={{ border: '1px solid #F0D98A', background: '#FFF8E1', borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 13 }}>
           <div style={{ fontWeight: 'bold', marginBottom: 6 }}>有登入帳號、但還沒有教師資料的人（{orphans.length} 位）</div>
-          <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
             沒有教師資料的帳號，登入後不會有導師班、任課課表，也不能用「請假與代課」。若這個人也是老師，請連結或建立。
           </p>
           {orphans.map((o) => (
             <div key={o.id} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '4px 0' }}>
               <span style={{ minWidth: 160 }}>{o.name}</span>
-              <span style={{ color: '#888', fontSize: 12, minWidth: 120 }}>{o.role}</span>
+              <span style={{ color: 'var(--sub)', fontSize: 12, minWidth: 120 }}>{o.role}</span>
               <button onClick={() => linkOrBuild(o)} style={{ fontSize: 12, padding: '3px 10px' }}>
                 {o.sameNameTeacherId ? '連結到同名的教師資料' : '建立教師資料'}
               </button>
@@ -204,7 +204,7 @@ export default function TeacherAccountsPage() {
       )}
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 16 }}>
@@ -220,7 +220,7 @@ export default function TeacherAccountsPage() {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} style={{ borderTop: '1px solid #eee', background: nameCounts[r.name] > 1 ? '#FFF7EC' : undefined }}>
+                <tr key={r.id} style={{ borderTop: '1px solid var(--line)', background: nameCounts[r.name] > 1 ? '#FFF7EC' : undefined }}>
                   <td style={{ padding: 6, textAlign: 'center' }}>
                     <input type="radio" name="keep" checked={keepId === r.id} onChange={() => setKeepId(r.id)} />
                   </td>
@@ -240,7 +240,7 @@ export default function TeacherAccountsPage() {
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                  <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                     目前沒有任何教師資料
                   </td>
                 </tr>
@@ -251,7 +251,7 @@ export default function TeacherAccountsPage() {
           <button
             onClick={handleMerge}
             disabled={!keepId || mergeIds.size === 0 || merging}
-            style={{ padding: '8px 16px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13 }}
+            style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13 }}
           >
             {merging ? '合併中…' : `合併選取的 ${mergeIds.size} 筆到保留的那一筆`}
           </button>

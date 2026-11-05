@@ -192,16 +192,16 @@ export default function ClassAccountsPage() {
     <main style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>班級資料檢查／合併</h1>
       <ErrorBanner message={loadError} />
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         如果「一鍵下載」或各分頁的班級清單裡，同一個班出現兩次（例如「高三」跟「忠班」其實是同一班，只是不同時候用不同打法建立），
         用下面清單找出同學年度＋同年級裡看起來重複的班級，選好「保留哪一筆」後按合併，學生名單/課表/代課安排都會自動改指到保留的那一筆，
         多餘的那筆會被刪除。
       </p>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         往後上傳/匯入時，如果班級名稱打法稍有不同（多空格、簡稱、全形半形），系統會先試著比對成同一班，不會再無聲無息地建出新的重複班級；
         但打法差異太大（像「高三」跟「忠班」這種完全不同的名字）系統無法自動判斷，還是要靠這頁手動處理。
       </p>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         如果您看到某個班只有一筆資料、人數卻不對：那不是重複班級的問題（重複才需要合併），是統計數字本身算錯了；
         這頁先前確實有這個問題（全校資料量大時，人數會少算），已經修正，重新整理這頁應該就會顯示正確人數。
       </p>
@@ -212,7 +212,7 @@ export default function ClassAccountsPage() {
       )}
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 16 }}>
@@ -233,8 +233,8 @@ export default function ClassAccountsPage() {
                 <tr
                   key={r.id}
                   style={{
-                    borderTop: '1px solid #eee',
-                    background: likelyDuplicateIds.has(r.id) ? '#FFF7EC' : countByGroup[groupKey(r)] > 1 ? '#FAFAF8' : undefined,
+                    borderTop: '1px solid var(--line)',
+                    background: likelyDuplicateIds.has(r.id) ? '#FFF7EC' : countByGroup[groupKey(r)] > 1 ? 'var(--primary-soft)' : undefined,
                   }}
                 >
                   <td style={{ padding: 6, textAlign: 'center' }}>
@@ -253,7 +253,7 @@ export default function ClassAccountsPage() {
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                  <td colSpan={8} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                     目前沒有任何班級資料
                   </td>
                 </tr>
@@ -264,7 +264,7 @@ export default function ClassAccountsPage() {
           <button
             onClick={handleMerge}
             disabled={!keepId || mergeIds.size === 0 || merging}
-            style={{ padding: '8px 16px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13 }}
+            style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13 }}
           >
             {merging ? '合併中…' : `合併選取的 ${mergeIds.size} 筆到保留的那一筆`}
           </button>

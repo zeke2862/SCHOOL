@@ -63,12 +63,12 @@ export default function TeacherLoginHomeSettingsPanel() {
     setSaved(true);
   }
 
-  if (homePath === null && !error) return <p style={{ fontSize: 12, color: '#999' }}>載入中…</p>;
+  if (homePath === null && !error) return <p style={{ fontSize: 12, color: 'var(--sub)' }}>載入中…</p>;
 
   return (
     <div>
       {error && <p style={{ fontSize: 12, color: '#A32D2D', marginBottom: 8 }}>{error}</p>}
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         教師（含導師）用「教師」卡片登入成功後會直接被導去這個網址。不影響「管理者」卡片登入（一律進 /admin）跟「家長」查詢入口。
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 480 }}>

@@ -458,7 +458,7 @@ export default function StudentSearchPage() {
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>查詢學生（全校／各班級）</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         查詢目前在學學生名冊（原本的「學生名冊」已併入這裡）：選「全部班級」看全校，或指定單一班級看座號／學號／姓名；也可以用學號/姓名關鍵字搜尋。
         本班導師與管理員可「修正資料」；其他教師只看得到監護人聯絡電話。教務可勾選學生後「批次調班」。
         「出缺席狀況」只計算<b>本學期</b>{summaryRange ? `（${summaryRange}）` : ''}的紀錄（曠課/遲到/病假/事假/公假），要看其他月份或過去學期的明細請到「學生出席紀錄查詢」頁面。
@@ -482,12 +482,12 @@ export default function StudentSearchPage() {
         />
       </div>
 
-      <p style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         {loading ? '查詢中…' : `共 ${filtered.length} 位學生`}
       </p>
 
       {canBatchMove && (
-        <div style={{ border: '1px solid #e5e2da', background: '#faf9f6', borderRadius: 8, padding: '8px 12px', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', fontSize: 13 }}>
+        <div style={{ border: '1px solid var(--line)', background: '#faf9f6', borderRadius: 8, padding: '8px 12px', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', fontSize: 13 }}>
           <span>
             已勾選 <b>{selectedIds.size}</b> 位
           </span>
@@ -539,7 +539,7 @@ export default function StudentSearchPage() {
         </thead>
         <tbody>
           {filtered.map((s) => (
-            <tr key={s.id} style={{ borderTop: '1px solid #eee' }}>
+            <tr key={s.id} style={{ borderTop: '1px solid var(--line)' }}>
               {canBatchMove && (
                 <td style={{ padding: 6 }}>
                   <input
@@ -563,7 +563,7 @@ export default function StudentSearchPage() {
               </td>
               <td style={{ padding: 6, textAlign: 'right' }}>{s.seat_no ?? '—'}</td>
               <td style={{ padding: 6 }}>{s.term}</td>
-              <td style={{ padding: 6, fontSize: 12, color: '#666' }}>
+              <td style={{ padding: 6, fontSize: 12, color: 'var(--sub)' }}>
                 {(() => {
                   const summary = attendanceSummary[s.student_no];
                   if (!summary) return '—';
@@ -586,7 +586,7 @@ export default function StudentSearchPage() {
           ))}
           {!loading && filtered.length === 0 && (
             <tr>
-              <td colSpan={canBatchMove ? 8 : 7} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+              <td colSpan={canBatchMove ? 8 : 7} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                 查無資料
               </td>
             </tr>
@@ -596,11 +596,11 @@ export default function StudentSearchPage() {
 
       {phones && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }} onClick={() => setPhones(null)}>
-          <div style={{ background: '#fff', borderRadius: 8, padding: 20, width: 360, maxWidth: '92vw' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ background: 'var(--surface)', borderRadius: 8, padding: 20, width: 360, maxWidth: '92vw' }} onClick={(e) => e.stopPropagation()}>
             <h2 style={{ fontSize: 15, margin: '0 0 8px' }}>{phones.name}　監護人聯絡電話</h2>
-            {phones.rows === null && <p style={{ fontSize: 13, color: '#999' }}>讀取中…</p>}
+            {phones.rows === null && <p style={{ fontSize: 13, color: 'var(--sub)' }}>讀取中…</p>}
             {phones.error && <p style={{ fontSize: 13, color: '#A32D2D' }}>讀取失敗：{phones.error}</p>}
-            {phones.rows && phones.rows.length === 0 && !phones.error && <p style={{ fontSize: 13, color: '#999' }}>沒有登記監護人電話。</p>}
+            {phones.rows && phones.rows.length === 0 && !phones.error && <p style={{ fontSize: 13, color: 'var(--sub)' }}>沒有登記監護人電話。</p>}
             {phones.rows?.map((g, i) => (
               <p key={i} style={{ fontSize: 14, margin: '4px 0' }}>
                 {g.relation}　{g.name ?? ''}　<b>{g.phone ?? '—'}</b>
@@ -625,17 +625,17 @@ export default function StudentSearchPage() {
           onClick={closeEdit}
         >
           <div
-            style={{ background: '#fff', borderRadius: 8, padding: 24, width: 480, maxWidth: '92vw', boxSizing: 'border-box', maxHeight: '85vh', overflowY: 'auto' }}
+            style={{ background: 'var(--surface)', borderRadius: 8, padding: 24, width: 480, maxWidth: '92vw', boxSizing: 'border-box', maxHeight: '85vh', overflowY: 'auto' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 style={{ fontSize: 15, marginBottom: 4 }}>修正學生資料（學號：{editingStudentNo}）</h2>
 
-            {!editForm && !editError && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+            {!editForm && !editError && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
             <ErrorBanner message={editError} />
 
             {editForm && (
               <form onSubmit={handleSaveEdit}>
-                <p style={{ fontSize: 12, color: '#999', marginBottom: 12 }}>
+                <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
                   {editForm.updated_at
                     ? `上次修改：${new Date(editForm.updated_at).toLocaleString('zh-TW')}${
                         editForm.updated_by ? '，修改者：' + (editorNames[editForm.updated_by] ?? editForm.updated_by) : ''
@@ -644,7 +644,7 @@ export default function StudentSearchPage() {
                 </p>
                 {EDIT_FIELDS.map(({ key, label }) => (
                   <div key={key} style={{ marginBottom: 8 }}>
-                    <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 2 }}>{label}</label>
+                    <label style={{ fontSize: 12, color: 'var(--sub)', display: 'block', marginBottom: 2 }}>{label}</label>
                     <input
                       type={key === 'dob' ? 'date' : 'text'}
                       value={(editForm[key] as string) ?? ''}
@@ -654,22 +654,22 @@ export default function StudentSearchPage() {
                   </div>
                 ))}
 
-                <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #eee' }}>
+                <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--line)' }}>
                   <h3 style={{ fontSize: 13, marginBottom: 8 }}>家長／監護人資料</h3>
-                  <p style={{ fontSize: 11, color: '#999', marginBottom: 8 }}>
+                  <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 8 }}>
                     家長查詢入口登入用的手機號碼就是這裡登記的電話（任一位監護人皆可）。
                   </p>
-                  {guardiansLoading && <p style={{ fontSize: 12, color: '#999' }}>載入中…</p>}
+                  {guardiansLoading && <p style={{ fontSize: 12, color: 'var(--sub)' }}>載入中…</p>}
                   {!guardiansLoading && guardianForms.length === 0 && (
                     <p style={{ fontSize: 12, color: '#A32D2D', marginBottom: 8 }}>尚未登記任何監護人資料。</p>
                   )}
                   {guardianForms.map((g, i) => (
                     <div
                       key={g.id ?? `new-${i}`}
-                      style={{ border: '1px solid #eee', borderRadius: 6, padding: 10, marginBottom: 10 }}
+                      style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 10, marginBottom: 10 }}
                     >
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                        <label style={{ fontSize: 11, color: '#666' }}>
+                        <label style={{ fontSize: 11, color: 'var(--sub)' }}>
                           關係
                           <select
                             value={g.relation}
@@ -681,7 +681,7 @@ export default function StudentSearchPage() {
                             <option value="監護人">監護人</option>
                           </select>
                         </label>
-                        <label style={{ fontSize: 11, color: '#666' }}>
+                        <label style={{ fontSize: 11, color: 'var(--sub)' }}>
                           姓名
                           <input
                             value={g.name}
@@ -689,7 +689,7 @@ export default function StudentSearchPage() {
                             style={{ width: '100%', padding: 6, marginTop: 2, boxSizing: 'border-box' }}
                           />
                         </label>
-                        <label style={{ fontSize: 11, color: '#666' }}>
+                        <label style={{ fontSize: 11, color: 'var(--sub)' }}>
                           中文姓名
                           <input
                             value={g.chinese_name}
@@ -697,7 +697,7 @@ export default function StudentSearchPage() {
                             style={{ width: '100%', padding: 6, marginTop: 2, boxSizing: 'border-box' }}
                           />
                         </label>
-                        <label style={{ fontSize: 11, color: '#666' }}>
+                        <label style={{ fontSize: 11, color: 'var(--sub)' }}>
                           職業
                           <input
                             value={g.occupation}
@@ -705,7 +705,7 @@ export default function StudentSearchPage() {
                             style={{ width: '100%', padding: 6, marginTop: 2, boxSizing: 'border-box' }}
                           />
                         </label>
-                        <label style={{ fontSize: 11, color: '#666' }}>
+                        <label style={{ fontSize: 11, color: 'var(--sub)' }}>
                           聯絡電話
                           <input
                             value={g.phone}
@@ -713,7 +713,7 @@ export default function StudentSearchPage() {
                             style={{ width: '100%', padding: 6, marginTop: 2, boxSizing: 'border-box' }}
                           />
                         </label>
-                        <label style={{ fontSize: 11, color: '#666' }}>
+                        <label style={{ fontSize: 11, color: 'var(--sub)' }}>
                           信箱
                           <input
                             type="email"
@@ -722,7 +722,7 @@ export default function StudentSearchPage() {
                             style={{ width: '100%', padding: 6, marginTop: 2, boxSizing: 'border-box' }}
                           />
                         </label>
-                        <label style={{ fontSize: 11, color: '#666', gridColumn: '1 / -1' }}>
+                        <label style={{ fontSize: 11, color: 'var(--sub)', gridColumn: '1 / -1' }}>
                           地址
                           <input
                             value={g.address}
@@ -749,7 +749,7 @@ export default function StudentSearchPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    style={{ flex: 1, padding: 10, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}
+                    style={{ flex: 1, padding: 10, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}
                   >
                     {saving ? '儲存中…' : '儲存'}
                   </button>

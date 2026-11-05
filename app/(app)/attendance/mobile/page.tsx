@@ -506,7 +506,7 @@ export default function MobileAttendancePage() {
         {((!isAdmin && isHomeroom && homeroomClassId) || (isAdmin && canRequestAnyClass && adminClassId)) && (
           <button
             onClick={() => setShowStatusRequest(true)}
-            style={{ fontSize: 13, padding: '6px 12px', borderRadius: 8, border: '1px solid #2C2C2A', background: '#fff', whiteSpace: 'nowrap' }}
+            style={{ fontSize: 13, padding: '6px 12px', borderRadius: 8, border: '1px solid var(--primary)', background: 'var(--surface)', whiteSpace: 'nowrap' }}
           >
             學籍異動申請
           </button>
@@ -527,7 +527,7 @@ export default function MobileAttendancePage() {
           value={date}
           max={todayStr()}
           onChange={(e) => setDate(e.target.value)}
-          style={{ padding: 8, borderRadius: 8, border: '1px solid #ccc', width: '100%' }}
+          style={{ padding: 8, borderRadius: 8, border: '1px solid var(--line-strong)', width: '100%' }}
         />
         {date !== todayStr() && (
           <p style={{ fontSize: 12, color: '#A36A2D', marginTop: 4 }}>
@@ -554,8 +554,8 @@ export default function MobileAttendancePage() {
         // 「自己任課節次／導師班節次」顏色圖例：常用資訊但不是每次都需要看，收合起來，
         // 手機版面留給下面實際要點的節次按鈕跟學生名單。
         <details style={{ marginBottom: 8 }}>
-          <summary style={{ fontSize: 12, color: '#666', cursor: 'pointer' }}>{siteContent['page_hint.attendance_mobile_legend'] ?? '顏色圖例'}</summary>
-          <p style={{ fontSize: 12, color: '#666', marginTop: 6, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <summary style={{ fontSize: 12, color: 'var(--sub)', cursor: 'pointer' }}>{siteContent['page_hint.attendance_mobile_legend'] ?? '顏色圖例'}</summary>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 6, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: SOURCE_COLOR.teach.bg, display: 'inline-block' }} />
               自己任課節次
@@ -580,8 +580,8 @@ export default function MobileAttendancePage() {
                 padding: '8px 14px',
                 borderRadius: 999,
                 border: active ? `1px solid ${color.bg}` : '1px solid #ccc',
-                background: active ? color.bg : '#fff',
-                color: active ? color.text : '#2C2C2A',
+                background: active ? color.bg : 'var(--surface)',
+                color: active ? color.text : 'var(--ink)',
                 fontSize: 14,
                 whiteSpace: 'nowrap',
               }}
@@ -590,11 +590,11 @@ export default function MobileAttendancePage() {
             </button>
           );
         })}
-        {periods.length === 0 && <span style={{ fontSize: 13, color: '#999' }}>今天沒有排課</span>}
+        {periods.length === 0 && <span style={{ fontSize: 13, color: 'var(--sub)' }}>今天沒有排課</span>}
       </div>
 
       {selectedEntry && (
-        <p style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
+        <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 12 }}>
           {selectedEntry.subject}
           {selectedEntry.teacherName ? `　授課教師：${selectedEntry.teacherName}` : ''}
         </p>
@@ -638,13 +638,13 @@ export default function MobileAttendancePage() {
             justifyContent: 'space-between',
             alignItems: 'center',
             padding: '12px 0',
-            borderBottom: '1px solid #eee',
+            borderBottom: '1px solid var(--line)',
             flexWrap: 'wrap',
             gap: 8,
           }}
         >
           <span style={{ fontSize: 16 }}>
-            <span style={{ color: '#999', marginRight: 6 }}>{s.seat_no}</span>
+            <span style={{ color: 'var(--sub)', marginRight: 6 }}>{s.seat_no}</span>
             {s.name}
           </span>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -657,8 +657,8 @@ export default function MobileAttendancePage() {
                   fontSize: 13,
                   padding: '8px 12px',
                   borderRadius: 6,
-                  border: '1px solid #ccc',
-                  background: statusMap[s.student_no] === opt ? '#EAF3DE' : '#fff',
+                  border: '1px solid var(--line-strong)',
+                  background: statusMap[s.student_no] === opt ? '#EAF3DE' : 'var(--surface)',
                 }}
               >
                 {opt}
@@ -676,7 +676,7 @@ export default function MobileAttendancePage() {
           marginTop: 16,
           padding: 12,
           borderRadius: 8,
-          background: '#2C2C2A',
+          background: 'var(--primary)',
           color: '#fff',
           border: 'none',
         }}
@@ -696,17 +696,17 @@ export default function MobileAttendancePage() {
             zIndex: 50,
           }}
         >
-          <div style={{ background: '#fff', borderRadius: 8, padding: 24, width: '90%', maxWidth: 340 }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 8, padding: 24, width: '90%', maxWidth: 340 }}>
             <h2 style={{ fontSize: 15, marginBottom: 8 }}>出缺席示警</h2>
             <p style={{ fontSize: 13, marginBottom: 16 }}>
               <b>{notifyPrompt.name}</b> 事假＋病假＋曠課累計已達 <b>{notifyPrompt.count}</b> 節（門檻 {alertThreshold} 節），是否寄送通知信給家長？
-              {notifyQueue.length > 1 && <span style={{ color: '#999' }}>（還有 {notifyQueue.length - 1} 位待處理）</span>}
+              {notifyQueue.length > 1 && <span style={{ color: 'var(--sub)' }}>（還有 {notifyQueue.length - 1} 位待處理）</span>}
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 onClick={() => handleDecideNotify('已寄送')}
                 disabled={notifyBusy}
-                style={{ flex: 1, padding: 10, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}
+                style={{ flex: 1, padding: 10, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}
               >
                 寄送通知信
               </button>

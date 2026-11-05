@@ -250,7 +250,7 @@ export default function BackupRestorePanel() {
   const isAdmin = me && ['system_admin_s', 'admin_a', 'admin_b'].includes(me.role);
 
   if (me && !isAdmin) {
-    return <p style={{ fontSize: 13, color: '#999' }}>只有管理員可以查看「備份與還原」。</p>;
+    return <p style={{ fontSize: 13, color: 'var(--sub)' }}>只有管理員可以查看「備份與還原」。</p>;
   }
 
   return (
@@ -267,12 +267,12 @@ export default function BackupRestorePanel() {
           必要時可先點下面「立即備份」手動備一份。
         </p>
       )}
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         系統每天會自動備份一次校務資料（學生、班級、課表、成績、出缺勤...等），也可以在下面手動立即備份。
         備份不含登入帳號本身（帳號請到「帳號管理」頁處理），避免還原後造成無法登入的問題。
         出缺勤只備份遲到／曠課／請假等「非出席」紀錄，另外備份「點名完成」紀錄（哪班哪天哪節點過名），檔案只有原本的約 2～3%；還原後畫面顯示完全一樣（沒有紀錄＝出席）。舊的完整備份檔仍可照常還原。
       </p>
-      <p style={{ fontSize: 12, color: '#999', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         {isSystemAdminS
           ? '您是系統管理員S，可以執行「還原」。如果這個系統本身還沒有任何備份紀錄（例如剛換到新的 Supabase 專案），可以用「上傳備份檔案還原」載入先前下載的備份 JSON 檔。'
           : '「還原」功能僅系統管理員S本人可以執行；您可以查看與下載備份。'}
@@ -281,7 +281,7 @@ export default function BackupRestorePanel() {
       <button
         onClick={handleRunBackup}
         disabled={running}
-        style={{ padding: '8px 16px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, marginBottom: 20, marginRight: 8 }}
+        style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, marginBottom: 20, marginRight: 8 }}
       >
         {running ? (backupProgress ?? '備份中…') : '立即備份'}
       </button>
@@ -301,7 +301,7 @@ export default function BackupRestorePanel() {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploadRestoring}
-            style={{ padding: '8px 16px', background: '#fff', color: '#A32D2D', border: '1px solid #A32D2D', borderRadius: 6, fontSize: 13, marginBottom: 20 }}
+            style={{ padding: '8px 16px', background: 'var(--surface)', color: '#A32D2D', border: '1px solid #A32D2D', borderRadius: 6, fontSize: 13, marginBottom: 20 }}
             title="用先前下載的備份 JSON 檔還原，適合新系統／新的 Supabase 專案沒有任何備份紀錄可以選的情況"
           >
             {uploadRestoring ? '還原中…' : '上傳備份檔案還原'}
@@ -310,7 +310,7 @@ export default function BackupRestorePanel() {
       )}
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
@@ -324,16 +324,16 @@ export default function BackupRestorePanel() {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+              <tr key={r.id} style={{ borderTop: '1px solid var(--line)' }}>
                 <td style={{ padding: 6, whiteSpace: 'nowrap' }}>{new Date(r.created_at).toLocaleString()}</td>
                 <td style={{ padding: 6 }}>{r.kind}</td>
-                <td style={{ padding: 6, fontSize: 11, color: '#666', maxWidth: 320 }}>
+                <td style={{ padding: 6, fontSize: 11, color: 'var(--sub)', maxWidth: 320 }}>
                   {Object.entries(r.table_counts)
                     .filter(([, c]) => c !== null)
                     .map(([t, c]) => `${t}:${c}`)
                     .join('　')}
                 </td>
-                <td style={{ padding: 6, fontSize: 11, color: '#999' }}>
+                <td style={{ padding: 6, fontSize: 11, color: 'var(--sub)' }}>
                   {r.restored_at ? `曾於 ${new Date(r.restored_at).toLocaleString()} 被用來還原` : '—'}
                 </td>
                 <td style={{ padding: 6, textAlign: 'right', whiteSpace: 'nowrap' }}>
@@ -354,7 +354,7 @@ export default function BackupRestorePanel() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                <td colSpan={5} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                   尚無備份紀錄，請先點「立即備份」建立第一筆
                 </td>
               </tr>

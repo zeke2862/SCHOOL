@@ -95,22 +95,22 @@ export default function MaintenancePage() {
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>修繕登記</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         發現設備或設施損壞，任何教職員都可以在這裡回報，總務處會安排處理。
       </p>
       {loadError && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{loadError}</p>}
 
-      <h2 style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>回報新問題</h2>
+      <h2 style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 6 }}>回報新問題</h2>
       <form onSubmit={handleReport} style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 24 }}>
         <input placeholder="地點（例如：三年一班）" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} style={{ padding: 6, width: 160 }} required />
         <input placeholder="問題描述" value={form.issue} onChange={(e) => setForm({ ...form, issue: e.target.value })} style={{ padding: 6, width: 260 }} required />
-        <button type="submit" style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+        <button type="submit" style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
           送出回報
         </button>
       </form>
 
       {!canManage ? (
-        <p style={{ fontSize: 13, color: '#999' }}>後續處理狀態僅提供總務處人員查看與更新。</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>後續處理狀態僅提供總務處人員查看與更新。</p>
       ) : (
         <>
           {!canWriteDirect && (
@@ -139,7 +139,7 @@ export default function MaintenancePage() {
               {tickets.map((t) => {
                 const draft = editDrafts[t.id] ?? { status: t.status, assigned_to: t.assigned_to ?? '' };
                 return (
-                  <tr key={t.id} style={{ borderTop: '1px solid #eee' }}>
+                  <tr key={t.id} style={{ borderTop: '1px solid var(--line)' }}>
                     <td style={{ padding: 6 }}>{new Date(t.reported_at).toLocaleDateString('zh-TW')}</td>
                     <td style={{ padding: 6 }}>{t.location}</td>
                     <td style={{ padding: 6 }}>{t.issue}</td>
@@ -173,7 +173,7 @@ export default function MaintenancePage() {
               })}
               {tickets.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                  <td colSpan={6} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                     目前沒有修繕紀錄
                   </td>
                 </tr>

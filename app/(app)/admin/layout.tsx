@@ -64,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (status === 'checking') {
     return (
       <main style={{ maxWidth: 480, margin: '0 auto', padding: 24 }}>
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       </main>
     );
   }
@@ -73,7 +73,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <main style={{ maxWidth: 480, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16, marginBottom: 8 }}>沒有權限</h1>
-        <p style={{ fontSize: 13, color: '#999' }}>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>
           這個頁面只開放給管理員（系統管理員S／管理者A／管理者B）使用，如需協助請聯絡學校管理員。
         </p>
       </main>

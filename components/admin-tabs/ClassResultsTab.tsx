@@ -104,7 +104,7 @@ export default function ClassResultsPage() {
   return (
     <div style={{ maxWidth: 480, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>{className || '班級'} 成績結果</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         總分＝期中35%＋期末35%＋平時30%（依各科比重加權），已套用目前啟用中的加扣分規則。
         該班「期中考」「期末考」「平時分」三項都鎖定後，這裡的總分／班排名才會出現；
         任何一項還沒鎖定，這裡會是空的（但「班級成績總表」頁面上，期中/期末/平時各自的
@@ -128,7 +128,7 @@ export default function ClassResultsPage() {
       )}
 
       {loading ? (
-        <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
@@ -141,7 +141,7 @@ export default function ClassResultsPage() {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.enrollment_id} style={{ borderBottom: '1px solid #eee' }}>
+              <tr key={r.enrollment_id} style={{ borderBottom: '1px solid var(--line)' }}>
                 <td style={{ padding: 6 }}>{r.seat_no}</td>
                 <td style={{ padding: 6 }}>{r.name}</td>
                 <td style={{ padding: 6, textAlign: 'right' }}>{r.total_score}</td>
@@ -150,7 +150,7 @@ export default function ClassResultsPage() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={4} style={{ padding: 12, textAlign: 'center', color: '#999' }}>
+                <td colSpan={4} style={{ padding: 12, textAlign: 'center', color: 'var(--sub)' }}>
                   目前沒有資料（可能該班「期中考／期末考／平時分」還沒三項都鎖定）
                 </td>
               </tr>

@@ -163,7 +163,7 @@ export default function StatusChangePage() {
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>學籍狀態變更</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         休學／轉學／退學／畢業／肄業／復學，直接記錄狀態變化即可，不需要審核流程。可附加佐證資料（例如休學證明、家長申請書掃描檔）。
         休學／轉學／退學／畢業／肄業這五種狀態記錄後，這位學生的出缺勤／成績等資料會自動從一般查詢畫面（成績登錄、出缺勤登錄、學生名冊等）隱藏，只有管理員查得到；
         座號仍會保留（不會釋放給別人），復學時請另外到「學籍設定及查詢」把學生重新加入班級，資料才會恢復正常顯示（輸入學號後，座號會自動帶入原座號；原班沒有座號時則帶入該班最後一號）。
@@ -209,7 +209,7 @@ export default function StatusChangePage() {
           </select>
         </label>
 
-        <a href={TEMPLATE_FILES[status]} download style={{ fontSize: 13, color: '#2C6E9E' }}>
+        <a href={TEMPLATE_FILES[status]} download style={{ fontSize: 13, color: 'var(--primary-ink)' }}>
           ↓ 下載「{status}」申請書範本（Word），給家長/學生簽名後掃描成PDF再上傳
         </a>
 
@@ -236,7 +236,7 @@ export default function StatusChangePage() {
         <button
           type="submit"
           disabled={saving}
-          style={{ padding: 12, background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 8, marginTop: 8 }}
+          style={{ padding: 12, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8, marginTop: 8 }}
         >
           {saving ? '儲存中…' : '儲存'}
         </button>
@@ -247,20 +247,20 @@ export default function StatusChangePage() {
           方便對照：如果某位已經辦好休學/轉學/退學的學生沒有出現在這份名單裡，
           代表系統裡根本沒有記錄到這筆狀態變更，需要用上面的表單重新登記一次
           （而不是隱藏規則本身有問題）。 */}
-      <div style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid #eee' }}>
+      <div style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid var(--line)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <h2 style={{ fontSize: 14 }}>目前系統判定「應隱藏」的學生名單</h2>
           <button type="button" onClick={loadHiddenList} disabled={loadingHiddenList} style={{ fontSize: 12, padding: '2px 10px' }}>
             {loadingHiddenList ? '讀取中…' : '重新整理'}
           </button>
         </div>
-        <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
           休學／轉學／退學／畢業／肄業狀態的學生，一般教師查成績、出缺勤、學生名冊時應該都看不到他們。這份名單就是系統實際依照這個規則判定出來的結果——
           如果某位學生明明已經辦好離校手續、卻沒有出現在下面，代表系統裡沒有他的狀態變更紀錄，用上面的表單補登記即可。
         </p>
         {hiddenListError && <p style={{ fontSize: 12, color: '#A32D2D' }}>{hiddenListError}</p>}
         {hiddenList && termStart && (
-          <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+          <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
             預設只列本學期（{termStart} 起）的名單。
             {olderHidden.length > 0 ? (
               <button type="button" onClick={() => setShowOlder(!showOlder)} style={{ marginLeft: 8, fontSize: 12, padding: '2px 10px' }}>
@@ -272,16 +272,16 @@ export default function StatusChangePage() {
           </p>
         )}
         {hiddenList && shownHidden.length === 0 && !hiddenListError && (
-          <p style={{ fontSize: 12, color: '#999' }}>{termStart && !showOlder ? '本學期目前沒有學生被系統判定為應隱藏。' : '目前沒有任何學生被系統判定為應隱藏。'}</p>
+          <p style={{ fontSize: 12, color: 'var(--sub)' }}>{termStart && !showOlder ? '本學期目前沒有學生被系統判定為應隱藏。' : '目前沒有任何學生被系統判定為應隱藏。'}</p>
         )}
         {hiddenList && shownHidden.length > 0 && (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr>
-                <th style={{ textAlign: 'left', borderBottom: '1px solid #eee', padding: '4px 8px' }}>學號</th>
-                <th style={{ textAlign: 'left', borderBottom: '1px solid #eee', padding: '4px 8px' }}>姓名</th>
-                <th style={{ textAlign: 'left', borderBottom: '1px solid #eee', padding: '4px 8px' }}>最新狀態</th>
-                <th style={{ textAlign: 'left', borderBottom: '1px solid #eee', padding: '4px 8px' }}>生效日</th>
+                <th style={{ textAlign: 'left', borderBottom: '1px solid var(--line)', padding: '4px 8px' }}>學號</th>
+                <th style={{ textAlign: 'left', borderBottom: '1px solid var(--line)', padding: '4px 8px' }}>姓名</th>
+                <th style={{ textAlign: 'left', borderBottom: '1px solid var(--line)', padding: '4px 8px' }}>最新狀態</th>
+                <th style={{ textAlign: 'left', borderBottom: '1px solid var(--line)', padding: '4px 8px' }}>生效日</th>
               </tr>
             </thead>
             <tbody>

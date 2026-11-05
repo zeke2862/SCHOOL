@@ -149,13 +149,13 @@ export default function PortalRegistrationReview() {
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', padding: 24 }}>
       <h1 style={{ marginBottom: 4 }}>家長／學生帳號申請</h1>
-      <p style={{ fontSize: 13, color: '#666', marginBottom: 14, lineHeight: 1.7 }}>
+      <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 14, lineHeight: 1.7 }}>
         家長第一次用「HY＋學號」（學生本人 HYS＋學號）加手機號碼申請登入時，申請會送到這裡。
         請對照<b>手上的資料表</b>確認這支手機真的是自己班學生／家長的，再按「核准」；核准後手機號碼會自動記進學籍資料，申請人之後直接用代碼＋手機登入，不用學校再輸入。
         不確定或不是本班的人，請按「拒絕」。
       </p>
       {error && <p style={{ color: '#A32D2D', fontSize: 13 }}>{error}</p>}
-      {loading && <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>}
+      {loading && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
 
       {!loading && pending.length === 0 && !error && <p style={{ fontSize: 14, color: '#3B6D11' }}>✅ 目前沒有待審核的申請。</p>}
 
@@ -167,11 +167,11 @@ export default function PortalRegistrationReview() {
           <button
             disabled={batchBusy || selected.size === 0}
             onClick={approveSelected}
-            style={{ padding: '6px 14px', background: selected.size ? '#2C2C2A' : '#bbb', color: '#fff', border: 'none', borderRadius: 6 }}
+            style={{ padding: '6px 14px', background: selected.size ? 'var(--primary)' : '#bbb', color: '#fff', border: 'none', borderRadius: 6 }}
           >
             {batchBusy ? '處理中…' : `批次核准（${selected.size}）`}
           </button>
-          <span style={{ fontSize: 12, color: '#888' }}>家長身分會依各列「記為」的選項寫入；批次只有核准，拒絕請逐筆處理。</span>
+          <span style={{ fontSize: 12, color: 'var(--sub)' }}>家長身分會依各列「記為」的選項寫入；批次只有核准，拒絕請逐筆處理。</span>
         </div>
       )}
 
@@ -179,7 +179,7 @@ export default function PortalRegistrationReview() {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#f5f5f3' }}>
+              <tr style={{ background: 'var(--primary-soft)' }}>
                 <th style={th}>
                   <input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="全部勾選" />
                 </th>
@@ -194,13 +194,13 @@ export default function PortalRegistrationReview() {
             </thead>
             <tbody>
               {pending.map((r) => (
-                <tr key={r.id} style={{ borderTop: '1px solid #eee', verticalAlign: 'top', background: selected.has(r.id) ? '#FFF8E1' : undefined }}>
+                <tr key={r.id} style={{ borderTop: '1px solid var(--line)', verticalAlign: 'top', background: selected.has(r.id) ? '#FFF8E1' : undefined }}>
                   <td style={{ padding: 8 }}>
                     <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleOne(r.id)} aria-label={`勾選 ${r.student_name ?? r.student_no}`} />
                   </td>
                   <td style={{ padding: 8, fontSize: 14 }}>
                     <b>{r.student_name}</b>
-                    <div style={{ fontSize: 12, color: '#888' }}>學號 {r.student_no}</div>
+                    <div style={{ fontSize: 12, color: 'var(--sub)' }}>學號 {r.student_no}</div>
                   </td>
                   <td style={{ padding: 8, fontSize: 14 }}>{r.class_label}</td>
                   <td style={{ padding: 8, fontSize: 14 }}>
@@ -219,12 +219,12 @@ export default function PortalRegistrationReview() {
                     )}
                   </td>
                   <td style={{ padding: 8, fontSize: 15, fontWeight: 700 }}>{r.phone}</td>
-                  <td style={{ padding: 8, fontSize: 12, color: '#666' }}>
+                  <td style={{ padding: 8, fontSize: 12, color: 'var(--sub)' }}>
                     {(onFile[r.student_no] ?? []).length ? (onFile[r.student_no] ?? []).map((t, i) => <div key={i}>{t}</div>) : '（沒有）'}
                   </td>
-                  <td style={{ padding: 8, fontSize: 12, color: '#888' }}>{new Date(r.requested_at).toLocaleString('zh-TW', { hour12: false })}</td>
+                  <td style={{ padding: 8, fontSize: 12, color: 'var(--sub)' }}>{new Date(r.requested_at).toLocaleString('zh-TW', { hour12: false })}</td>
                   <td style={{ padding: 8, whiteSpace: 'nowrap' }}>
-                    <button disabled={busyId === r.id} onClick={() => decide(r, true)} style={{ padding: '6px 14px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6, marginRight: 6 }}>
+                    <button disabled={busyId === r.id} onClick={() => decide(r, true)} style={{ padding: '6px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, marginRight: 6 }}>
                       核准
                     </button>
                     <button disabled={busyId === r.id} onClick={() => decide(r, false)} style={{ padding: '6px 14px', color: '#A32D2D' }}>
@@ -240,20 +240,20 @@ export default function PortalRegistrationReview() {
 
       {done.length > 0 && (
         <div style={{ marginTop: 24 }}>
-          <button onClick={() => setShowDone((v) => !v)} className="keep-size" style={{ fontSize: 13, background: 'none', border: 'none', color: '#2C6E9E', cursor: 'pointer', padding: 0 }}>
+          <button onClick={() => setShowDone((v) => !v)} className="keep-size" style={{ fontSize: 13, background: 'none', border: 'none', color: 'var(--primary-ink)', cursor: 'pointer', padding: 0 }}>
             {showDone ? '▾' : '▸'} 已處理的申請（{done.length}）
           </button>
           {showDone && (
             <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 8, fontSize: 13 }}>
               <tbody>
                 {done.map((r) => (
-                  <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+                  <tr key={r.id} style={{ borderTop: '1px solid var(--line)' }}>
                     <td style={{ padding: 6 }}>{r.student_name}（{r.class_label}）</td>
                     <td style={{ padding: 6 }}>{r.relation}</td>
                     <td style={{ padding: 6 }}>{r.phone}</td>
                     <td style={{ padding: 6, color: r.status === '已核准' ? '#3B6D11' : '#A32D2D' }}>{r.status}</td>
-                    <td style={{ padding: 6, color: '#888' }}>{r.decided_at ? new Date(r.decided_at).toLocaleDateString('zh-TW') : ''}</td>
-                    <td style={{ padding: 6, color: '#888' }}>{r.decision_note ?? ''}</td>
+                    <td style={{ padding: 6, color: 'var(--sub)' }}>{r.decided_at ? new Date(r.decided_at).toLocaleDateString('zh-TW') : ''}</td>
+                    <td style={{ padding: 6, color: 'var(--sub)' }}>{r.decision_note ?? ''}</td>
                   </tr>
                 ))}
               </tbody>

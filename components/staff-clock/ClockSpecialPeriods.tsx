@@ -93,7 +93,7 @@ export default function ClockSpecialPeriods({ shifts }: Props) {
           <input type="checkbox" checked={ids.includes(s.id)} onChange={(e) => onChange(e.target.checked ? [...ids, s.id] : ids.filter((x) => x !== s.id))} /> {s.name}
         </label>
       ))}
-      {ids.length === 0 && <span style={{ fontSize: 11, color: '#888' }}>（都不勾＝所有班別）</span>}
+      {ids.length === 0 && <span style={{ fontSize: 11, color: 'var(--sub)' }}>（都不勾＝所有班別）</span>}
     </span>
   );
 
@@ -117,9 +117,9 @@ export default function ClockSpecialPeriods({ shifts }: Props) {
             <input type="date" value={d.date_to ?? ''} onChange={(e) => set({ date_to: e.target.value || null })} style={input} />
           </>
         ) : d.kind === 'term_start' ? (
-          <span style={{ fontSize: 12, color: '#666' }}>依學年學期的開學日，各算一天</span>
+          <span style={{ fontSize: 12, color: 'var(--sub)' }}>依學年學期的開學日，各算一天</span>
         ) : (
-          <span style={{ fontSize: 12, color: '#666' }}>依成績收件時段，各算一週</span>
+          <span style={{ fontSize: 12, color: 'var(--sub)' }}>依成績收件時段，各算一週</span>
         )}
       </td>
       <td style={td}>
@@ -143,7 +143,7 @@ export default function ClockSpecialPeriods({ shifts }: Props) {
   return (
     <div>
       <h3 style={{ fontSize: 15, marginTop: 28 }}>特殊時段（開學前後、考試週…）</h3>
-      <p style={{ fontSize: 12, color: '#777', marginTop: 0 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 0 }}>
         期間內「本來就有排班」的人，改用這裡的上班／下班時間判斷遲到早退（空白＝維持原班別時間）。只改時間，不改哪幾天要上班。
         適用班別都不勾＝所有班別都改（例如週六早班不想被改，就只勾平日晚班）。特殊時段內的日子不會被自動判定成放假。
       </p>
@@ -177,7 +177,7 @@ export default function ClockSpecialPeriods({ shifts }: Props) {
                 </tr>
               );
             })}
-            <tr style={{ background: '#fafafa' }}>
+            <tr style={{ background: 'var(--primary-soft)' }}>
               {fields(form, (p) => setForm((f) => ({ ...f, ...p })))}
               <td style={td}>
                 <button style={btnPrimary} onClick={add}>
@@ -188,7 +188,7 @@ export default function ClockSpecialPeriods({ shifts }: Props) {
           </tbody>
         </table>
       </div>
-      <p style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 8 }}>
         考試週日期來源（成績收件時段・全校的期中考／期末考開放日）：
         {exams.length === 0
           ? '目前沒有填開放日期，所以還不會產生考試週。請在設定成績收件時段時，把開放日設成考試第一天。'

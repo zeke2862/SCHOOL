@@ -33,15 +33,15 @@ export default function GradingHubPage() {
         settings: () => (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <section>
-              <h2 style={{ fontSize: 14, color: '#666', marginBottom: 8 }}>科目與比重設定</h2>
+              <h2 style={{ fontSize: 14, color: 'var(--sub)', marginBottom: 8 }}>科目與比重設定</h2>
               <CurriculumSettingsTab />
             </section>
-            <section style={{ borderTop: '1px solid #eee', paddingTop: 24 }}>
-              <h2 style={{ fontSize: 14, color: '#666', marginBottom: 8 }}>整體佔比與加扣分規則</h2>
+            <section style={{ borderTop: '1px solid var(--line)', paddingTop: 24 }}>
+              <h2 style={{ fontSize: 14, color: 'var(--sub)', marginBottom: 8 }}>整體佔比與加扣分規則</h2>
               <GradingRulesTab />
             </section>
-            <section style={{ borderTop: '1px solid #eee', paddingTop: 24 }}>
-              <h2 style={{ fontSize: 14, color: '#666', marginBottom: 8 }}>殘留科目清理（成績表有分數、科目設定裡卻沒有的科目）</h2>
+            <section style={{ borderTop: '1px solid var(--line)', paddingTop: 24 }}>
+              <h2 style={{ fontSize: 14, color: 'var(--sub)', marginBottom: 8 }}>殘留科目清理（成績表有分數、科目設定裡卻沒有的科目）</h2>
               <OrphanSubjectsPanel />
             </section>
           </div>

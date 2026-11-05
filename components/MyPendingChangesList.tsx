@@ -21,12 +21,12 @@ export default function MyPendingChangesList({ userId, tableName }: { userId: st
 
   return (
     <div style={{ marginTop: 12, marginBottom: 20, fontSize: 12 }}>
-      <p style={{ color: '#666', marginBottom: 4 }}>我送出的申請（最近的在最上面）：</p>
+      <p style={{ color: 'var(--sub)', marginBottom: 4 }}>我送出的申請（最近的在最上面）：</p>
       <ul style={{ paddingLeft: 18, margin: 0 }}>
         {rows.slice(0, 10).map((r) => (
           <li key={r.id} style={{ marginBottom: 2 }}>
             {new Date(r.requested_at).toLocaleString()}　{OP_LABEL[r.operation] ?? r.operation}　
-            <span style={{ color: STATUS_COLOR[r.status] ?? '#666', fontWeight: 'bold' }}>{r.status}</span>
+            <span style={{ color: STATUS_COLOR[r.status] ?? 'var(--sub)', fontWeight: 'bold' }}>{r.status}</span>
             {r.status === '已駁回' && r.review_note && <span style={{ color: '#A32D2D' }}>（原因：{r.review_note}）</span>}
           </li>
         ))}

@@ -54,7 +54,7 @@ export default function StudentDocumentsPage() {
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <input placeholder="輸入學號" value={studentNo} onChange={(e) => setStudentNo(e.target.value)} style={{ padding: 8, flex: 1 }} />
-        <button onClick={handleSearch} style={{ padding: '8px 16px', background: '#2C2C2A', color: '#fff', border: 'none', borderRadius: 6 }}>
+        <button onClick={handleSearch} style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6 }}>
           查詢
         </button>
       </div>
@@ -62,23 +62,23 @@ export default function StudentDocumentsPage() {
       {studentName && <p style={{ fontSize: 14, marginBottom: 12 }}>{studentName}（學號 {studentNo}）</p>}
 
       {records.map((r) => (
-        <div key={r.id} style={{ padding: 12, border: '1px solid #eee', borderRadius: 8, marginBottom: 8 }}>
+        <div key={r.id} style={{ padding: 12, border: '1px solid var(--line)', borderRadius: 8, marginBottom: 8 }}>
           <p style={{ fontSize: 13, fontWeight: 700 }}>
-            {r.status}　<span style={{ fontWeight: 400, color: '#666' }}>{r.effective_date}</span>
+            {r.status}　<span style={{ fontWeight: 400, color: 'var(--sub)' }}>{r.effective_date}</span>
           </p>
-          {r.reason && <p style={{ fontSize: 12, color: '#666' }}>{r.reason}</p>}
+          {r.reason && <p style={{ fontSize: 12, color: 'var(--sub)' }}>{r.reason}</p>}
           {r.attachments.length > 0 ? (
             <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
               {r.attachments.map((a) => (
                 <li key={a.id} style={{ fontSize: 13 }}>
-                  <button onClick={() => handleDownload(a.file_url, a.file_name)} style={{ color: '#2C6E9E', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <button onClick={() => handleDownload(a.file_url, a.file_name)} style={{ color: 'var(--primary-ink)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     {a.file_name ?? '下載檔案'}
                   </button>
                 </li>
               ))}
             </ul>
           ) : (
-            <p style={{ fontSize: 12, color: '#999' }}>（無上傳檔案）</p>
+            <p style={{ fontSize: 12, color: 'var(--sub)' }}>（無上傳檔案）</p>
           )}
         </div>
       ))}

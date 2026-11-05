@@ -285,11 +285,11 @@ export default function SchedulingPage() {
   return (
     <main style={{ maxWidth: 1100, margin: '0 auto', padding: 24 }}>
       {staleNote && <p style={{ fontSize: 12, color: '#A36A00', marginBottom: 8 }}>{staleNote}</p>}
-      {importingToTool && <p style={{ fontSize: 12, color: '#2C6E9E', marginBottom: 8 }}>正在把校務系統資料傳給排課工具…</p>}
-      {autoSaving && <p style={{ fontSize: 12, color: '#2C6E9E', marginBottom: 8 }}>排課工具存檔中，班級數多時可能要等一下…</p>}
+      {importingToTool && <p style={{ fontSize: 12, color: 'var(--primary-ink)', marginBottom: 8 }}>正在把校務系統資料傳給排課工具…</p>}
+      {autoSaving && <p style={{ fontSize: 12, color: 'var(--primary-ink)', marginBottom: 8 }}>排課工具存檔中，班級數多時可能要等一下…</p>}
       {draftMsg && <p style={{ fontSize: 12, color: draftMsg.includes('失敗') ? '#A32D2D' : '#3B6D11', marginBottom: 8 }}>{draftMsg}</p>}
       {autoSaveResult && (
-        <div style={{ fontSize: 12, marginBottom: 16, background: '#F5F5F3', borderRadius: 8, padding: 12 }}>
+        <div style={{ fontSize: 12, marginBottom: 16, background: 'var(--primary-soft)', borderRadius: 8, padding: 12 }}>
           {autoSaveResult.schedule && (
             <p style={{ color: '#3B6D11' }}>
               已存進校務系統：班級 {autoSaveResult.schedule.classesUpserted} 筆、科目節數 {autoSaveResult.schedule.curriculumUpserted} 筆、
@@ -308,9 +308,9 @@ export default function SchedulingPage() {
         </div>
       )}
 
-      {savingTeachers && <p style={{ fontSize: 12, color: '#2C6E9E', marginBottom: 8 }}>「匯入教師 & 導師資料」存檔中…</p>}
+      {savingTeachers && <p style={{ fontSize: 12, color: 'var(--primary-ink)', marginBottom: 8 }}>「匯入教師 & 導師資料」存檔中…</p>}
       {teacherSaveResult && (
-        <div style={{ fontSize: 12, marginBottom: 16, background: '#F5F5F3', borderRadius: 8, padding: 12 }}>
+        <div style={{ fontSize: 12, marginBottom: 16, background: 'var(--primary-soft)', borderRadius: 8, padding: 12 }}>
           <p style={{ color: '#3B6D11' }}>
             已存進校務系統：班級 {teacherSaveResult.classesUpserted} 筆、任課教師/導師設定 {teacherSaveResult.assignmentsUpserted} 筆
           </p>
@@ -325,9 +325,9 @@ export default function SchedulingPage() {
         </div>
       )}
 
-      {savingCurriculum && <p style={{ fontSize: 12, color: '#2C6E9E', marginBottom: 8 }}>「全校科目節數匯入」存檔中…</p>}
+      {savingCurriculum && <p style={{ fontSize: 12, color: 'var(--primary-ink)', marginBottom: 8 }}>「全校科目節數匯入」存檔中…</p>}
       {curriculumSaveResult && (
-        <div style={{ fontSize: 12, marginBottom: 16, background: '#F5F5F3', borderRadius: 8, padding: 12 }}>
+        <div style={{ fontSize: 12, marginBottom: 16, background: 'var(--primary-soft)', borderRadius: 8, padding: 12 }}>
           <p style={{ color: '#3B6D11' }}>已存進校務系統：科目節數 {curriculumSaveResult.curriculumUpserted} 筆</p>
           {curriculumSaveResult.warnings.length > 0 && (
             <ul style={{ color: '#7a5a00', paddingLeft: 18, marginTop: 6 }}>
@@ -349,16 +349,16 @@ export default function SchedulingPage() {
       />
 
       <details style={{ marginTop: 24 }}>
-        <summary style={{ cursor: 'pointer', fontSize: 13, color: '#2C6E9E', fontWeight: 'bold' }}>
+        <summary style={{ cursor: 'pointer', fontSize: 13, color: 'var(--primary-ink)', fontWeight: 'bold' }}>
           進階：也可以手動匯出/匯入Excel（例如要離線核對課表、或存檔按鈕沒反應時的備用方式）
         </summary>
         <div style={{ marginTop: 12 }}>
-          <p style={{ fontSize: 11, color: '#999', marginBottom: 10 }}>
+          <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 10 }}>
             排課工具「匯出Excel」產生的檔案，或學校平常使用的「課程表系統」Excel（.xlsx／.xlsm，不需要有「匯入的年級&科目&節數」工作表，節數會直接從課表數出來），上傳後一樣會自動寫入「班級與導師」「科目節數」「班級課表」（適用學年度／學期：{academicYear}／{term}）。
             科目比重（用於成績計算）排課系統沒有這項資料，會先寫入 0，請匯入後到「成績相關設定及查詢」第一分頁補上正確比重。
           </p>
           <input ref={importInputRef} type="file" accept=".xlsx,.xlsm" onChange={handleImportFile} disabled={importing} style={{ fontSize: 13 }} />
-          {importing && <p style={{ fontSize: 12, color: '#666', marginTop: 8 }}>匯入中，班級數多時可能要等一下…</p>}
+          {importing && <p style={{ fontSize: 12, color: 'var(--sub)', marginTop: 8 }}>匯入中，班級數多時可能要等一下…</p>}
           {importResult && (
             <div style={{ fontSize: 12, marginTop: 12 }}>
               <p style={{ color: '#3B6D11' }}>
@@ -378,7 +378,7 @@ export default function SchedulingPage() {
       </details>
 
       <details style={{ marginTop: 16 }}>
-        <summary style={{ cursor: 'pointer', fontSize: 13, color: '#2C6E9E', fontWeight: 'bold' }}>
+        <summary style={{ cursor: 'pointer', fontSize: 13, color: 'var(--primary-ink)', fontWeight: 'bold' }}>
           歷史存檔清單（查看/還原之前存過的版本）
         </summary>
         <div style={{ marginTop: 12 }}>

@@ -458,7 +458,7 @@ export default function BulkExcelPanel({ myRole }: { myRole: string | undefined 
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
         把系統裡「帳號名單、班級與導師設定、科目與比重設定、任課教師設定、學校課表、節次設定、整體佔比與加扣分規則、既有學生快速建檔、
         全校成績現況、全校出缺勤現況、全校獎懲現況」這11張表格合併成一份Excel，一次填完、一次上傳，不用每個功能頁分開跑一次；
         「下載完整資料快照」再加上排課工具匯出的8頁課表資料，適合整體備份、第一次建檔或搬資料用——快照裡的「(現況)」工作表現在
@@ -473,7 +473,7 @@ export default function BulkExcelPanel({ myRole }: { myRole: string | undefined 
       </p>
 
       <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 12, color: '#666' }}>下載/上傳要用的學年度／學期：</span>
+        <span style={{ fontSize: 12, color: 'var(--sub)' }}>下載/上傳要用的學年度／學期：</span>
         <input
           type="number"
           value={snapshotYear}
@@ -485,7 +485,7 @@ export default function BulkExcelPanel({ myRole }: { myRole: string | undefined 
           <option value="上學期">上學期</option>
           <option value="下學期">下學期</option>
         </select>
-        <span style={{ fontSize: 11, color: '#999' }}>
+        <span style={{ fontSize: 11, color: 'var(--sub)' }}>
           （預設抓系統目前設定生效的學年學期；如果系統還沒設定過，這裡先用今年帶入，請務必確認是不是您要的那一年再下載/上傳——
           填錯的話「既有學生快速建檔(現況)」等「現況」表格會整個是空的，看起來會像資料不見了）
         </span>
@@ -495,7 +495,7 @@ export default function BulkExcelPanel({ myRole }: { myRole: string | undefined 
         <button
           type="button"
           onClick={downloadDeveloperAllTemplate}
-          style={{ padding: '8px 16px', background: '#fff', color: '#2C6E9E', border: '1px solid #2C6E9E', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}
+          style={{ padding: '8px 16px', background: 'var(--surface)', color: 'var(--primary-ink)', border: '1px solid var(--primary)', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}
         >
           ↓ 下載全部表格範本（10張工作表＋說明，適合全新建檔）
         </button>
@@ -503,7 +503,7 @@ export default function BulkExcelPanel({ myRole }: { myRole: string | undefined 
           type="button"
           onClick={handleDownloadFullSnapshot}
           disabled={snapshotBusy}
-          style={{ padding: '8px 16px', background: '#2C6E9E', color: '#fff', border: '1px solid #2C6E9E', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}
+          style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: '1px solid var(--primary)', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}
         >
           {snapshotBusy ? '準備中…' : `↓ 下載完整資料快照（${snapshotYear}學年度／${snapshotTerm}，含排課工具8頁＋全校成績/出缺勤/獎懲）`}
         </button>
@@ -514,7 +514,7 @@ export default function BulkExcelPanel({ myRole }: { myRole: string | undefined 
         <input ref={inputRef} type="file" accept=".xlsx" onChange={handleChange} disabled={busy} style={{ fontSize: 13 }} />
       </div>
 
-      {busy && <p style={{ fontSize: 12, color: '#666' }}>處理中，資料量大時可能要等一下…</p>}
+      {busy && <p style={{ fontSize: 12, color: 'var(--sub)' }}>處理中，資料量大時可能要等一下…</p>}
 
       {overlapNotice.length > 0 && (
         <p style={{ fontSize: 12, color: '#A32D2D', marginBottom: 8 }}>
@@ -525,7 +525,7 @@ export default function BulkExcelPanel({ myRole }: { myRole: string | undefined 
       {results && (
         <div style={{ fontSize: 13, marginTop: 12 }}>
           {results.map((r, idx) => (
-            <div key={r.sheet + idx} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #eee' }}>
+            <div key={r.sheet + idx} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid var(--line)' }}>
               <p style={{ fontWeight: 'bold', marginBottom: 4 }}>{r.sheet}</p>
               {r.successCount > 0 && <p style={{ color: '#3B6D11' }}>成功匯入 {r.successCount} 筆</p>}
               {r.errors.length > 0 && (
@@ -538,7 +538,7 @@ export default function BulkExcelPanel({ myRole }: { myRole: string | undefined 
               )}
             </div>
           ))}
-          {skipped.length > 0 && <p style={{ fontSize: 12, color: '#999' }}>檔案中沒有這些工作表，已略過：{skipped.join('、')}</p>}
+          {skipped.length > 0 && <p style={{ fontSize: 12, color: 'var(--sub)' }}>檔案中沒有這些工作表，已略過：{skipped.join('、')}</p>}
         </div>
       )}
     </div>

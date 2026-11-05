@@ -101,7 +101,7 @@ export default function StaffTab({ event, groups, items, myId }: Props) {
                 <td style={td}><button onClick={() => remove(s)} style={btnDanger}>移除</button></td>
               </tr>
             ))}
-            {assigned.length === 0 && <tr><td colSpan={5} style={{ ...td, color: '#999' }}>尚未分派。</td></tr>}
+            {assigned.length === 0 && <tr><td colSpan={5} style={{ ...td, color: 'var(--sub)' }}>尚未分派。</td></tr>}
           </tbody>
         </table>
       </Section>
@@ -110,7 +110,7 @@ export default function StaffTab({ event, groups, items, myId }: Props) {
         <p style={{ ...hint, marginBottom: 8 }}>承辦人可以設定賽事、分派評審、公布與修正成績。共同承辦的老師請在這裡加入。</p>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
           {organizers.map((id) => (
-            <span key={id} style={{ border: '1px solid #ddd', borderRadius: 14, padding: '2px 10px', fontSize: 13 }}>
+            <span key={id} style={{ border: '1px solid var(--line-strong)', borderRadius: 14, padding: '2px 10px', fontSize: 13 }}>
               {name.get(id) ?? id.slice(0, 6)} <button onClick={() => removeOrganizer(id)} style={{ border: 0, background: 'none', cursor: 'pointer', color: '#A32D2D' }} aria-label="移除承辦人">×</button>
             </span>
           ))}
@@ -231,7 +231,7 @@ function GuestBox({ event, items, itemLabel, guests, reload, flash }: {
         負責項目（可複選）：
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
           {judgeable.map((i) => (
-            <label key={i.id} style={{ border: '1px solid #ddd', borderRadius: 12, padding: '2px 8px', background: sel.includes(i.id) ? '#e8f0fa' : '#fff' }}>
+            <label key={i.id} style={{ border: '1px solid var(--line-strong)', borderRadius: 12, padding: '2px 8px', background: sel.includes(i.id) ? '#e8f0fa' : 'var(--surface)' }}>
               <input type="checkbox" checked={sel.includes(i.id)} onChange={(e) => setSel(e.target.checked ? [...sel, i.id] : sel.filter((x) => x !== i.id))} /> {itemLabel.get(i.id)}
             </label>
           ))}

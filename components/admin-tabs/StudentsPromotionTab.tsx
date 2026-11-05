@@ -32,7 +32,7 @@ export default function PromotionPage() {
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>升級作業</h1>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 16, lineHeight: 1.7 }}>
+      <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16, lineHeight: 1.7 }}>
         同學年「上學期 → 下學期」：學生留在原班，座號依學號重新排。「下學期 → 新學年上學期」：升一年級、座號重新排，最高年級可標記為畢業。
         已退學／畢業／肄業／轉學的學生不會升級；已經升級過的學生會自動略過，重複執行不會重複建立。
       </p>
@@ -46,7 +46,7 @@ export default function PromotionPage() {
         <span>升級到 {tgt.year} 學年度 {tgt.term}</span>
       </div>
       {ready && isSupportedRollover(src, tgt) && (
-        <div style={{ border: '1px solid #eee', borderRadius: 8, padding: 16 }}>
+        <div style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 16 }}>
           <RolloverPanel src={src} tgt={tgt} />
         </div>
       )}
