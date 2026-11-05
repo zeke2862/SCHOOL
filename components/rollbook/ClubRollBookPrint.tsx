@@ -2,14 +2,14 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Dist, NameBox, BindMarks } from './ClassRollBook';
+import { Dist, NameBox, BindMarks, fitFontPx } from './ClassRollBook';
 
 export type ClubPrintMember = { student_no: string; name: string; class_label: string; seat_no: number | null };
 
 const THICK = '2px solid #000';
 const THIN = '1px solid #333';
 const DASH = '1px dashed #777';
-const ROWS_AREA_MM = 244; // 與班級點名冊同一套算法：扣掉標題與表頭後給學生列的高度，實際高度由表格自動拉伸補滿
+const ROWS_AREA_MM = 249; // 與班級點名冊同一套算法：扣掉標題與表頭後給學生列的高度，實際高度由表格自動拉伸補滿
 const ROW_MAX_MM = 16;
 const ROW_MIN_MM = 3.4;
 const ROW_BASE = 0.85;
@@ -49,6 +49,7 @@ export default function ClubRollBookPrint({
   const [bindMarks, setBindMarks] = useState(true);
   const [signRow, setSignRow] = useState(true);
   const [fontScale, setFontScale] = useState(1);
+  const [fontWeight, setFontWeight] = useState(300);
 
   useEffect(() => {
     (async () => {
@@ -79,12 +80,12 @@ export default function ClubRollBookPrint({
   const title = `華雲學校 佛曆 ${term ? term.academic_year + 543 : ''} (${term?.academic_year ?? ''}) 學年度 ${term?.term === '上學期' ? '上' : '下'} 學期　${clubName}課點名冊`;
 
   const list = members;
-  const gapMm = signRow ? 6 : 0;
+  const gapMm = signRow ? 3 : 0;
   const signMm = signRow ? 12 : 0;
   const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, (ROWS_AREA_MM - signMm - gapMm) / Math.max(list.length, 1)));
-  const fitMax = rowMm * 3.78 * 0.9;
-  const nameSize = Math.round(Math.max(10, Math.min(fitMax, 40, Math.min(30, rowMm * 3.78 * 0.78) * fontScale)));
-  const noSize = Math.round(Math.max(10, Math.min(fitMax, 26, Math.min(20, rowMm * 3.78 * 0.6) * fontScale)));
+  const fitMax = fitFontPx(rowMm, 1);
+  const nameSize = Math.round(Math.max(8, Math.min(fitMax, 40, Math.min(30, rowMm * 3.78 * 0.78) * fontScale)));
+  const noSize = Math.round(Math.max(8, Math.min(fitMax, 26, Math.min(20, rowMm * 3.78 * 0.6) * fontScale)));
   const smallSize = Math.round(Math.min(16, Math.max(9, rowMm * 3.78 * 0.5)));
   const maxNoLen = Math.max(6, ...list.map((x) => String(x.student_no ?? '').length));
   const noColMm = Math.max(17, Math.ceil((maxNoLen * noSize * 0.62 + 8) / 3.78));
@@ -97,7 +98,7 @@ export default function ClubRollBookPrint({
       <div key={idx} className="rollbook-sheet">
         {bindMarks && <BindMarks />}
         <div style={{ marginBottom: 2 }}>
-          <div style={{ textAlign: 'center', fontSize: 22, fontWeight: 700, lineHeight: 1.2 }}>{title}</div>
+          <div style={{ textAlign: 'center', fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>{title}</div>
           <div style={{ height: `${gapMm}mm` }}></div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', whiteSpace: 'nowrap', marginTop: 1, gap: 8 }}>
             <span style={{ fontSize: 15 }}>
@@ -153,8 +154,8 @@ export default function ClubRollBookPrint({
                   <tr key={s.student_no} style={{ height: `${rowMm * ROW_BASE}mm` }}>
                     <td style={{ border: THIN, textAlign: 'center', fontSize: smallSize, padding: 0, ...bb }}>{i + 1}</td>
                     <td style={{ border: THIN, textAlign: 'center', fontSize: smallSize, padding: 0, whiteSpace: 'nowrap', ...bb }}>{s.class_label}</td>
-                    <td style={{ border: THIN, textAlign: 'center', fontSize: noSize, fontWeight: 600, whiteSpace: 'nowrap', padding: 0, ...bb }}>{s.student_no}</td>
-                    <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: nameSize, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', ...bb }}>
+                    <td style={{ border: THIN, textAlign: 'center', fontSize: noSize, lineHeight: 1, fontWeight, whiteSpace: 'nowrap', padding: 0, ...bb }}>{s.student_no}</td>
+                    <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: nameSize, fontWeight, whiteSpace: 'nowrap', overflow: 'hidden', ...bb }}>
                       <NameBox text={s.name} size={nameSize} />
                     </td>
                     {Array.from({ length: cols }, (_, c) => (
@@ -196,7 +197,7 @@ export default function ClubRollBookPrint({
         @page { size: A4 portrait; margin: 0; }
         @media print {
           .no-print { display: none !important; }
-          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 296.5mm; height: calc(100vh - 0.5mm); padding: 5mm !important; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
+          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 296.5mm; height: calc(100vh - 0.5mm); padding: 3mm !important; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
           .rollbook-tablewrap { flex: 1; min-height: 0; }
           html { zoom: 1 !important; }
           main, .hub-content { padding: 0 !important; max-width: none !important; margin: 0 !important; }
@@ -206,7 +207,7 @@ export default function ClubRollBookPrint({
         }
         .rollbook-sheet { background: #fff; box-sizing: border-box; position: relative; }
         @media screen {
-          .rollbook-sheet { width: 210mm; height: 297mm; padding: 5mm; margin: 0 auto 16px; border: 1px solid #ccc; box-shadow: 0 1px 6px rgba(0,0,0,0.12); overflow: hidden; display: flex; flex-direction: column; }
+          .rollbook-sheet { width: 210mm; height: 297mm; padding: 3mm; margin: 0 auto 16px; border: 1px solid #ccc; box-shadow: 0 1px 6px rgba(0,0,0,0.12); overflow: hidden; display: flex; flex-direction: column; }
         }
         .rollbook-bind { position: absolute; left: 0; right: 0; top: 0.5mm; height: 4mm; pointer-events: none; z-index: 10; }
       `}</style>
@@ -227,6 +228,11 @@ export default function ClubRollBookPrint({
             <option value={1.2}>放大 120%</option>
             <option value={1.4}>放大 140%</option>
             <option value={1.6}>放大 160%</option>
+          </select>
+          <select value={fontWeight} onChange={(e) => setFontWeight(Number(e.target.value))} style={{ padding: 3, marginLeft: 12 }}>
+            <option value={300}>細體</option>
+            <option value={400}>標準</option>
+            <option value={700}>粗體</option>
           </select>
           <span style={{ color: '#999', marginLeft: 8 }}>（受列高限制，人數多時放大有限；想再大可取消簽名欄）</span>
         </label>

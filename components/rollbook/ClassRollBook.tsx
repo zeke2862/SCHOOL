@@ -16,7 +16,7 @@ const CLASS_ORDER = ['忠', '孝', '仁', '愛'];
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六'];
 
 // A4 直式、邊界 5mm：可用高度 287mm。扣掉標題區與表頭後，剩下給學生列的高度（mm）
-const ROWS_AREA_MM = 242; // 略小於實際可用高度，剩下的由表格自動拉伸補滿（不同電腦字型高度略有差異也不會爆頁）
+const ROWS_AREA_MM = 247; // 略小於實際可用高度，剩下的由表格自動拉伸補滿（不同電腦字型高度略有差異也不會爆頁）
 const ROW_MAX_MM = 16;
 const ROW_MIN_MM = 3.4;
 // 列高只設成預估值的 85% 當「最小值」，實際高度由表格依真正的頁面高度自動拉伸補滿（紙張、邊界、字型不同都能自適應）
@@ -24,7 +24,10 @@ const ROW_BASE = 0.85;
 // 各班簽名列固定用高三忠班（在學 18 人）排版時的簽名列高度：2 列高
 const REF_CLASS_COUNT = 18;
 // 標題與「班級／導師」那一行之間的空隙：所有班固定
-const TITLE_GAP_MM = 6;
+const TITLE_GAP_MM = 3;
+
+// 字體最大不能超過「列的最小高度」扣掉框線後放得下的大小，否則列會被字撐高、整張表超出紙張，最後一位的底線就被裁掉
+export const fitFontPx = (rowMm: number, lineHeight: number) => Math.max(8, (rowMm * ROW_BASE * 3.78 - 3) / lineHeight);
 
 const classLabel = (c: ClassRow) => `${c.grade_level}${c.class_name}班`;
 
@@ -85,7 +88,7 @@ export function NameBox({ text, size }: { text: string; size: number }) {
   const n = chars.length;
   const fs = n > 3 ? (size * 3) / n : size;
   return (
-    <span style={{ display: 'flex', justifyContent: n <= 1 ? 'center' : 'space-between', width: `${size * 3}px`, margin: '0 auto', fontSize: fs, lineHeight: 1.1 }}>
+    <span style={{ display: 'flex', justifyContent: n <= 1 ? 'center' : 'space-between', width: `${size * 3}px`, margin: '0 auto', fontSize: fs, lineHeight: 1 }}>
       {chars.map((ch, i) => (
         <span key={i}>{ch}</span>
       ))}
@@ -112,7 +115,7 @@ function SheetHeader({ title, cls, teacher, subtitle, gapMm }: { title: string; 
   // 班級／導師、符號、週次放在同一行，省下一行高度給學生列
   return (
     <div style={{ marginBottom: 2 }}>
-      <div style={{ textAlign: 'center', fontSize: 24, fontWeight: 700, lineHeight: 1.2 }}>{title}</div>
+      <div style={{ textAlign: 'center', fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>{title}</div>
       <div style={{ height: `${gapMm}mm` }}></div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', whiteSpace: 'nowrap', marginTop: 1, gap: 8 }}>
         <span style={{ fontSize: 15 }}>
@@ -135,6 +138,7 @@ export default function ClassRollBook() {
   const [signRow, setSignRow] = useState(true);
   const [bindMarks, setBindMarks] = useState(true);
   const [fontScale, setFontScale] = useState(1); // 學號／姓名字體放大倍率
+  const [fontWeight, setFontWeight] = useState(300); // 學號／姓名粗細：細體 300／標準 400／粗體 700
   const [weekPages, setWeekPages] = useState(2); // 一週模式：每班連續列印幾頁
   const [weekEven, setWeekEven] = useState(true); // 雙面列印：每班頁數補成偶數
   const [coverLayout, setCoverLayout] = useState<CoverLayout>(DEFAULT_COVER_LAYOUT);
@@ -245,11 +249,11 @@ export default function ClassRollBook() {
     const gapMm = signRow ? TITLE_GAP_MM : 0;
     const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, (ROWS_AREA_MM - (signRow ? signMm : 0) - gapMm) / Math.max(list.length, 1)));
     // 姓名字級隨列高自動放大／縮小（人少列高、字就大；人多列矮、字就小）
-    const fitMax = rowMm * 3.78 * 0.9; // 字體再大也不能超過列高，否則整頁會被撐到第二張
-    const nameSize = Math.round(Math.max(10, Math.min(fitMax, 40, Math.min(30, rowMm * 3.78 * 0.78) * fontScale)));
+    const fitMax = fitFontPx(rowMm, 1); // 字體再大也不能把列撐高，否則整頁會超出紙張
+    const nameSize = Math.round(Math.max(8, Math.min(fitMax, 40, Math.min(30, rowMm * 3.78 * 0.78) * fontScale)));
     const smallSize = Math.round(Math.min(16, Math.max(9, rowMm * 3.78 * 0.5)));
     // 學號字級也隨列高放大，欄寬依最長學號的字數自動加寬
-    const noSize = Math.round(Math.max(10, Math.min(fitMax, 26, Math.min(20, rowMm * 3.78 * 0.6) * fontScale)));
+    const noSize = Math.round(Math.max(8, Math.min(fitMax, 26, Math.min(20, rowMm * 3.78 * 0.6) * fontScale)));
     const maxNoLen = Math.max(6, ...list.map((x) => String(x.student_no ?? '').length));
     const noColMm = Math.max(17, Math.ceil((maxNoLen * noSize * 0.62 + 8) / 3.78));
     const nameColMm = Math.max(22, Math.ceil((nameSize * 3 + 12) / 3.78));
@@ -326,8 +330,8 @@ export default function ClassRollBook() {
               return (
               <tr key={s.student_no} style={{ height: `${rowMm * ROW_BASE}mm` }}>
                 <td style={{ border: THIN, textAlign: 'center', fontSize: smallSize, padding: 0, ...bb }}>{s.seat_no}</td>
-                <td style={{ border: THIN, textAlign: 'center', fontSize: noSize, fontWeight: 600, whiteSpace: 'nowrap', padding: 0, ...bb }}>{s.student_no}</td>
-                <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: nameSize, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', ...bb }}><NameBox text={s.name} size={nameSize} /></td>
+                <td style={{ border: THIN, textAlign: 'center', fontSize: noSize, lineHeight: 1, fontWeight, whiteSpace: 'nowrap', padding: 0, ...bb }}>{s.student_no}</td>
+                <td style={{ border: THIN, textAlign: 'center', padding: '0 6px', fontSize: nameSize, fontWeight, whiteSpace: 'nowrap', overflow: 'hidden', ...bb }}><NameBox text={s.name} size={nameSize} /></td>
                 {Array.from({ length: total }, (_, i) => (
                   <td key={i} style={{ ...periodCell(i), ...bb }}></td>
                 ))}
@@ -424,7 +428,7 @@ export default function ClassRollBook() {
         @page { size: A4 portrait; margin: 0; }
         @media print {
           .no-print { display: none !important; }
-          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 296.5mm; height: calc(100vh - 0.5mm); padding: 5mm !important; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
+          .rollbook-sheet { page-break-after: always; break-after: page; margin: 0 !important; height: 296.5mm; height: calc(100vh - 0.5mm); padding: 3mm !important; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
           .rollbook-tablewrap { flex: 1; min-height: 0; }
           html { zoom: 1 !important; }
           main, .hub-content { padding: 0 !important; max-width: none !important; margin: 0 !important; }
@@ -436,7 +440,7 @@ export default function ClassRollBook() {
         /* 畫面預覽時封面與空白頁也要有一整張紙的高度，不然封面的內容會跟後面的點名表疊在一起 */
         /* 畫面預覽：每一頁就是一張 A4（210×297mm，內距 5mm），置中顯示，看起來跟列印出來一樣 */
         @media screen {
-          .rollbook-sheet { width: 210mm; height: 297mm; padding: 5mm; margin: 0 auto 16px; border: 1px solid #ccc; box-shadow: 0 1px 6px rgba(0,0,0,0.12); overflow: hidden; display: flex; flex-direction: column; }
+          .rollbook-sheet { width: 210mm; height: 297mm; padding: 3mm; margin: 0 auto 16px; border: 1px solid #ccc; box-shadow: 0 1px 6px rgba(0,0,0,0.12); overflow: hidden; display: flex; flex-direction: column; }
           .rollbook-cover { display: block; }
         }
         .rollbook-sheet { position: relative; }
@@ -518,6 +522,11 @@ export default function ClassRollBook() {
             <option value={1.2}>放大 120%</option>
             <option value={1.4}>放大 140%</option>
             <option value={1.6}>放大 160%</option>
+          </select>
+          <select value={fontWeight} onChange={(e) => setFontWeight(Number(e.target.value))} style={{ padding: 3, marginLeft: 12 }}>
+            <option value={300}>細體</option>
+            <option value={400}>標準</option>
+            <option value={700}>粗體</option>
           </select>
           <span style={{ color: '#999', marginLeft: 8 }}>（會受列高限制：人數多的班放大有限；想再大可取消下方簽名欄）</span>
         </label>
