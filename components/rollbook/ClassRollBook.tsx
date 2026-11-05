@@ -26,8 +26,8 @@ const REF_CLASS_COUNT = 18;
 // 標題與「班級／導師」那一行之間的空隙：所有班固定
 const TITLE_GAP_MM = 3;
 
-// 字體最大不能超過「列的最小高度」扣掉框線後放得下的大小，否則列會被字撐高、整張表超出紙張，最後一位的底線就被裁掉
-export const fitFontPx = (rowMm: number, lineHeight: number) => Math.max(8, (rowMm * ROW_BASE * 3.78 - 3) / lineHeight);
+// 字體最大不能超過「平分後的列高」扣掉框線後放得下的大小，否則列會被字撐高、整張表超出紙張，最後一位的底線就被裁掉
+export const fitFontPx = (rowMm: number, lineHeight: number) => Math.max(8, (rowMm * 3.78 - 4) / lineHeight);
 
 const classLabel = (c: ClassRow) => `${c.grade_level}${c.class_name}班`;
 
