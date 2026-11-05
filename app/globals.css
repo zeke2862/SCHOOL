@@ -34,6 +34,45 @@ body { background: var(--bg) !important; color: var(--ink); }
 .tile { transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; border-top: 4px solid var(--tile-accent, var(--primary)) !important; }
 .tile:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color: var(--primary) !important; }
 @media (prefers-reduced-motion: reduce) { .tile, .tile:hover { transition: none; transform: none; } }
+
+/* ===== 按鈕與輸入框的預設樣式 =====
+   用 :where() 讓這些規則的優先權最低：頁面自己有寫樣式的按鈕（行內樣式、class）一律照它的，
+   只有「完全沒寫樣式」的原生按鈕才會吃到這裡的圓角與主色，所以不會弄壞現有版面。
+   表格裡的小按鈕不動（避免撐壞密集的成績表、出缺席格子）。 */
+:where(button:not(table button)) {
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+:where(button:not(table button)):hover { background: var(--primary-soft); }
+/* 所有按鈕（包含自己寫了樣式的）：滑過去稍微變暗、按下去縮一點，有回饋感 */
+button { transition: filter .12s ease, transform .08s ease, background-color .12s ease; }
+button:not(:disabled):hover { filter: brightness(.96); }
+button:not(:disabled):active { transform: scale(.98); }
+button:disabled { opacity: .55; cursor: not-allowed; }
+/* 重點按鈕：加 class="btn-primary"；次要的透明按鈕：class="btn-ghost"（之後新做的功能可直接用） */
+.btn-primary { background: var(--primary) !important; color: var(--on-primary) !important; border-color: var(--primary) !important; font-weight: 700; }
+.btn-ghost { background: transparent !important; color: var(--primary-ink) !important; border-color: var(--primary) !important; }
+/* 鍵盤操作時的焦點框 */
+button:focus-visible, a:focus-visible, :where(input, select, textarea):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+:where(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']), select, textarea) {
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+}
+input, select, textarea { transition: border-color .12s ease, box-shadow .12s ease; }
+input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+/* 勾選框、單選鈕、進度條跟著主色 */
+input, progress { accent-color: var(--primary); }
+@media (prefers-reduced-motion: reduce) { button, input, select, textarea { transition: none; } button:not(:disabled):active { transform: none; } }
+@media print { button { filter: none !important; } }
 button, input, select, textarea { font-family: inherit; }
 /* 粉圓體只有一種粗細，粗體靠瀏覽器加粗；h1 h2 h3 不要再額外加粗過頭 */
 h1, h2, h3 { font-weight: 700; }
