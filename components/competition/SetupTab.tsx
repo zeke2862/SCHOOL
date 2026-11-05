@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import {
   CompEvent, CompGroup, CompItem, EVENT_STATUS_LABEL, EVENT_STATUS_ORDER, GRADE_CHOICES, GROUP_PRESETS,
@@ -12,6 +13,8 @@ type Props = { event: CompEvent; groups: CompGroup[]; items: CompItem[]; reload:
 
 export default function SetupTab({ event, groups, items, reload }: Props) {
   const flash = useFlash();
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
   const [f, setF] = useState({
     title: event.title,
     description: event.description ?? '',
@@ -68,6 +71,52 @@ export default function SetupTab({ event, groups, items, reload }: Props) {
     const { error } = await supabase.from('comp_groups').insert({ event_id: event.id, code, name, grade_levels: [], teacher_only: false, sort_no: groups.length + 1 });
     if (error) return flash.err(errText(error));
     await reload();
+  }
+
+  /** 刪除整場賽事（連同組別、項目、報名、分數、成績、公告、作品投票一起刪，無法復原）。
+   *  沒有任何報名/成績的草稿：確認一次即可；有資料的：必須輸入賽事名稱才能刪。 */
+  async function deleteEvent() {
+    setDeleting(true);
+    try {
+      const itemIds = items.map((i) => i.id);
+      const [regs, staff] = await Promise.all([
+        supabase.from('comp_registrations').select('id', { count: 'exact', head: true }).eq('event_id', event.id),
+        supabase.from('comp_staff').select('id', { count: 'exact', head: true }).eq('event_id', event.id),
+      ]);
+      const regCount = regs.count ?? 0;
+      const staffCount = staff.count ?? 0;
+      const published = items.filter((i) => i.published_at).length;
+      const risky = regCount > 0 || published > 0;
+      const summary = `「${event.title}」目前有：${regCount} 筆報名/作品、${published} 個項目已公布成績、${staffCount} 筆評審/人員分派。`;
+      if (!risky) {
+        if (!confirm(`${summary}
+
+確定刪除這場賽事？（無法復原）`)) return;
+      } else {
+        const typed = prompt(`${summary}
+
+刪除會一併移除所有報名、分數、成績與公告，${published > 0 ? 'QR 公開頁和已公布的成績也會消失，' : ''}無法復原。
+
+如果只是辦完了，建議改成「已結束」就好（會自動收到列表下方）。
+
+確定要刪除，請輸入賽事名稱：
+${event.title}`);
+        if (typed === null) return;
+        if (typed.trim() !== event.title.trim()) return flash.err('輸入的名稱不一致，沒有刪除。');
+      }
+      // 作品投票的照片檔案（盡力清除；不是自己上傳的檔案沒有權限刪除，會留在儲存桶但沒有任何連結指向它）
+      if (itemIds.length) {
+        const { data: ents } = await supabase.from('comp_entries').select('photo_path').in('item_id', itemIds);
+        const paths = (ents ?? []).map((e: any) => e.photo_path).filter(Boolean);
+        if (paths.length) await supabase.storage.from('competition').remove(paths);
+      }
+      const { data, error } = await supabase.from('comp_events').delete().eq('id', event.id).select('id');
+      if (error) return flash.err('刪除失敗：' + errText(error));
+      if (!data?.length) return flash.err('沒有刪除任何資料（可能沒有權限，只有承辦人可以刪除）。');
+      router.push('/competitions');
+    } finally {
+      setDeleting(false);
+    }
   }
 
   const nextIdx = EVENT_STATUS_ORDER.indexOf(event.status as any);
@@ -130,6 +179,16 @@ export default function SetupTab({ event, groups, items, reload }: Props) {
           <GroupBox key={g.id} event={event} group={g} items={items.filter((i) => i.group_id === g.id)} groups={groups} reload={reload} flash={flash} />
         ))}
         <CoverageCheck groups={groups} />
+      </Section>
+
+      <Section title="結束或刪除這場賽事">
+        <p style={{ ...hint, marginBottom: 8 }}>
+          <b>辦完了：</b>把上面「賽事進度」改成「已結束」就好，這場賽事會自動收到賽事列表下方的「已結束的賽事」（預設收合），成績與 QR 公開頁仍然保留。
+        </p>
+        <p style={{ ...hint, marginBottom: 10 }}>
+          <b>建錯了：</b>可以直接刪除。刪除會一併移除組別、項目、報名、分數、成績、公告與作品照片，<b>無法復原</b>。外聘訪客的帳號不會被刪，會留在帳號上直到到期（可到「③ 評審與人員」先停用）。
+        </p>
+        <button onClick={deleteEvent} disabled={deleting} style={btnDanger}>{deleting ? '處理中…' : '刪除這場賽事'}</button>
       </Section>
     </div>
   );

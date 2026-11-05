@@ -235,5 +235,28 @@ await db.exec(`update app_users set account_expires_at = null where id='${U.gues
 // ---- 撤回
 await expectOk('學生報名中可撤回', 's1', `select comp_withdraw($1)`, [R1]);
 
+// ---- 刪除賽事（連動刪除與權限）
+async function oneRow(q) { return (await db.query(q)).rows[0]; }
+const del0 = await as('t2', `insert into comp_events (title, status) values ('要刪除的賽事','open') returning id`);
+const DE = del0.rows?.[0]?.id;
+const dg = (await as('t2', `insert into comp_groups (event_id, code, name, grade_levels) values ($1,'Z','刪除組','{3年}') returning id`, [DE])).rows?.[0]?.id;
+const di = (await as('t2', `insert into comp_items (event_id, group_id, code, name, score_type, criteria, config) values ($1,$2,'Z1','歌唱','judge','[]','{}') returning id`, [DE, dg])).rows?.[0]?.id;
+await as('s1', `select comp_register($1)`, [di]);
+await as('t2', `insert into comp_staff (event_id, user_id, staff_role, item_id, status, source) values ($1,'${U.t3}','judge',$2,'assigned','assigned')`, [DE, di]);
+await as('t2', `insert into comp_notices (event_id, kind, title) values ($1,'info','公告')`, [DE]);
+const cntAll = () => oneRow(`select (select count(*) from comp_groups where event_id='${DE}')::int g, (select count(*) from comp_items where event_id='${DE}')::int i, (select count(*) from comp_registrations where event_id='${DE}')::int r, (select count(*) from comp_staff where event_id='${DE}')::int s, (select count(*) from comp_notices where event_id='${DE}')::int n, (select count(*) from comp_organizers where event_id='${DE}')::int o`);
+const before = await cntAll();
+ok('刪除前：組別/項目/報名/人員/公告/承辦人都有資料', before.g === 1 && before.i === 1 && before.r === 1 && before.s === 1 && before.n === 1 && before.o === 1, JSON.stringify(before));
+const delOther = await as('t3', `delete from comp_events where id=$1 returning id`, [DE]);
+ok('非承辦人不能刪除賽事', delOther.rows?.length === 0, JSON.stringify(delOther));
+const delStu = await as('s1', `delete from comp_events where id=$1 returning id`, [DE]);
+ok('學生不能刪除賽事', delStu.rows?.length === 0 || !!delStu.err, JSON.stringify(delStu));
+const delGuest = await as('guest', `delete from comp_events where id=$1 returning id`, [DE]);
+ok('訪客不能刪除賽事', delGuest.rows?.length === 0 || !!delGuest.err, JSON.stringify(delGuest));
+const delOrg = await as('t2', `delete from comp_events where id=$1 returning id`, [DE]);
+ok('承辦人可以刪除賽事', delOrg.rows?.length === 1, JSON.stringify(delOrg));
+const after = await cntAll();
+ok('刪除後：所有連帶資料一起消失', Object.values(after).every((v) => v === 0), JSON.stringify(after));
+
 console.log(`\n結果：${pass} 通過 / ${fail} 失敗`);
 process.exit(fail ? 1 : 0);

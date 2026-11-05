@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { CompEvent, EVENT_STATUS_LABEL, GROUP_PRESETS } from '@/lib/competitionScoring';
-import { Section, btnPrimary, errText, fmtTime, hint, inputStyle, td, th, useFlash } from '@/components/competition/ui';
+import { Section, btnPrimary, card, errText, fmtTime, hint, inputStyle, td, th, useFlash } from '@/components/competition/ui';
 
 // 賽事列表：所有人看得到「已開放」的賽事；承辦人另外看得到自己的草稿，並可建立新賽事。
 // 任何教職員都能建立賽事，建立者自動成為承辦人。
@@ -108,6 +108,30 @@ export default function CompetitionsPage() {
     }
   }
 
+  // 「已結束」的賽事自動收到下方（預設收合）；兩區都依建立時間由新到舊排列
+  const byNewest = (x: CompEvent, y: CompEvent) => (x.created_at < y.created_at ? 1 : x.created_at > y.created_at ? -1 : 0);
+  const current = events.filter((e) => e.status !== 'finished').sort(byNewest);
+  const finished = events.filter((e) => e.status === 'finished').sort(byNewest);
+
+  const renderTable = (list: CompEvent[]) => (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+        <thead><tr>{['賽事', '狀態', '報名時間', ''].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>
+          {list.map((e) => (
+            <tr key={e.id}>
+              <td style={td}><b>{e.title}</b>{e.scope === 'external' && <span style={{ ...hint, marginLeft: 6 }}>（含外校）</span>}</td>
+              <td style={td}>{EVENT_STATUS_LABEL[e.status]?.split('（')[0]}</td>
+              <td style={td}>{e.reg_open_at || e.reg_close_at ? `${fmtTime(e.reg_open_at)} ～ ${fmtTime(e.reg_close_at)}` : '—'}</td>
+              <td style={td}><Link href={`/competitions/${e.id}`} style={{ color: '#1f4e79' }}>{e.status === 'open' ? '報名／詳情 →' : '詳情 →'}</Link>
+                {mine.has(e.id) && <> ｜ <Link href={`/competitions/${e.id}/manage`} style={{ color: '#1f4e79' }}>承辦人管理 →</Link></>}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
   return (
     <main style={{ maxWidth: 960, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>競賽活動</h1>
@@ -166,26 +190,18 @@ export default function CompetitionsPage() {
         </Section>
       )}
 
-      <Section title="賽事列表">
-        {loading ? <p style={hint}>載入中…</p> : events.length === 0 ? <p style={hint}>目前沒有賽事。</p> : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-              <thead><tr>{['賽事', '狀態', '報名時間', ''].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
-              <tbody>
-                {events.map((e) => (
-                  <tr key={e.id}>
-                    <td style={td}><b>{e.title}</b>{e.scope === 'external' && <span style={{ ...hint, marginLeft: 6 }}>（含外校）</span>}</td>
-                    <td style={td}>{EVENT_STATUS_LABEL[e.status]?.split('（')[0]}</td>
-                    <td style={td}>{e.reg_open_at || e.reg_close_at ? `${fmtTime(e.reg_open_at)} ～ ${fmtTime(e.reg_close_at)}` : '—'}</td>
-                    <td style={td}><Link href={`/competitions/${e.id}`} style={{ color: '#1f4e79' }}>{e.status === 'open' ? '報名／詳情 →' : '詳情 →'}</Link>
-                      {mine.has(e.id) && <> ｜ <Link href={`/competitions/${e.id}/manage`} style={{ color: '#1f4e79' }}>承辦人管理 →</Link></>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      <Section title="進行中的賽事">
+        {loading ? <p style={hint}>載入中…</p> : current.length === 0 ? <p style={hint}>目前沒有進行中的賽事。</p> : renderTable(current)}
       </Section>
+
+      {!loading && finished.length > 0 && (
+        <details style={{ ...card, padding: 0 }}>
+          <summary style={{ cursor: 'pointer', padding: 16, fontSize: 14, fontWeight: 700 }}>
+            已結束的賽事（{finished.length}）<span style={{ ...hint, fontWeight: 400, marginLeft: 8 }}>點開查看，越新越上面</span>
+          </summary>
+          <div style={{ padding: '0 16px 16px' }}>{renderTable(finished)}</div>
+        </details>
+      )}
     </main>
   );
 }
