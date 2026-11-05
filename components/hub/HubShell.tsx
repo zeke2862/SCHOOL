@@ -61,18 +61,20 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
           請選擇要使用的功能
         </p>
         <div className="no-print" style={{ display: 'grid', gridTemplateColumns: `repeat(${tm.cols}, minmax(0, 1fr))`, gap: tm.gap }}>
-          {tabs.map((t) => (
+          {tabs.map((t, i) => (
             <button
               key={t.key}
               type="button"
+              className="tile"
               onClick={() => router.push(`${hub.href}?tab=${t.key}`)}
               style={{
                 height: tm.tileH,
                 padding: 12,
-                background: '#fff',
-                border: '1px solid #e5e2da',
+                background: 'var(--surface)',
+                border: '1px solid var(--line)',
                 borderRadius: 12,
-                color: '#2C2C2A',
+                color: 'var(--ink)',
+                ['--tile-accent' as any]: ['var(--a1)', 'var(--a2)', 'var(--a3)', 'var(--primary)'][i % 4],
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',

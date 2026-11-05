@@ -9,6 +9,7 @@ import { useFontScale, FontScale } from '@/lib/useFontScale';
 import { isSoundMuted, setSoundMuted } from '@/lib/clickSound';
 import { PREVIEW_KIND_LABEL, readPreviewKind } from '@/lib/permissions';
 import BackgroundMusicPlayer from '@/components/BackgroundMusicPlayer';
+import ThemeSwitch from '@/components/ThemeSwitch';
 
 const ADMIN_ROLES: UserRole[] = ['system_admin_s', 'admin_a', 'admin_b'];
 
@@ -287,8 +288,8 @@ export default function TopNav() {
         flexWrap: 'wrap',
         gap: 8,
         padding: '10px 16px',
-        borderBottom: '1px solid #eee',
-        background: '#fff',
+        borderBottom: '3px solid var(--primary)',
+        background: 'var(--surface)',
         fontSize: 13,
         position: 'relative',
       }}
@@ -336,6 +337,7 @@ export default function TopNav() {
       <span style={{ display: 'flex', gap: 10, alignItems: 'center', position: 'relative', flexWrap: 'wrap', minWidth: 0 }}>
         {!isPortal && me && (
           <>
+            <ThemeSwitch />
             {/* 字級 大/中/小：中是預設，套用到整個畫面（含按鈕、留白），不只是文字。 */}
             <span style={{ display: 'flex', gap: 2, alignItems: 'center', fontSize: 11 }} title="字級">
               {(['small', 'medium', 'large'] as FontScale[]).map((s) => (

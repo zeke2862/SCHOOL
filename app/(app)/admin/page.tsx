@@ -57,11 +57,12 @@ function HubCard({ hub, count, label, desc, titleLines, tm }: { hub: HubDef; cou
   return (
     <Link
       href={hub.href}
-      style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: tm.tileH, padding: 12, overflow: 'hidden', background: '#fff', border: '1px solid #e5e2da', borderRadius: 12, color: '#2C2C2A', textAlign: 'center', alignItems: 'center' }}
+      className="tile"
+      style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: tm.tileH, padding: 12, overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, color: 'var(--ink)', textAlign: 'center', alignItems: 'center', ['--tile-accent' as any]: ['var(--a1)', 'var(--a2)', 'var(--a3)', 'var(--primary)'][[...hub.key].reduce((a, c) => a + c.charCodeAt(0), 0) % 4] }}
     >
       {/* 標題區高度統一（以行數最多的標題為準），所有按鈕的說明才會對齊 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: Math.round(titleLines * tm.titleSize * 1.3), fontSize: tm.titleSize, fontWeight: 700, lineHeight: 1.3 }}>{label}</div>
-      {tm.tileH >= 110 + (titleLines - 1) * tm.titleSize && <div style={{ fontSize: tm.descSize, color: '#888', marginTop: 4, lineHeight: 1.35 }}>{desc}</div>}
+      {tm.tileH >= 110 + (titleLines - 1) * tm.titleSize && <div style={{ fontSize: tm.descSize, color: 'var(--sub)', marginTop: 4, lineHeight: 1.35 }}>{desc}</div>}
       {count > 1 && tm.tileH >= 130 && <div style={{ fontSize: tm.descSize - 1, color: '#aaa', marginTop: 6 }}>{count} 個項目</div>}
     </Link>
   );
@@ -138,7 +139,7 @@ export default function AdminHomePage() {
 
       {teach.length > 0 && (
         <section style={{ marginBottom: 24 }}>
-          <h2 style={{ color: '#6B5B3A', margin: '0 0 10px' }}>教學作業</h2>
+          <h2 style={{ color: 'var(--primary)', margin: '0 0 10px' }}>教學作業</h2>
           <div style={grid}>{teach.map((h) => <HubCard key={h.key} hub={h} count={hubVisibleTabs(h, caps).length} label={label(h)} desc={descOf(h)} titleLines={titleLines} tm={tm} />)}</div>
         </section>
       )}
@@ -147,7 +148,7 @@ export default function AdminHomePage() {
         <section style={{ marginBottom: 24 }}>
           <button
             onClick={() => { const n = !open; setManageOpen(n); try { localStorage.setItem(MANAGE_OPEN_KEY, n ? '1' : '0'); } catch {} }}
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#3A5470', margin: '0 0 10px', fontWeight: 700 }}
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--primary)', margin: '0 0 10px', fontWeight: 700 }}
           >
             {open ? '▼' : '▶'} 行政管理（{manage.length}）
           </button>
@@ -159,7 +160,7 @@ export default function AdminHomePage() {
         <h2 style={{ color: '#888', margin: '0 0 8px' }}>其他</h2>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {extras.filter((e) => e.show).map((e) => (
-            <Link key={e.href} href={e.href} style={{ padding: isMobile ? '12px 18px' : '10px 16px', background: '#fff', border: '1px solid #e5e2da', borderRadius: 10, fontSize: isMobile ? 17 : 15, fontWeight: 600, color: '#2C2C2A' }}>{siteContent[extraLabelKey(e.id)] || e.label}</Link>
+            <Link key={e.href} href={e.href} style={{ padding: isMobile ? '12px 18px' : '10px 16px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, fontSize: isMobile ? 17 : 15, fontWeight: 600, color: 'var(--ink)' }}>{siteContent[extraLabelKey(e.id)] || e.label}</Link>
           ))}
         </div>
       </section>

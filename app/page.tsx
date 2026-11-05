@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { isWeakPassword } from '@/lib/weakPasswords';
 import { supabase, getCurrentAppUser, getMyIdentity, resetIdentityCache } from '@/lib/supabaseClient';
 import { BulletinPost, getPublishedPosts } from '@/lib/bulletin';
+import ThemeSwitch from '@/components/ThemeSwitch';
 
 type CardKey = 'staff' | 'parent';
 
@@ -177,13 +178,15 @@ export default function LoginPage() {
   if (!card) {
     return (
       <main style={{ maxWidth: 460, margin: '80px auto', padding: 24 }}>
-        <h1 style={{ fontSize: 20, marginBottom: 4, textAlign: 'center' }}>校務行政系統</h1>
-        <p style={{ fontSize: 13, color: '#999', marginBottom: 32, textAlign: 'center' }}>請選擇登入方式</p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}><ThemeSwitch /></div>
+        <h1 style={{ marginBottom: 4, textAlign: 'center', color: 'var(--primary)' }}>校務行政系統</h1>
+        <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 32, textAlign: 'center' }}>請選擇登入方式</p>
         <BulletinBoard />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {CARDS.map((c) => (
+          {CARDS.map((c, i) => (
             <button
               key={c.key}
+              className="tile"
               onClick={() => chooseCard(c.key)}
               style={{
                 display: 'flex',
@@ -191,16 +194,17 @@ export default function LoginPage() {
                 gap: 16,
                 padding: '20px 20px',
                 borderRadius: 14,
-                border: '1px solid #e5e2da',
-                background: '#fff',
+                border: '1px solid var(--line)',
+                background: 'var(--surface)',
                 cursor: 'pointer',
                 textAlign: 'left',
+                ['--tile-accent' as any]: ['var(--a1)', 'var(--a2)', 'var(--a3)'][i % 3],
               }}
             >
               <span style={{ fontSize: 28 }}>{c.emoji}</span>
               <span>
-                <span style={{ display: 'block', fontSize: 16, color: '#2C2C2A' }}>{c.title}</span>
-                <span style={{ display: 'block', fontSize: 12, color: '#999', marginTop: 2 }}>{c.desc}</span>
+                <span style={{ display: 'block', fontSize: 16, color: 'var(--ink)' }}>{c.title}</span>
+                <span style={{ display: 'block', fontSize: 12, color: 'var(--sub)', marginTop: 2 }}>{c.desc}</span>
               </span>
             </button>
           ))}
@@ -265,7 +269,7 @@ export default function LoginPage() {
             {error && <p style={{ color: '#A32D2D', fontSize: 13 }}>{error}</p>}
             <button
               type="submit"
-              style={{ padding: 10, borderRadius: 8, background: '#2C2C2A', color: '#fff', border: 'none' }}
+              style={{ padding: 10, borderRadius: 8, background: 'var(--primary)', color: 'var(--on-primary)', border: 'none' }}
             >
               登入
             </button>
@@ -301,7 +305,7 @@ export default function LoginPage() {
               {error && <p style={{ color: '#A32D2D', fontSize: 13 }}>{error}</p>}
               <button
                 type="submit"
-                style={{ padding: 10, borderRadius: 8, background: '#2C2C2A', color: '#fff', border: 'none' }}
+                style={{ padding: 10, borderRadius: 8, background: 'var(--primary)', color: 'var(--on-primary)', border: 'none' }}
               >
                 寄送重設密碼信
               </button>

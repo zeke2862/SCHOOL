@@ -1,9 +1,32 @@
-/* 字型：改用電腦／手機內建的字體（標楷體等），不再下載外部字型檔。
-   原本載入的粉圓體（jf-openhuninn-2.1.woff2）有 2.1MB，每個人每次開頁面都要下載，
-   50 人同時使用時學校網路會被塞滿，登入頁也跟著變慢。粉圓體檔案仍留在 public/fonts，之後想改回來可以再加 @font-face。 */
+/* 字型：改用電腦／手機內建的字體，不再下載外部字型檔（粉圓體 2.1MB 會塞滿學校網路）。
+   改成圓潤好讀的黑體，比標楷體輕鬆；內建字體沒有下載負擔。 */
 body, button, input, select, textarea {
-  font-family: '標楷體', 'DFKai-SB', 'BiauKai', 'Noto Serif TC', serif;
+  font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif;
 }
+
+/* ===== 三套配色（老師可在上方圓點自己切換，選擇記在瀏覽器）=====
+   forest 森林手帳（預設）／sky 晴空活力／mint 薄荷汽水
+   狀態色（紅＝缺席、綠＝正常…）不跟著換，避免老師看錯意思。 */
+:root, html[data-theme='forest'] {
+  --bg: #F5FAF7; --surface: #FFFFFF; --line: #D9EBE1; --ink: #17301F; --sub: #5B6F63;
+  --primary: #2E9166; --primary-soft: #E3F4EB; --on-primary: #FFFFFF;
+  --a1: #FFC53D; --a2: #FF7F5C; --a3: #35B585;
+}
+html[data-theme='sky'] {
+  --bg: #F4F9FF; --surface: #FFFFFF; --line: #CFE2FF; --ink: #17335E; --sub: #5A6F8F;
+  --primary: #2F7BFF; --primary-soft: #E3EEFF; --on-primary: #FFFFFF;
+  --a1: #FFD23F; --a2: #FF7A66; --a3: #3CCB9B;
+}
+html[data-theme='mint'] {
+  --bg: #F3FFFB; --surface: #FFFFFF; --line: #D6CCFF; --ink: #2D2160; --sub: #6A6290;
+  --primary: #7C5CFF; --primary-soft: #ECE7FF; --on-primary: #FFFFFF;
+  --a1: #FF8FC7; --a2: #4FD8B4; --a3: #FFB84D;
+}
+body { background: var(--bg) !important; color: var(--ink); }
+/* 功能方塊：滑過去會浮起來，有一點活力 */
+.tile { transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; border-top: 4px solid var(--tile-accent, var(--primary)) !important; }
+.tile:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color: var(--primary) !important; }
+@media (prefers-reduced-motion: reduce) { .tile, .tile:hover { transition: none; transform: none; } }
 button, input, select, textarea { font-family: inherit; }
 /* 粉圓體只有一種粗細，粗體靠瀏覽器加粗；h1 h2 h3 不要再額外加粗過頭 */
 h1, h2, h3 { font-weight: 700; }
