@@ -554,6 +554,28 @@ export default function ParentPortalPage() {
         </button>
       )}
 
+      {/* 競賽活動（報名、查看成績）。只有學生本人帳號能報名；家長點進去會看到說明，仍可查看成績。 */}
+      {!loadingAccounts && !loadError && linkedStudents.length > 0 && !previewMode && (
+        <button
+          type="button"
+          onClick={() => router.push('/competitions')}
+          style={{
+            display: 'inline-block',
+            marginBottom: 16,
+            marginLeft: 8,
+            padding: '8px 16px',
+            background: '#2C2C2A',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 6,
+            fontSize: 13,
+            cursor: 'pointer',
+          }}
+        >
+          競賽活動 →
+        </button>
+      )}
+
       {linkedStudents.length > 1 && (
         <select
           value={selected?.id}

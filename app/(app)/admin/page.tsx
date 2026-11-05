@@ -116,6 +116,7 @@ export default function AdminHomePage() {
   const extras: { id: string; href: string; label: string; show: boolean }[] = [
     { id: 'clock', href: '/clock', label: '教職員打卡', show: hubs.some((h) => h.key === 'clock') },
     { id: 'notifications', href: '/notifications', label: '通知', show: true },
+    { id: 'competitions', href: '/competitions', label: '競賽活動', show: true },
     { id: 'leave', href: '/leave', label: '請假', show: !!caps.ident.teacherId && !caps.ident.acting },
     { id: 'schedule-lookup', href: '/schedule-lookup', label: '課表查詢', show: caps.teacherLike || caps.academic },
     { id: 'proxy', href: '/account/proxy', label: '代理人設定', show: true },
