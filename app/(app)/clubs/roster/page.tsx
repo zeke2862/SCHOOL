@@ -5,6 +5,7 @@ import { supabase, getCurrentTeacherId } from '@/lib/supabaseClient';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
 import { classSortKey, compareByClassThenSeat } from '@/lib/clubOrder';
+import ClubRollBookPrint from '@/components/rollbook/ClubRollBookPrint';
 
 type ClubOption = { id: string; name: string };
 type MemberRow = { student_no: string; name: string; class_label: string; seat_no: number | null; sort_key: number };
@@ -45,6 +46,8 @@ export default function ClubRosterPage() {
   const [noAssignment, setNoAssignment] = useState(false);
   const [summary, setSummary] = useState<{ date: string; total: number; absent: (MemberRow & { status: string })[] } | null>(null);
   const [term, setTerm] = useState<{ academic_year: number; term: string } | null>(null);
+  const [printing, setPrinting] = useState(false);
+  const [teacherName, setTeacherName] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -56,6 +59,8 @@ export default function ClubRosterPage() {
       }
       const t = await resolveCurrentTerm();
       setTerm(t);
+      const { data: tn } = await supabase.from('teachers').select('name').eq('id', teacherId).maybeSingle();
+      setTeacherName(tn?.name ?? '');
       let q = supabase.from('clubs').select('id, name').eq('teacher_id', teacherId).eq('is_active', true);
       if (t) q = q.eq('academic_year', t.academic_year).eq('term', t.term);
       const { data, error: clubErr } = await q.order('name');
@@ -165,6 +170,18 @@ export default function ClubRosterPage() {
     );
   }
 
+  if (printing) {
+    return (
+      <ClubRollBookPrint
+        clubName={clubs.find((c) => c.id === selectedClubId)?.name ?? ''}
+        teacherName={teacherName}
+        term={term}
+        members={members}
+        onClose={() => setPrinting(false)}
+      />
+    );
+  }
+
   return (
     <main style={{ maxWidth: 800, margin: '0 auto', padding: isMobile ? '16px 12px' : 24 }}>
       <h1 style={{ fontSize: isMobile ? 18 : 16, marginBottom: 4 }}>社團點名冊</h1>
@@ -181,6 +198,9 @@ export default function ClubRosterPage() {
           </select>
         )}
         <input type="date" value={recordDate} onChange={(e) => setRecordDate(e.target.value)} style={{ padding: 8 }} />
+        <button onClick={() => setPrinting(true)} disabled={loading || members.length === 0} style={{ padding: '8px 16px' }}>
+          列印點名冊
+        </button>
       </div>
 
       {error && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{error}</p>}

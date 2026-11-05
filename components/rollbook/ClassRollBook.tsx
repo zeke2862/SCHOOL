@@ -67,7 +67,7 @@ function buildWeeks(startStr: string, endStr: string): Date[][] {
 
 // 同一天的節次格用虛線，換天用粗實線
 // 分散對齊 + 置中：每個字平均撒在格子寬度內（單字或數字就是置中）
-function Dist({ text }: { text: string }) {
+export function Dist({ text }: { text: string }) {
   const chars = Array.from(text);
   if (chars.length <= 1) return <span>{text}</span>;
   return (
@@ -80,7 +80,7 @@ function Dist({ text }: { text: string }) {
 }
 
 // 姓名固定占「3 個字」的寬度，頭尾對齊：2 個字把中間撐開，3 個字照常，4 個字以上縮小字級擠進同樣寬度
-function NameBox({ text, size }: { text: string; size: number }) {
+export function NameBox({ text, size }: { text: string; size: number }) {
   const chars = Array.from(text);
   const n = chars.length;
   const fs = n > 3 ? (size * 3) / n : size;
@@ -98,7 +98,7 @@ const THIN = '1px solid #333';
 const DASH = '1px dashed #777';
 
 // 上方裝訂線提示：紙張上緣 3 條短橫線（約在 1/5、1/2、4/5 寬度），釘書針或打孔時對準
-function BindMarks() {
+export function BindMarks() {
   return (
     <div className="rollbook-bind" aria-hidden="true">
       {['20%', '50%', '80%'].map((left) => (
@@ -134,6 +134,7 @@ export default function ClassRollBook() {
   const [mode, setMode] = useState<Mode>('week');
   const [signRow, setSignRow] = useState(true);
   const [bindMarks, setBindMarks] = useState(true);
+  const [fontScale, setFontScale] = useState(1); // 學號／姓名字體放大倍率
   const [weekPages, setWeekPages] = useState(2); // 一週模式：每班連續列印幾頁
   const [weekEven, setWeekEven] = useState(true); // 雙面列印：每班頁數補成偶數
   const [coverLayout, setCoverLayout] = useState<CoverLayout>(DEFAULT_COVER_LAYOUT);
@@ -244,10 +245,11 @@ export default function ClassRollBook() {
     const gapMm = signRow ? TITLE_GAP_MM : 0;
     const rowMm = Math.min(ROW_MAX_MM, Math.max(ROW_MIN_MM, (ROWS_AREA_MM - (signRow ? signMm : 0) - gapMm) / Math.max(list.length, 1)));
     // 姓名字級隨列高自動放大／縮小（人少列高、字就大；人多列矮、字就小）
-    const nameSize = Math.round(Math.min(30, Math.max(10, rowMm * 3.78 * 0.78)));
+    const fitMax = rowMm * 3.78 * 0.9; // 字體再大也不能超過列高，否則整頁會被撐到第二張
+    const nameSize = Math.round(Math.max(10, Math.min(fitMax, 40, Math.min(30, rowMm * 3.78 * 0.78) * fontScale)));
     const smallSize = Math.round(Math.min(16, Math.max(9, rowMm * 3.78 * 0.5)));
     // 學號字級也隨列高放大，欄寬依最長學號的字數自動加寬
-    const noSize = Math.round(Math.min(20, Math.max(10, rowMm * 3.78 * 0.6)));
+    const noSize = Math.round(Math.max(10, Math.min(fitMax, 26, Math.min(20, rowMm * 3.78 * 0.6) * fontScale)));
     const maxNoLen = Math.max(6, ...list.map((x) => String(x.student_no ?? '').length));
     const noColMm = Math.max(17, Math.ceil((maxNoLen * noSize * 0.62 + 8) / 3.78));
     const nameColMm = Math.max(22, Math.ceil((nameSize * 3 + 12) / 3.78));
@@ -508,6 +510,16 @@ export default function ClassRollBook() {
 
         <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>
           <input type="checkbox" checked={bindMarks} onChange={(e) => setBindMarks(e.target.checked)} /> 上方印 3 條橫向裝訂線提示（預設上下翻，裝訂在上方；雙面列印請選「長邊翻轉」）
+        </label>
+        <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>
+          學號、姓名字體：
+          <select value={fontScale} onChange={(e) => setFontScale(Number(e.target.value))} style={{ padding: 3, marginLeft: 4 }}>
+            <option value={1}>標準</option>
+            <option value={1.2}>放大 120%</option>
+            <option value={1.4}>放大 140%</option>
+            <option value={1.6}>放大 160%</option>
+          </select>
+          <span style={{ color: '#999', marginLeft: 8 }}>（會受列高限制：人數多的班放大有限；想再大可取消下方簽名欄）</span>
         </label>
         <label style={{ display: 'block', fontSize: 13, marginBottom: 10 }}>
           <input type="checkbox" checked={signRow} onChange={(e) => setSignRow(e.target.checked)} /> 在最後一號下面加印「任課教師簽名」欄
