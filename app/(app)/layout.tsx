@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import UnreadNotifier from '@/components/UnreadNotifier';
 import TopNav from '@/components/TopNav';
 import ClickSoundListener from '@/components/ClickSoundListener';
 import { supabase } from '@/lib/supabaseClient';
+import GuestNav from '@/components/competition/GuestNav';
 
 // 這個路由群組（管理後台、出缺勤、通知…等所有教職員頁面）統一在這裡檔一次「有沒有登入」，
 // 避免像過去那樣，直接打網址（例如 /admin 或大小寫變化的 /ADMIN）就能在沒登入的情況下
@@ -13,7 +14,10 @@ import { supabase } from '@/lib/supabaseClient';
 // 這裡只負責「沒登入就整個踢回登入頁」這一層。
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname() ?? '';
   const [status, setStatus] = useState<'checking' | 'allowed'>('checking');
+  // 賽事訪客（外聘評審/裁判）：只能待在 /competitions 底下，其他頁一律導回；用簡化的頂端列
+  const [guest, setGuest] = useState<{ name: string } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -30,11 +34,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       // 不管想打開哪個頁面都一樣先擋在這裡（不是只在登入當下判斷一次），避免直接輸入
       // 網址跳過這一步。家長/學生（portal_accounts）帳號在 app_users 裡本來就查不到
       // 任何資料，這裡的檢查對他們自然不會有作用，不影響家長/學生登入。
-      const { data: profile } = await supabase.from('app_users').select('must_change_password').eq('id', data.session.user.id).maybeSingle();
+      const { data: profile } = await supabase.from('app_users').select('must_change_password, role, name, account_expires_at').eq('id', data.session.user.id).maybeSingle();
       if (!active) return;
       if (profile?.must_change_password) {
         router.replace('/change-password');
         return;
+      }
+      if (profile?.role === 'competition_guest') {
+        if (profile.account_expires_at && new Date(profile.account_expires_at) <= new Date()) {
+          // 帳號已到期：直接登出，避免看到一個什麼都讀不到的空畫面
+          await supabase.auth.signOut();
+          router.replace('/');
+          return;
+        }
+        setGuest({ name: profile.name });
+        setStatus('allowed');
+        return; // 訪客不需要通知寄送等教職員功能
       }
       setStatus('allowed');
       // 教職員：順便把佇列裡待寄的通知信寄出（伺服器端會再節流；失敗不影響使用）
@@ -62,11 +77,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     };
   }, [router]);
 
-  if (status === 'checking') {
+  // 訪客不在 /competitions 底下就導回（包含直接輸入 /admin 之類的網址）
+  const guestOutOfBounds = !!guest && !(pathname === '/competitions' || pathname.startsWith('/competitions/'));
+  useEffect(() => {
+    if (guestOutOfBounds) router.replace('/competitions');
+  }, [guestOutOfBounds, router]);
+
+  if (status === 'checking' || guestOutOfBounds) {
     return (
       <main style={{ maxWidth: 480, margin: '0 auto', padding: 24 }}>
         <p style={{ fontSize: 13, color: '#999' }}>載入中…</p>
       </main>
+    );
+  }
+
+  if (guest) {
+    return (
+      <>
+        <GuestNav name={guest.name} />
+        {children}
+      </>
     );
   }
 

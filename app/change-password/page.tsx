@@ -61,7 +61,9 @@ export default function ChangePasswordPage() {
         setError(body.error ?? '更新失敗');
         return;
       }
-      router.push('/admin');
+      // 賽事訪客改完密碼直接進競賽活動；其他人照舊進管理首頁
+      const { data: me } = await supabase.from('app_users').select('role').eq('id', sessionData.session!.user.id).maybeSingle();
+      router.push(me?.role === 'competition_guest' ? '/competitions' : '/admin');
     } finally {
       setSubmitting(false);
     }

@@ -158,6 +158,11 @@ export default function LoginPage() {
       await supabase.auth.signOut();
       return;
     }
+    // 賽事訪客（外聘評審/裁判）→ 直接進競賽活動，不經過校務系統首頁
+    if ((appUser.role as string) === 'competition_guest') {
+      router.push('/competitions');
+      return;
+    }
     // 單純的任課／導師（沒有任何行政身分）→ 照「教師登入首頁設定」走；其他人進首頁看全部入口
     const plainTeacher = !!ident && ['subject_teacher', 'homeroom_teacher'].includes(ident.role) && ident.departments.length === 0;
     if (plainTeacher) {

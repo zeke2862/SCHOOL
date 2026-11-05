@@ -81,6 +81,7 @@ export const ALL_MODULES: AdminModule[] = [
   { key: '/admin/staff-clock', href: '/admin/staff-clock', label: '教職員打卡管理（全校出席總覽、人員對照、班別與放假日、補卡更正、匯入打卡機資料；僅教務處、系統管理員S/A）', adminOnly: true },
   { key: '/clubs/roster', href: '/clubs/roster', label: '社團點名冊', adminOnly: false, requiresTeachingAssignment: true },
   { key: '/clubs/grading', href: '/clubs/grading', label: '社團成績輸入', adminOnly: false, requiresTeachingAssignment: true },
+  { key: '/competitions', href: '/competitions', label: '競賽活動（建立賽事、報名、評審分派、成績公布；任何老師都可以建立賽事並擔任承辦人）', adminOnly: false },
   { key: '/schedule-lookup', href: '/schedule-lookup', label: '查詢教師/班級課表（選教師或班級直接看整週課表）', adminOnly: false },
   // ---- 訓導 ----
   { key: '/attendance/report', href: '/attendance/report', label: '學生出席紀錄查詢（月報／學期）', adminOnly: false },
@@ -143,6 +144,7 @@ export const DEFAULT_CATEGORIES: Record<string, ModuleCategory[]> = {
   '/clubs/roster': ['academic', 'teacher'],
   '/clubs/grading': ['academic', 'teacher'],
   '/schedule-lookup': ['academic', 'teacher'],
+  '/competitions': ['teacher'],
 
   '/attendance/report': ['discipline', 'teacher'],
   '/reports/school-attendance': ['discipline'],

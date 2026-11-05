@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
     .from('app_users')
     .select('id, name, home_org, account_expires_at, created_at')
     .eq('is_temporary', true)
+    .neq('role', 'competition_guest') // 賽事訪客由各賽事承辦人管理，不混在臨時教師名單裡
     .order('created_at', { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   const out = [];
