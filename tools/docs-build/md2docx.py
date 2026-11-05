@@ -13,7 +13,11 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
-FONT = 'Microsoft JhengHei'
+# 字型名稱要用「中文名」：繁體中文版 Word 的字型清單只認得「微軟正黑體」，
+# 存成英文名 Microsoft JhengHei 會被當成找不到字型，退回新細明體／Times New Roman。
+# 英文與數字用 Word 內建的 Calibri，兩種環境都不會缺字型。
+FONT = '微軟正黑體'
+LATIN = 'Calibri'
 MONO = 'Consolas'
 BLUE = RGBColor(0x1F, 0x4E, 0x79)
 GRAY = RGBColor(0x55, 0x55, 0x55)
@@ -26,8 +30,11 @@ def set_font(run, name=FONT, size=None, bold=None, color=None, italic=None):
     if rfonts is None:
         rfonts = OxmlElement('w:rFonts')
         rpr.append(rfonts)
-    for k in ('w:ascii', 'w:hAnsi', 'w:eastAsia', 'w:cs'):
-        rfonts.set(qn(k), name)
+    latin = name if name == MONO else LATIN
+    for k in ('w:ascii', 'w:hAnsi'):
+        rfonts.set(qn(k), latin)
+    for k in ('w:eastAsia', 'w:cs'):
+        rfonts.set(qn(k), FONT)
     if size:
         run.font.size = Pt(size)
     if bold is not None:
@@ -107,7 +114,7 @@ def build(md_path, out_path, subtitle=''):
     add_footer_page_number(sec)
 
     normal = doc.styles['Normal']
-    normal.font.name = FONT
+    normal.font.name = LATIN
     normal.element.rPr.rFonts.set(qn('w:eastAsia'), FONT)
     normal.font.size = Pt(10.5)
     normal.paragraph_format.space_after = Pt(5)
