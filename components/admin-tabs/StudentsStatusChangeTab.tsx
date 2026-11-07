@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { estimateTermStart, resolveCurrentTerm } from '@/lib/academicTerm';
+import { suggestReturnSeat } from '@/lib/seatSuggest';
+import { upsertEnrollment } from '@/lib/bulkHandlers';
 
 const STATUS_OPTIONS = ['入學', '休學', '轉學', '退學', '畢業', '肄業', '復學'] as const;
 const HIDDEN_STATUSES = ['休學', '轉學', '退學', '畢業', '肄業'] as const;
@@ -42,6 +44,52 @@ export default function StatusChangePage() {
   // 「應隱藏」名單預設只列這學期（生效日在本學期開學日之後）的學生，更早學期的要管理人特別點選才會顯示
   const [termStart, setTermStart] = useState<string | null>(null);
   const [showOlder, setShowOlder] = useState(false);
+
+  // 復學時同步編班＋換新座號：建議「該班最後一號＋1」，並顯示班上目前用到幾號
+  const [classOptions, setClassOptions] = useState<{ id: string; label: string }[]>([]);
+  const [returnTerm, setReturnTerm] = useState('上學期');
+  const [returnClassId, setReturnClassId] = useState('');
+  const [returnSeat, setReturnSeat] = useState('');
+  const [returnSeatNote, setReturnSeatNote] = useState('');
+  const [alsoEnroll, setAlsoEnroll] = useState(true);
+  const isReturn = status === '復學';
+
+  // 載入本學年的班級；預設學期＝目前學期
+  useEffect(() => {
+    (async () => {
+      const cur = await resolveCurrentTerm();
+      if (!cur) return;
+      setReturnTerm(cur.term);
+      const { data } = await supabase.from('classes').select('id, department, grade_level, class_name').eq('academic_year', cur.academic_year);
+      setClassOptions(
+        (data ?? []).map((c: any) => ({ id: c.id, label: `${c.department} ${c.grade_level}${c.class_name}` })).sort((a, b) => a.label.localeCompare(b.label, 'zh-Hant'))
+      );
+    })();
+  }, []);
+
+  // 查到學生後，班級預設帶他最近一次所在的班（若該班屬於本學年）
+  useEffect(() => {
+    if (!studentName || !isReturn || !studentNo) return;
+    (async () => {
+      const { data } = await supabase.from('enrollments').select('class_id').eq('student_no', studentNo).order('created_at', { ascending: false }).limit(1).maybeSingle();
+      if (data?.class_id && classOptions.some((c) => c.id === data.class_id)) setReturnClassId(data.class_id);
+    })();
+  }, [studentName, isReturn, studentNo, classOptions]);
+
+  // 選班級／學期後，座號自動帶入「班上最後一號＋1」，可手動修改
+  useEffect(() => {
+    let cancelled = false;
+    setReturnSeatNote('');
+    if (!isReturn || !returnClassId || !studentNo) return;
+    suggestReturnSeat(returnClassId, returnTerm, studentNo).then((s) => {
+      if (cancelled || !s) return;
+      setReturnSeat(String(s.seat));
+      setReturnSeatNote(s.note);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isReturn, returnClassId, returnTerm, studentNo]);
 
   async function loadHiddenList() {
     setLoadingHiddenList(true);
@@ -121,6 +169,20 @@ export default function StatusChangePage() {
       alert('請先查詢確認學號正確');
       return;
     }
+    // 復學同步編班：先檢查班級、座號都填了，且座號沒被別人用，免得狀態記了卻編班失敗
+    const doEnroll = isReturn && alsoEnroll;
+    if (doEnroll) {
+      const seat = Number(returnSeat);
+      if (!returnClassId || !Number.isInteger(seat) || seat < 1) {
+        alert('請選擇復學的班級並填入座號（或取消勾選「同時編入班級」，之後再到學籍設定編班）');
+        return;
+      }
+      const { data: taken } = await supabase.from('enrollments').select('student_no').eq('class_id', returnClassId).eq('term', returnTerm).eq('seat_no', seat).maybeSingle();
+      if (taken && taken.student_no !== studentNo) {
+        alert(`座號 ${seat} 已經被學號 ${taken.student_no} 使用，請改用其他座號`);
+        return;
+      }
+    }
     setSaving(true);
 
     const { data: statusRow, error } = await supabase
@@ -152,7 +214,16 @@ export default function StatusChangePage() {
       }
     }
 
-    alert('已記錄學籍狀態變化');
+    if (doEnroll) {
+      try {
+        await upsertEnrollment(studentNo, returnClassId, returnTerm, Number(returnSeat));
+        alert(`已記錄復學，並編入班級，新座號 ${returnSeat}`);
+      } catch (enrollError: any) {
+        alert('復學狀態已記錄，但編班失敗：' + enrollError.message + '。請到「學籍設定及查詢」補編班。');
+      }
+    } else {
+      alert('已記錄學籍狀態變化');
+    }
     setSaving(false);
     setReason('');
     setFiles(null);
@@ -166,7 +237,7 @@ export default function StatusChangePage() {
       <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 16 }}>
         休學／轉學／退學／畢業／肄業／復學，直接記錄狀態變化即可，不需要審核流程。可附加佐證資料（例如休學證明、家長申請書掃描檔）。
         休學／轉學／退學／畢業／肄業這五種狀態記錄後，這位學生的出缺勤／成績等資料會自動從一般查詢畫面（成績登錄、出缺勤登錄、學生名冊等）隱藏，只有管理員查得到；
-        座號仍會保留（不會釋放給別人），復學時請另外到「學籍設定及查詢」把學生重新加入班級，資料才會恢復正常顯示（輸入學號後，座號會自動帶入原座號；原班沒有座號時則帶入該班最後一號）。
+        休學期間座號仍會保留（不會釋放給別人）。復學時選「復學」，下方會出現編班欄位：已開學的學期預設帶入班上最後一號＋1 的新座號（全班座號已安排好，不插入；並顯示班上目前用到幾號），還沒開學則沿用原座號。按儲存就同時完成狀態記錄與編班，資料立刻恢復正常顯示。
       </p>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
@@ -222,6 +293,35 @@ export default function StatusChangePage() {
             style={{ display: 'block', padding: 8, width: '100%', marginTop: 4 }}
           />
         </label>
+
+        {isReturn && (
+          <div style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12, background: 'var(--tint, #FAFAF5)' }}>
+            <label style={{ fontSize: 13, display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8 }}>
+              <input type="checkbox" checked={alsoEnroll} onChange={(e) => setAlsoEnroll(e.target.checked)} />
+              同時編入班級並換新座號（建議）
+            </label>
+            {alsoEnroll && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <select value={returnClassId} onChange={(e) => setReturnClassId(e.target.value)} style={{ padding: 8, flex: 1 }}>
+                    <option value="">選擇復學班級</option>
+                    {classOptions.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                  <select value={returnTerm} onChange={(e) => setReturnTerm(e.target.value)} style={{ padding: 8 }}>
+                    <option value="上學期">上學期</option>
+                    <option value="下學期">下學期</option>
+                  </select>
+                </div>
+                <input type="number" min={1} placeholder="新座號" value={returnSeat} onChange={(e) => setReturnSeat(e.target.value)} style={{ padding: 8 }} />
+                {returnSeatNote && <div style={{ fontSize: 12, color: 'var(--sub)' }}>{returnSeatNote}</div>}
+              </div>
+            )}
+          </div>
+        )}
 
         <label style={{ fontSize: 13 }}>
           原因（選填）
