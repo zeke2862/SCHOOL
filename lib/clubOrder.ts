@@ -8,6 +8,16 @@ const pos = (arr: string[], v: string | null | undefined) => {
   return i === -1 ? 99 : i;
 };
 
+/**
+ * 這位學生在指定學期有沒有「現行學籍」。休學、退學、轉出的學生沒有現行學籍，
+ * 社團名單／點名冊／成績表都不列出（名單序號自然往上補），資料庫裡的入社紀錄保留，復學後自動回來。
+ * enrollments 傳 students 底下展開的 enrollments（單筆或陣列）。
+ */
+export function hasCurrentEnrollment(enrollments: any, term: { academic_year: number; term: string } | null): boolean {
+  const list = Array.isArray(enrollments) ? enrollments : enrollments ? [enrollments] : [];
+  return list.some((e: any) => e?.is_current && (!term || (e?.term === term.term && e?.classes?.academic_year === term.academic_year)));
+}
+
 /** 班級的排序值（越小越前面）；沒有現行學籍的人排最後 */
 export function classSortKey(department?: string | null, grade?: string | null, className?: string | null): number {
   if (!department && !grade && !className) return 999999;

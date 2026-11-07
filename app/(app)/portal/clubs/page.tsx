@@ -21,6 +21,7 @@ type SelectionWindow = {
 export default function StudentClubSelectionPage() {
   const router = useRouter();
   const [studentNo, setStudentNo] = useState<string | null>(null);
+  const [elementary, setElementary] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [win, setWin] = useState<SelectionWindow | null>(null);
@@ -52,6 +53,20 @@ export default function StudentClubSelectionPage() {
       return;
     }
     setStudentNo(selfAccount.student_no);
+
+    // 國小學生一律由導師代填（資料庫也會擋），這裡只是先給友善的說明，不顯示選社表單
+    const { data: curEnr } = await supabase
+      .from('enrollments')
+      .select('classes(department)')
+      .eq('student_no', selfAccount.student_no)
+      .eq('is_current', true)
+      .limit(1);
+    const dept = (curEnr?.[0] as any)?.classes;
+    if ((Array.isArray(dept) ? dept[0]?.department : dept?.department) === '國小') {
+      setElementary(true);
+      setLoading(false);
+      return;
+    }
 
     const term = await resolveCurrentTerm();
     if (!term) {
@@ -182,6 +197,15 @@ export default function StudentClubSelectionPage() {
       <main style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
         <h1 style={{ fontSize: 16 }}>社團／才藝課選社</h1>
         <p style={{ fontSize: 13, color: 'var(--sub)' }}>這個功能只開放給「學生本人」帳號使用，請用學生本人的登入代碼登入後再回來這裡。</p>
+      </main>
+    );
+  }
+
+  if (elementary) {
+    return (
+      <main style={{ maxWidth: 640, margin: '0 auto', padding: 24 }}>
+        <h1 style={{ fontSize: 16 }}>社團／才藝課選社</h1>
+        <p style={{ fontSize: 13, color: 'var(--sub)' }}>國小學生的社團由班導師依學生與家長的意願代為填寫，不需要自己選擇。如有想法請告訴班導師。</p>
       </main>
     );
   }

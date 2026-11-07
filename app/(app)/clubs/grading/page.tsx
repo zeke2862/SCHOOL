@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { supabase, getCurrentTeacherId } from '@/lib/supabaseClient';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
-import { classSortKey, compareByClassThenSeat } from '@/lib/clubOrder';
+import { classSortKey, compareByClassThenSeat, hasCurrentEnrollment } from '@/lib/clubOrder';
+import { canSeeAllClubs } from '@/lib/clubAccess';
 
 type ClubOption = { id: string; name: string };
 type ScoreRow = {
@@ -49,14 +50,17 @@ export default function ClubGradingPage() {
   useEffect(() => {
     (async () => {
       const teacherId = await getCurrentTeacherId();
-      if (!teacherId) {
+      const seeAll = await canSeeAllClubs();
+      if (!teacherId && !seeAll) {
         setNoAssignment(true);
         setLoading(false);
         return;
       }
       const t = await resolveCurrentTerm();
       setTerm(t);
-      let q = supabase.from('clubs').select('id, name').eq('teacher_id', teacherId).eq('is_active', true);
+      // 教務處人員看得到全部社團；其他老師只看自己指導的
+      let q = supabase.from('clubs').select('id, name').eq('is_active', true);
+      if (!seeAll) q = q.eq('teacher_id', teacherId as string);
       if (t) {
         q = q.eq('academic_year', t.academic_year).eq('term', t.term);
         const { data: ruleRow } = await supabase
@@ -106,7 +110,7 @@ export default function ClubGradingPage() {
       .eq('club_id', clubId);
     const scoreMap = new Map((scoreRows ?? []).map((s: any) => [s.student_no, s]));
 
-    const built: ScoreRow[] = (memberRows ?? []).map((r: any) => {
+    const built: ScoreRow[] = (memberRows ?? []).filter((r: any) => hasCurrentEnrollment(r.students?.enrollments, term)).map((r: any) => {
       // club_members 和 enrollments 之間沒有直接外鍵，所以從 students 底下展開 enrollments
       const raw = r.students?.enrollments;
       const enrollmentList = Array.isArray(raw) ? raw : raw ? [raw] : [];

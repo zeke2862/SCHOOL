@@ -4,6 +4,7 @@ import HubShell from '@/components/hub/HubShell';
 import ClubRosterPage from '@/app/(app)/clubs/roster/page';
 import ClubGradingPage from '@/app/(app)/clubs/grading/page';
 import AdminClubsPage from '@/app/(app)/admin/clubs/page';
+import ClubProxyPage from '@/app/(app)/clubs/proxy/page';
 
 export default function ClubsHubPage() {
   return (
@@ -12,6 +13,7 @@ export default function ClubsHubPage() {
       renderers={{
         roster: () => <ClubRosterPage />,
         grading: () => <ClubGradingPage />,
+        proxy: () => <ClubProxyPage />,
         admin: () => <AdminClubsPage />,
       }}
     />

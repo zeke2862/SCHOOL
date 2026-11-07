@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
-import { classSortKey, compareByClassThenSeat } from '@/lib/clubOrder';
+import { classSortKey, compareByClassThenSeat, hasCurrentEnrollment } from '@/lib/clubOrder';
 import { useDepartmentPermissions } from '@/lib/useDepartmentPermissions';
-import { isDepartmentLead } from '@/lib/departments';
+import { hasDepartment } from '@/lib/departments';
+import ClassClubListPrint from '@/components/rollbook/ClassClubListPrint';
 
 type Club = {
   id: string;
@@ -46,11 +47,22 @@ function toLocalInputValue(iso: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+// 依開學日算出選社時間：開學日當天 07:00 開放，開學後第 7 天 17:00 截止（教務處可再手動微調）
+function windowFromStart(startDate: string): { opens_at: string; closes_at: string } {
+  const [y, m, d] = startDate.split('-').map(Number);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const fmt = (dt: Date, hh: number) => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(hh)}:00`;
+  const open = new Date(y, m - 1, d);
+  const close = new Date(y, m - 1, d + 7);
+  return { opens_at: fmt(open, 7), closes_at: fmt(close, 17) };
+}
+
 // 社團／才藝課管理（教務處後台）：建立社團＋手動指派名單，加上依原始需求文件實作的
 // 「選社設定」（志願序電腦抽籤兩種邏輯／即時搶選），詳見 sql/54clubs_module.sql 開頭說明。
 export default function AdminClubsPage() {
   const perms = useDepartmentPermissions();
-  const canManage = perms.isSystemAdmin || isDepartmentLead(perms.myDepartments, 'academic');
+  // 教務處承辦人（不限主管）都能看到並管理所有社團，資料庫端 admin_manage_clubs 本來就放行教務部門
+  const canManage = perms.isSystemAdmin || hasDepartment(perms.myDepartments, 'academic');
 
   const [clubs, setClubs] = useState<Club[]>([]);
   const [teachers, setTeachers] = useState<TeacherOption[]>([]);
@@ -81,6 +93,9 @@ export default function AdminClubsPage() {
   });
   const [windowMsg, setWindowMsg] = useState<string | null>(null);
   const [runningLottery, setRunningLottery] = useState(false);
+  const [termStart, setTermStart] = useState<string | null>(null);
+  const [hiddenMembers, setHiddenMembers] = useState(0);
+  const [printClasses, setPrintClasses] = useState<{ auto: boolean } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -107,6 +122,13 @@ export default function AdminClubsPage() {
         setClubs((clubRows ?? []) as Club[]);
       }
       setTeachers((teacherRows ?? []) as TeacherOption[]);
+      // 本學期開學日：選社時間依它帶入（上、下學期各自一筆設定，換學期後這裡就會跟著新學期的開學日）
+      const { data: termRow } = await supabase.from('academic_terms').select('term_start_date').eq('academic_year', t.academic_year).eq('term', t.term).maybeSingle();
+      const start: string | null = termRow?.term_start_date ?? null;
+      setTermStart(start);
+      if (!windowRow && start) {
+        setWindowForm((f) => ({ ...f, ...windowFromStart(start) }));
+      }
       if (windowRow) {
         setSelectionWindow(windowRow as SelectionWindow);
         setWindowForm({
@@ -131,7 +153,9 @@ export default function AdminClubsPage() {
       setMemberError('讀取社團名單失敗：' + memberErr.message);
       return;
     }
-    const rows: MemberRow[] = (memberRows ?? []).map((r: any) => {
+    const activeRows = (memberRows ?? []).filter((r: any) => hasCurrentEnrollment(r.students?.enrollments, term));
+    setHiddenMembers((memberRows ?? []).length - activeRows.length);
+    const rows: MemberRow[] = activeRows.map((r: any) => {
       // club_members 和 enrollments 之間沒有直接外鍵，所以從 students 底下展開 enrollments
       const raw = r.students?.enrollments;
       const enrollmentList = Array.isArray(raw) ? raw : raw ? [raw] : [];
@@ -291,6 +315,13 @@ export default function AdminClubsPage() {
     );
   }
 
+  if (printClasses && term) {
+    return <ClassClubListPrint term={term} autoPrint={printClasses.auto} onClose={() => setPrintClasses(null)} />;
+  }
+
+  // 已存在的設定若開放時間早於本學期開學日，多半是沿用上學期的舊設定，提醒教務處更新
+  const windowStale = !!(termStart && selectionWindow && new Date(selectionWindow.opens_at) < new Date(`${termStart}T00:00:00`));
+
   return (
     <main style={{ maxWidth: 960, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>社團／才藝課管理</h1>
@@ -380,8 +411,19 @@ export default function AdminClubsPage() {
             <input type="datetime-local" value={windowForm.closes_at} onChange={(e) => setWindowForm({ ...windowForm, closes_at: e.target.value })} style={{ width: '100%', padding: 6, marginTop: 4 }} />
           </label>
         </div>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
+          {term?.academic_year} 學年 {term?.term}　開學日：{termStart ?? '尚未設定（請到學年學期管理填寫）'}。上學期、下學期各有自己的一筆選社設定，換學期後請再設定一次。
+        </p>
+        {windowStale && (
+          <p style={{ fontSize: 12, color: '#B26A00', marginBottom: 8 }}>
+            目前儲存的開放時間（{new Date(selectionWindow!.opens_at).toLocaleString('zh-TW')}）早於本學期開學日，可能是沿用舊學期的設定，建議按「依開學日帶入時間」後再儲存。
+          </p>
+        )}
         {windowMsg && <p style={{ fontSize: 13, color: windowMsg.includes('失敗') ? '#A32D2D' : '#2D7A3A', marginBottom: 12 }}>{windowMsg}</p>}
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <button onClick={() => termStart && setWindowForm({ ...windowForm, ...windowFromStart(termStart) })} disabled={!termStart} style={{ padding: '8px 16px' }} title="開學日 07:00 開放，開學後第 7 天 17:00 截止">
+            依開學日帶入時間
+          </button>
           <button onClick={saveSelectionWindow} style={{ padding: '8px 16px' }}>
             儲存選社設定
           </button>
@@ -396,6 +438,21 @@ export default function AdminClubsPage() {
             已於 {selectionWindow.finalized_at ? new Date(selectionWindow.finalized_at).toLocaleString('zh-TW') : ''} 執行過抽籤，各社團名單可到下方「社團名單管理」查看與微調。
           </p>
         )}
+      </section>
+
+      <section style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 16, marginBottom: 24 }}>
+        <h2 style={{ fontSize: 14, marginBottom: 4 }}>列印各班社團名單</h2>
+        <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
+          每班一張 A4，列出全班學生（依座號）參加的社團與指導老師，可交給導師核對。可先選部別／班級，或直接一鍵列印全校所有班級。
+        </p>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <button onClick={() => setPrintClasses({ auto: true })} style={{ padding: '8px 16px', fontWeight: 600 }}>
+            一鍵列印全部班級
+          </button>
+          <button onClick={() => setPrintClasses({ auto: false })} style={{ padding: '8px 16px' }}>
+            選擇班級後列印
+          </button>
+        </div>
       </section>
 
       <section style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 16 }}>
@@ -413,6 +470,11 @@ export default function AdminClubsPage() {
         {selectedClubId && (
           <>
             {memberError && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{memberError}</p>}
+            {hiddenMembers > 0 && (
+              <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
+                另有 {hiddenMembers} 位休學／退學（無現行學籍）的學生未列入名單，復學後會自動回來。
+              </p>
+            )}
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
               <input value={newStudentNo} onChange={(e) => setNewStudentNo(e.target.value)} placeholder="輸入學號加入社團" style={{ padding: 6, flex: 1, maxWidth: 240 }} />
               <button onClick={addMember} style={{ padding: '6px 16px' }}>

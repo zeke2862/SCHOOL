@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import { supabase, getCurrentTeacherId } from '@/lib/supabaseClient';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
-import { classSortKey, compareByClassThenSeat } from '@/lib/clubOrder';
+import { classSortKey, compareByClassThenSeat, hasCurrentEnrollment } from '@/lib/clubOrder';
+import { canSeeAllClubs } from '@/lib/clubAccess';
 import ClubRollBookPrint from '@/components/rollbook/ClubRollBookPrint';
 
-type ClubOption = { id: string; name: string };
+type ClubOption = { id: string; name: string; teacher_name?: string };
 type MemberRow = { student_no: string; name: string; class_label: string; seat_no: number | null; sort_key: number };
 
 const EXCEPTION_OPTIONS = ['曠課', '遲到', '病假', '事假', '公假'] as const;
@@ -52,16 +53,21 @@ export default function ClubRosterPage() {
   useEffect(() => {
     (async () => {
       const teacherId = await getCurrentTeacherId();
-      if (!teacherId) {
+      const seeAll = await canSeeAllClubs();
+      if (!teacherId && !seeAll) {
         setNoAssignment(true);
         setLoading(false);
         return;
       }
       const t = await resolveCurrentTerm();
       setTerm(t);
-      const { data: tn } = await supabase.from('teachers').select('name').eq('id', teacherId).maybeSingle();
-      setTeacherName(tn?.name ?? '');
-      let q = supabase.from('clubs').select('id, name').eq('teacher_id', teacherId).eq('is_active', true);
+      if (teacherId) {
+        const { data: tn } = await supabase.from('teachers').select('name').eq('id', teacherId).maybeSingle();
+        setTeacherName(tn?.name ?? '');
+      }
+      // 教務處人員看得到全部社團；其他老師只看自己指導的
+      let q = supabase.from('clubs').select('id, name, external_teacher_name, teachers:teacher_id(name)').eq('is_active', true);
+      if (!seeAll) q = q.eq('teacher_id', teacherId as string);
       if (t) q = q.eq('academic_year', t.academic_year).eq('term', t.term);
       const { data, error: clubErr } = await q.order('name');
       if (clubErr) {
@@ -74,7 +80,13 @@ export default function ClubRosterPage() {
         setLoading(false);
         return;
       }
-      setClubs(data as ClubOption[]);
+      setClubs(
+        (data as any[]).map((c) => ({
+          id: c.id,
+          name: c.name,
+          teacher_name: (Array.isArray(c.teachers) ? c.teachers[0]?.name : c.teachers?.name) ?? c.external_teacher_name ?? '',
+        }))
+      );
       setSelectedClubId(data[0].id);
       setLoading(false);
     })();
@@ -94,7 +106,7 @@ export default function ClubRosterPage() {
       setLoading(false);
       return;
     }
-    const rows: MemberRow[] = (memberRows ?? []).map((r: any) => {
+    const rows: MemberRow[] = (memberRows ?? []).filter((r: any) => hasCurrentEnrollment(r.students?.enrollments, term)).map((r: any) => {
       // club_members 和 enrollments 之間沒有直接外鍵，所以從 students 底下展開 enrollments
       const raw = r.students?.enrollments;
       const enrollmentList = Array.isArray(raw) ? raw : raw ? [raw] : [];
@@ -174,7 +186,7 @@ export default function ClubRosterPage() {
     return (
       <ClubRollBookPrint
         clubName={clubs.find((c) => c.id === selectedClubId)?.name ?? ''}
-        teacherName={teacherName}
+        teacherName={clubs.find((c) => c.id === selectedClubId)?.teacher_name || teacherName}
         term={term}
         members={members}
         onClose={() => setPrinting(false)}
