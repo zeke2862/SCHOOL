@@ -50,6 +50,19 @@ export const PREVIEW_KIND_LABEL: Record<PreviewKind, string> = {
   both: '導師兼任課',
   club: '社團老師',
 };
+/** 沒有明確選過模擬類型（null）＝用帳號本人真實的導師／任課／社團資格，不模擬 */
+export function readPreviewKindOrNull(): PreviewKind | null {
+  try {
+    const v = typeof window !== 'undefined' ? sessionStorage.getItem('previewKind') : null;
+    if (v === 'homeroom' || v === 'teaching' || v === 'both' || v === 'club') return v;
+  } catch {}
+  return null;
+}
+/** 這個帳號能不能切到「教師畫面」：有管理角色（S/A/B）或任一行政部門職務的人 */
+export function canUseTeacherView(ident: Pick<MyIdentity, 'role' | 'realRole' | 'departments'> | null | undefined): boolean {
+  if (!ident) return false;
+  return ['system_admin_s', 'admin_a', 'admin_b'].includes(ident.role) || ['system_admin_s', 'admin_a', 'admin_b'].includes(ident.realRole) || ident.departments.length > 0;
+}
 export function readPreviewKind(): PreviewKind {
   try {
     const v = typeof window !== 'undefined' ? sessionStorage.getItem('previewKind') : null;
@@ -58,10 +71,11 @@ export function readPreviewKind(): PreviewKind {
   return 'both';
 }
 
-export function computeCaps(rawIdent: MyIdentity, previewTeacher = false, kind: PreviewKind = 'both'): Caps {
-  const preview = previewTeacher && rawIdent.role === 'system_admin_s';
-  // 預覽時依選的老師類型模擬導師／任課／社團資格；真正的角色與部門在下面一律歸零
-  const ident: MyIdentity = preview
+export function computeCaps(rawIdent: MyIdentity, previewTeacher = false, kind: PreviewKind | null = 'both'): Caps {
+  const preview = previewTeacher && canUseTeacherView(rawIdent);
+  // 預覽時依選的老師類型模擬導師／任課／社團資格（kind 為 null＝不模擬，用本人真實資格）；
+  // 真正的角色與部門在下面一律歸零
+  const ident: MyIdentity = preview && kind
     ? {
         ...rawIdent,
         isHomeroom: kind === 'homeroom' || kind === 'both',
@@ -201,6 +215,7 @@ export const HUBS: HubDef[] = [
     tabs: [
       { key: 'roster', label: '社團點名冊', show: (c) => c.club || c.academic },
       { key: 'grading', label: '社團成績輸入', show: (c) => c.club || c.academic },
+      { key: 'proxy', label: '班級選社代填（國小）', show: (c) => c.homeroom || c.academic, hint: '國小學生沒有帳號，由導師替全班填志願序或報名' },
       { key: 'admin', label: '社團管理與選社設定', show: (c) => c.academic },
     ],
   },

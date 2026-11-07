@@ -7,7 +7,7 @@ import { supabase, getCurrentAppUser, getCurrentTeacherId, getMyIdentity, ROLE_L
 import { startActing, stopActing } from '@/lib/delegation';
 import { useFontScale, FontScale } from '@/lib/useFontScale';
 import { isSoundMuted, setSoundMuted } from '@/lib/clickSound';
-import { PREVIEW_KIND_LABEL, readPreviewKind } from '@/lib/permissions';
+import { PREVIEW_KIND_LABEL, readPreviewKind, readPreviewKindOrNull, canUseTeacherView } from '@/lib/permissions';
 import BackgroundMusicPlayer from '@/components/BackgroundMusicPlayer';
 import ThemeSwitch from '@/components/ThemeSwitch';
 
@@ -127,6 +127,7 @@ export default function TopNav() {
       if (target === 'teacher') {
         sessionStorage.setItem('viewMode', 'teacher');
         if (kind) sessionStorage.setItem('previewKind', kind);
+        else sessionStorage.removeItem('previewKind'); // 沒指定類型＝用本人真實資格
       } else {
         sessionStorage.removeItem('viewMode');
         sessionStorage.removeItem('previewKind');
@@ -141,7 +142,10 @@ export default function TopNav() {
   }
 
   // 「預覽教師畫面」只給系統管理員S／開發人員測試用；一般主管不需要切視角（首頁已經同時列出教學與行政入口）。
-  const canSwitchIdentity = !isPortal && !!me && me.role === 'system_admin_s' && !ident?.acting;
+  // 行政人員（管理角色或任一部門職務）平常做教師工作、要做行政時才切完整管理畫面，所以都能切換；
+  // 模擬導師／任課等類型與家長視角仍只給系統管理員S（測試用）。
+  const canSwitchIdentity = !isPortal && !!me && canUseTeacherView(ident) && !ident?.acting;
+  const isSystemS = me?.role === 'system_admin_s';
   const actingOptions = ident?.actingOptions ?? [];
 
   async function handleStartActing(principalId: string) {
@@ -330,7 +334,7 @@ export default function TopNav() {
               border: `1px solid ${viewMode === 'teacher' ? '#BFE0C6' : '#E4D5A8'}`,
             }}
           >
-            {viewMode === 'teacher' ? '預覽：' + PREVIEW_KIND_LABEL[readPreviewKind()] + '畫面' : '完整管理畫面'}
+            {viewMode === 'teacher' ? (readPreviewKindOrNull() ? '預覽：' + PREVIEW_KIND_LABEL[readPreviewKind()] + '畫面' : '教師畫面（本人身分）') : '完整管理畫面'}
           </span>
         )}
       </span>
@@ -426,7 +430,14 @@ export default function TopNav() {
                     >
                       完整管理畫面
                     </button>
-                    {([['homeroom', '預覽：導師'], ['teaching', '預覽：任課教師'], ['both', '預覽：導師兼任課'], ['club', '預覽：社團老師']] as const).map(([k, label]) => (
+                    <button
+                      onClick={() => handleSwitchIdentity('teacher')}
+                      title="依您本人真實的導師／任課／社團資格顯示教師功能，不模擬"
+                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer', font: 'inherit' }}
+                    >
+                      教師畫面（本人身分）
+                    </button>
+                    {isSystemS && ([['homeroom', '預覽：導師'], ['teaching', '預覽：任課教師'], ['both', '預覽：導師兼任課'], ['club', '預覽：社團老師']] as const).map(([k, label]) => (
                       <button
                         key={k}
                         onClick={() => handleSwitchIdentity('teacher', k)}
@@ -437,7 +448,7 @@ export default function TopNav() {
                     ))}
                   </>
                 )}
-                {canSwitchIdentity && (
+                {canSwitchIdentity && isSystemS && (
                   <button
                     onClick={handlePreviewParentOfStudent}
                     title="系統管理員S專用：選一位學生，以唯讀方式預覽家長／學生端畫面"

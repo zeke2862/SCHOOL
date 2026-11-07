@@ -6,6 +6,7 @@ import { isWeakPassword } from '@/lib/weakPasswords';
 import { supabase, getCurrentAppUser, getMyIdentity, resetIdentityCache } from '@/lib/supabaseClient';
 import { BulletinPost, getPublishedPosts } from '@/lib/bulletin';
 import ThemeSwitch from '@/components/ThemeSwitch';
+import { canUseTeacherView } from '@/lib/permissions';
 
 type CardKey = 'staff' | 'parent';
 
@@ -165,6 +166,12 @@ export default function LoginPage() {
       return;
     }
     // 單純的任課／導師（沒有任何行政身分）→ 照「教師登入首頁設定」走；其他人進首頁看全部入口
+    // 行政人員平常只做教師工作：本人有導師／任課／社團資格的，登入後預設進「教師畫面（本人身分）」，
+    // 要做行政時再從上方「代理／視角」切到完整管理畫面。沒有教師資格的純行政人員維持完整管理畫面。
+    if (ident && canUseTeacherView(ident) && (ident.isHomeroom || ident.isTeaching || ident.isClubTeacher)) {
+      sessionStorage.setItem('viewMode', 'teacher');
+      sessionStorage.removeItem('previewKind');
+    }
     const plainTeacher = !!ident && ['subject_teacher', 'homeroom_teacher'].includes(ident.role) && ident.departments.length === 0;
     if (plainTeacher) {
       const { data: settingRow } = await supabase.from('teacher_login_settings').select('home_path').eq('id', true).maybeSingle();

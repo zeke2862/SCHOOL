@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getMyIdentity } from '@/lib/supabaseClient';
-import { Caps, computeCaps, readPreviewKind } from '@/lib/permissions';
+import { Caps, computeCaps, readPreviewKindOrNull } from '@/lib/permissions';
 
 /** 目前登入者的有效身分與權限（含代理期間、預覽教師畫面）。loading 期間 caps 為 null。 */
 export function useCaps(): { caps: Caps | null; loading: boolean } {
@@ -18,7 +18,7 @@ export function useCaps(): { caps: Caps | null; loading: boolean } {
         return;
       }
       const preview = typeof window !== 'undefined' && sessionStorage.getItem('viewMode') === 'teacher';
-      setCaps(computeCaps(ident, preview, readPreviewKind()));
+      setCaps(computeCaps(ident, preview, readPreviewKindOrNull()));
       setLoading(false);
     }
     load();
