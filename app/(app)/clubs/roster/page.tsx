@@ -8,7 +8,7 @@ import { classSortKey, compareByClassThenSeat, hasCurrentEnrollment } from '@/li
 import { canSeeAllClubs } from '@/lib/clubAccess';
 import ClubRollBookPrint from '@/components/rollbook/ClubRollBookPrint';
 
-type ClubOption = { id: string; name: string; teacher_name?: string };
+type ClubOption = { id: string; name: string; teacher_name?: string; location?: string };
 type MemberRow = { student_no: string; name: string; class_label: string; seat_no: number | null; sort_key: number };
 
 const EXCEPTION_OPTIONS = ['曠課', '遲到', '病假', '事假', '公假'] as const;
@@ -80,11 +80,18 @@ export default function ClubRosterPage() {
         setLoading(false);
         return;
       }
+      // 授課位置（sql/147 新增的欄位）：分開查、查不到就當作沒設定，不影響點名冊本身
+      const locByClub: Record<string, string> = {};
+      const ids = (data as any[]).map((c) => c.id);
+      const { data: locRows, error: locErr } = await supabase.from('clubs').select('id, location').in('id', ids);
+      if (!locErr) (locRows ?? []).forEach((r: any) => r.location && (locByClub[r.id] = r.location));
       setClubs(
         (data as any[]).map((c) => ({
           id: c.id,
           name: c.name,
           teacher_name: (Array.isArray(c.teachers) ? c.teachers[0]?.name : c.teachers?.name) ?? c.external_teacher_name ?? '',
+          // 沒有另外設定授課位置時，沿用社團名稱「-」後面的字（例如「弟子規-三孝」→「三孝」、「舞蹈-活動中心」→「活動中心」）
+          location: locByClub[c.id] || (/-([^-]+)$/.exec(c.name)?.[1] ?? ''),
         }))
       );
       setSelectedClubId(data[0].id);
@@ -187,6 +194,7 @@ export default function ClubRosterPage() {
       <ClubRollBookPrint
         clubName={clubs.find((c) => c.id === selectedClubId)?.name ?? ''}
         teacherName={clubs.find((c) => c.id === selectedClubId)?.teacher_name || teacherName}
+        location={clubs.find((c) => c.id === selectedClubId)?.location}
         term={term}
         members={members}
         onClose={() => setPrinting(false)}

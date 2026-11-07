@@ -18,6 +18,18 @@ export function hasCurrentEnrollment(enrollments: any, term: { academic_year: nu
   return list.some((e: any) => e?.is_current && (!term || (e?.term === term.term && e?.classes?.academic_year === term.academic_year)));
 }
 
+/**
+ * 班級當作「授課位置」時的寫法，沿用社團名稱的習慣：國小「三孝」（年級用國字）、國中「初一忠」、高中「高三忠」。
+ */
+export function classLocationLabel(c: { department: string; grade_level: string; class_name: string }): string {
+  if (c.department === '國小') {
+    const m = /^(\d)年$/.exec(c.grade_level);
+    const zh = m ? '零一二三四五六七八九'[Number(m[1])] : c.grade_level;
+    return `${zh}${c.class_name}`;
+  }
+  return `${c.grade_level}${c.class_name}`;
+}
+
 /** 班級的排序值（越小越前面）；沒有現行學籍的人排最後 */
 export function classSortKey(department?: string | null, grade?: string | null, className?: string | null): number {
   if (!department && !grade && !className) return 999999;

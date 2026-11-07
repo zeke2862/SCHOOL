@@ -7,6 +7,8 @@ import { classSortKey, compareByClassThenSeat, hasCurrentEnrollment } from '@/li
 import { useDepartmentPermissions } from '@/lib/useDepartmentPermissions';
 import { hasDepartment } from '@/lib/departments';
 import ClassClubListPrint from '@/components/rollbook/ClassClubListPrint';
+import LocationPicker from '@/components/clubs/LocationPicker';
+import { classLocationLabel } from '@/lib/clubOrder';
 
 type Club = {
   id: string;
@@ -77,8 +79,15 @@ export default function AdminClubsPage() {
     external_teacher_name: '',
     capacity: '',
     period_no: '',
+    location: '',
     description: '',
   });
+  // 授課位置：可選班級教室，或選「其它」自行輸入。欄位由 sql/147 新增，
+  // 還沒執行前讀不到，就當作都沒設定，不影響其他功能。
+  const [locationOptions, setLocationOptions] = useState<string[]>([]);
+  const [locationByClub, setLocationByClub] = useState<Record<string, string>>({});
+  const [locDraft, setLocDraft] = useState('');
+  const [locationMsg, setLocationMsg] = useState<string | null>(null);
 
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [newStudentNo, setNewStudentNo] = useState('');
@@ -122,6 +131,12 @@ export default function AdminClubsPage() {
         setClubs((clubRows ?? []) as Club[]);
       }
       setTeachers((teacherRows ?? []) as TeacherOption[]);
+      const { data: clsRows } = await supabase.from('classes').select('id, department, grade_level, class_name').eq('academic_year', t.academic_year);
+      setLocationOptions(
+        Array.from(new Set((clsRows ?? []).sort((a: any, b: any) => classSortKey(a.department, a.grade_level, a.class_name) - classSortKey(b.department, b.grade_level, b.class_name)).map((c: any) => classLocationLabel(c))))
+      );
+      const { data: locRows, error: locErr } = await supabase.from('clubs').select('id, location').eq('academic_year', t.academic_year).eq('term', t.term);
+      if (!locErr) setLocationByClub(Object.fromEntries((locRows ?? []).map((r: any) => [r.id, r.location ?? ''])));
       // 本學期開學日：選社時間依它帶入（上、下學期各自一筆設定，換學期後這裡就會跟著新學期的開學日）
       const { data: termRow } = await supabase.from('academic_terms').select('term_start_date').eq('academic_year', t.academic_year).eq('term', t.term).maybeSingle();
       const start: string | null = termRow?.term_start_date ?? null;
@@ -204,6 +219,7 @@ export default function AdminClubsPage() {
         capacity: form.capacity ? Number(form.capacity) : null,
         period_no: form.period_no ? Number(form.period_no) : null,
         description: form.description.trim() || null,
+        ...(form.location.trim() ? { location: form.location.trim() } : {}),
       })
       .select()
       .single();
@@ -212,8 +228,28 @@ export default function AdminClubsPage() {
       return;
     }
     setClubs((prev) => [...prev, data as Club].sort((a, b) => a.name.localeCompare(b.name)));
-    setForm({ name: '', teacher_id: '', external_teacher_name: '', capacity: '', period_no: '', description: '' });
+    if (form.location.trim()) setLocationByClub((prev) => ({ ...prev, [(data as Club).id]: form.location.trim() }));
+    setForm({ name: '', teacher_id: '', external_teacher_name: '', capacity: '', period_no: '', location: '', description: '' });
   }
+
+  async function saveLocation(clubId: string, value: string) {
+    setLocationMsg(null);
+    const v = value.trim();
+    const { error: updErr } = await supabase.from('clubs').update({ location: v || null }).eq('id', clubId);
+    if (updErr) {
+      setLocationMsg('儲存授課位置失敗：' + updErr.message + '（若提示欄位不存在，請先執行 sql/147_club_location.sql）');
+      return;
+    }
+    setLocationByClub((prev) => ({ ...prev, [clubId]: v }));
+    setLocationMsg('授課位置已儲存');
+  }
+
+  // 選了別的社團，授課位置的編輯草稿跟著換成該社團目前的值
+  useEffect(() => {
+    setLocDraft(selectedClubId ? locationByClub[selectedClubId] ?? '' : '');
+    setLocationMsg(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClubId]);
 
   async function addMember() {
     if (!selectedClubId || !newStudentNo.trim()) return;
@@ -365,6 +401,12 @@ export default function AdminClubsPage() {
               placeholder="例如：8（第8節）；有填才會同步進全校出缺席總表"
             />
           </label>
+          <label style={{ fontSize: 12 }}>
+            授課位置（選班級教室，或選「其它」自行輸入）
+            <div style={{ marginTop: 4 }}>
+              <LocationPicker value={form.location} options={locationOptions} onChange={(v) => setForm({ ...form, location: v })} />
+            </div>
+          </label>
         </div>
         <label style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>
           社團簡介（選填）
@@ -469,6 +511,16 @@ export default function AdminClubsPage() {
 
         {selectedClubId && (
           <>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontSize: 12 }}>
+              <span>授課位置：</span>
+              <span key={selectedClubId} style={{ display: 'inline-block', minWidth: 200 }}>
+                <LocationPicker value={locDraft} options={locationOptions} onChange={setLocDraft} />
+              </span>
+              <button onClick={() => saveLocation(selectedClubId, locDraft)} style={{ padding: '6px 14px' }}>
+                儲存
+              </button>
+              {locationMsg && <span style={{ color: locationMsg.includes('失敗') ? '#A32D2D' : '#2D7A3A' }}>{locationMsg}</span>}
+            </div>
             {memberError && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{memberError}</p>}
             {hiddenMembers > 0 && (
               <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>

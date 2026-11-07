@@ -2,6 +2,13 @@ import { supabase } from './supabaseClient';
 import { estimateTermStart } from './academicTerm';
 
 export type SeatSuggestion = { seat: number; note: string };
+
+/** 900 號以上是休學等學生的暫放座號（不是真正的班級座號） */
+const PLACEHOLDER_SEAT = 900;
+/** 班上真正用到的最後一號：只算現行學籍、且不是暫放座號 */
+function realSeatMax(rows: { seat_no: number | null; is_current: boolean }[]): number {
+  return rows.filter((r) => r.is_current && (r.seat_no ?? 0) < PLACEHOLDER_SEAT).reduce((m, r) => Math.max(m, r.seat_no ?? 0), 0);
+}
 export type ReturnSeatSuggestion = { seat: number; max: number; oldSeat: number | null; started: boolean; note: string };
 
 /**
@@ -28,12 +35,14 @@ async function termHasStarted(classId: string, term: string): Promise<boolean> {
  */
 export async function suggestReturnSeat(classId: string, term: string, studentNo: string): Promise<ReturnSeatSuggestion | null> {
   if (!classId || !term) return null;
-  const { data, error } = await supabase.from('enrollments').select('student_no, seat_no').eq('class_id', classId).eq('term', term);
+  const { data, error } = await supabase.from('enrollments').select('student_no, seat_no, is_current').eq('class_id', classId).eq('term', term);
   if (error) return null;
-  const rows = (data ?? []) as { student_no: string; seat_no: number | null }[];
+  const rows = (data ?? []) as { student_no: string; seat_no: number | null; is_current: boolean }[];
   const sn = studentNo.trim();
-  const oldSeat = rows.find((r) => r.student_no === sn)?.seat_no ?? null;
-  const max = rows.filter((r) => r.student_no !== sn).reduce((m, r) => Math.max(m, r.seat_no ?? 0), 0);
+  // 休學等學生的學籍會被改成非現行並掛上 901、902… 的暫放座號，這些不是真正的班級座號，不能拿來算「最後一號」
+  const own = rows.find((r) => r.student_no === sn);
+  const oldSeat = own?.seat_no != null && own.seat_no < PLACEHOLDER_SEAT ? own.seat_no : null;
+  const max = realSeatMax(rows.filter((r) => r.student_no !== sn));
   const started = await termHasStarted(classId, term);
   if (!started && oldSeat != null) {
     return { seat: oldSeat, max, oldSeat, started, note: `還沒開學，座號排序尚未定案，沿用原座號 ${oldSeat}` };
@@ -57,14 +66,14 @@ export async function suggestReturnSeat(classId: string, term: string, studentNo
  */
 export async function suggestSeatNo(classId: string, term: string, studentNo?: string): Promise<SeatSuggestion | null> {
   if (!classId || !term) return null;
-  const { data, error } = await supabase.from('enrollments').select('student_no, seat_no').eq('class_id', classId).eq('term', term);
+  const { data, error } = await supabase.from('enrollments').select('student_no, seat_no, is_current').eq('class_id', classId).eq('term', term);
   if (error) return null;
-  const rows = (data ?? []) as { student_no: string; seat_no: number | null }[];
+  const rows = (data ?? []) as { student_no: string; seat_no: number | null; is_current: boolean }[];
   const sn = studentNo?.trim();
   const mine = sn ? rows.find((r) => r.student_no === sn) : undefined;
-  if (mine?.seat_no != null && !(await termHasStarted(classId, term))) {
+  if (mine?.seat_no != null && mine.seat_no < PLACEHOLDER_SEAT && !(await termHasStarted(classId, term))) {
     return { seat: mine.seat_no, note: `還沒開學，沿用這位學生在本班的原座號 ${mine.seat_no}` };
   }
-  const max = rows.filter((r) => r.student_no !== sn).reduce((m, r) => Math.max(m, r.seat_no ?? 0), 0);
+  const max = realSeatMax(rows.filter((r) => r.student_no !== sn));
   return { seat: max + 1, note: `已自動帶入本班最後一號（目前最大座號 ${max}，可手動修改）` };
 }

@@ -34,12 +34,15 @@ function saturdays(startStr: string, endStr: string): Date[] {
 export default function ClubRollBookPrint({
   clubName,
   teacherName,
+  location,
   term,
   members,
   onClose,
 }: {
   clubName: string;
   teacherName: string;
+  /** 授課位置（上課的班級教室），例如「國小 6年忠」；沒設定就留空白線 */
+  location?: string;
   term: { academic_year: number; term: string } | null;
   members: ClubPrintMember[];
   onClose: () => void;
@@ -101,7 +104,7 @@ export default function ClubRollBookPrint({
           <div style={{ height: `${gapMm}mm` }}></div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', whiteSpace: 'nowrap', marginTop: 1, gap: 8 }}>
             <span style={{ fontSize: 15 }}>
-              社團：<b>{clubName}</b>　指導老師：<b>{teacherName || '　　　'}</b>　共 <b>{list.length}</b> 人
+              社團：<b>{clubName}</b>　授課位置：<b>{location || '　　　'}</b>　指導老師：<b>{teacherName || '　　　'}</b>　共 <b>{list.length}</b> 人
             </span>
             <span style={{ fontSize: 12, color: '#333' }}>符號：曠課10　遲到1　病假2　事假3　公假4　早退5</span>
             <span style={{ fontSize: 12 }}>{idx === 0 ? '正面' : '背面'}　星期六第五節</span>
