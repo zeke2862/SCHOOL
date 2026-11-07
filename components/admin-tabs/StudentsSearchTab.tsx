@@ -103,6 +103,10 @@ export default function StudentSearchPage() {
   const [seatOrder, setSeatOrder] = useState<SeatOrder>('student_no');
   const [moving, setMoving] = useState(false);
   const [moveMsg, setMoveMsg] = useState('');
+  // 直接重排座號（不換班）
+  const [reorderOrder, setReorderOrder] = useState<SeatOrder>('gender');
+  const [reordering, setReordering] = useState(false);
+  const [reorderMsg, setReorderMsg] = useState('');
   // 非本班導師／非管理員：只能看監護人聯絡電話（不給看身分證、地址等個資，見 sql/83fix_roster_pii_exposure.sql）
   const [phones, setPhones] = useState<{ name: string; rows: { relation: string; name: string | null; phone: string | null }[] | null; error?: string } | null>(null);
 
@@ -392,11 +396,11 @@ export default function StudentSearchPage() {
 
   // 重排某班某學期的座號（依學號由小到大 1、2、3…，或先男女再學號）；避開同班同學期「非現行」學籍佔用的座號。
   // 先全部改成大數字再改回來，避免中途座號重複撞到「同班同學期座號不可重複」的限制。
-  async function renumberClass(cid: string, term: string) {
+  async function renumberClass(cid: string, term: string, order: SeatOrder = seatOrder) {
     const { data } = await supabase.from('enrollments').select('id, student_no, is_current, seat_no, students(gender)').eq('class_id', cid).eq('term', term).order('id');
     const all = ((data ?? []) as any[])
       .map((r) => ({ id: r.id as string, student_no: r.student_no as string, is_current: r.is_current as boolean, seat_no: r.seat_no as number, gender: (r.students?.gender ?? null) as string | null }))
-      .sort((x, y) => compareForSeat(seatOrder, x, y));
+      .sort((x, y) => compareForSeat(order, x, y));
     const current = all.filter((r) => r.is_current);
     const used = new Set(all.filter((r) => !r.is_current).map((r) => r.seat_no));
     for (let i = 0; i < current.length; i++) {
@@ -408,6 +412,48 @@ export default function StudentSearchPage() {
       do seat++; while (used.has(seat));
       const { error } = await supabase.from('enrollments').update({ seat_no: seat }).eq('id', r.id);
       if (error) throw new Error(error.message);
+    }
+  }
+
+  // 直接重排座號（不用換班）：選一個班級，或「全部班級」＝全校，再選排序方式（依學號／先男女再學號），
+  // 只動現行學籍的座號；休學等非現行學籍佔的座號會避開。全校時每次同時處理幾個班，不用等很久。
+  async function handleReorder() {
+    const pairs = new Map<string, { cid: string; term: string; label: string }>();
+    students.forEach((s) => {
+      if (s.classes?.id) pairs.set(`${s.classes.id}|${s.term}`, { cid: s.classes.id, term: s.term, label: `${s.classes.grade_level}${s.classes.class_name}` });
+    });
+    const list = Array.from(pairs.values());
+    if (list.length === 0) {
+      alert('目前沒有可重排的班級');
+      return;
+    }
+    const orderLabel = SEAT_ORDER_OPTIONS.find((o) => o.value === reorderOrder)?.label ?? '';
+    const scope = classId ? `「${list[0].label}」` : `全校 ${list.length} 個班級`;
+    if (
+      !confirm(
+        `要把${scope}的座號重新排成「${orderLabel}」嗎？\n\n⚠️ 座號一改，已印出的點名冊、座位表就對不上了，需要重印；成績與出缺勤是跟著學生走的，不會錯亂。`
+      )
+    )
+      return;
+    setReordering(true);
+    setReorderMsg('');
+    try {
+      let done = 0;
+      const queue = [...list];
+      const worker = async () => {
+        for (let item = queue.shift(); item; item = queue.shift()) {
+          await renumberClass(item.cid, item.term, reorderOrder);
+          done++;
+          setReorderMsg(`重排中… ${done} / ${list.length} 班`);
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(6, list.length) }, worker));
+      setReorderMsg(`✅ 已重排 ${list.length} 個班級的座號（${orderLabel}）。`);
+      await loadStudents();
+    } catch (e: any) {
+      setReorderMsg('❌ 重排失敗：' + (e?.message ?? e) + '。部分班級可能已經重排，請重新整理確認。');
+    } finally {
+      setReordering(false);
     }
   }
 
@@ -485,6 +531,23 @@ export default function StudentSearchPage() {
       <p style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 8 }}>
         {loading ? '查詢中…' : `共 ${filtered.length} 位學生`}
       </p>
+
+      {canBatchMove && (
+        <div style={{ border: '1px solid var(--line)', background: '#faf9f6', borderRadius: 8, padding: '8px 12px', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', fontSize: 13 }}>
+          <span>
+            重排座號：<b>{classId ? classes.find((c) => c.id === classId)?.label ?? '所選班級' : '全校所有班級'}</b>
+          </span>
+          <select value={reorderOrder} onChange={(e) => setReorderOrder(e.target.value as SeatOrder)} style={{ padding: 6, fontSize: 12 }}>
+            {SEAT_ORDER_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          <button onClick={handleReorder} disabled={reordering || loading || students.length === 0} style={{ padding: '6px 14px', fontSize: 13, cursor: 'pointer' }}>
+            {reordering ? '重排中…' : classId ? '重排本班座號' : '重排全校座號'}
+          </button>
+          {reorderMsg && <span style={{ fontSize: 12 }}>{reorderMsg}</span>}
+        </div>
+      )}
 
       {canBatchMove && (
         <div style={{ border: '1px solid var(--line)', background: '#faf9f6', borderRadius: 8, padding: '8px 12px', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', fontSize: 13 }}>
