@@ -43,16 +43,19 @@ export default function ClassClubListPrint({
       try {
         const { data: clsRows, error: clsErr } = await supabase
           .from('classes')
-          .select('id, department, grade_level, class_name, teachers:homeroom_teacher_id(name)')
+          .select('id, department, grade_level, class_name, homeroom_teacher_id')
           .eq('academic_year', term.academic_year);
         if (clsErr) throw new Error(clsErr.message);
+        // 老師姓名分開查（內嵌關聯在這個資料庫上不穩定，會讀成空白）
+        const { data: teacherRows } = await supabase.from('teachers').select('id, name');
+        const teacherName = new Map<string, string>((teacherRows ?? []).map((t: any) => [t.id, t.name]));
         const cls: ClassInfo[] = (clsRows ?? [])
           .map((c: any) => ({
             id: c.id,
             department: c.department,
             grade_level: c.grade_level,
             class_name: c.class_name,
-            homeroom: (Array.isArray(c.teachers) ? c.teachers[0]?.name : c.teachers?.name) ?? '',
+            homeroom: (c.homeroom_teacher_id ? teacherName.get(c.homeroom_teacher_id) : '') ?? '',
           }))
           .sort((a, b) => classSortKey(a.department, a.grade_level, a.class_name) - classSortKey(b.department, b.grade_level, b.class_name));
 
@@ -62,13 +65,13 @@ export default function ClassClubListPrint({
 
         const { data: clubRows, error: clubErr } = await supabase
           .from('clubs')
-          .select('id, name, external_teacher_name, teachers:teacher_id(name)')
+          .select('id, name, teacher_id, external_teacher_name')
           .eq('academic_year', term.academic_year)
           .eq('term', term.term);
         if (clubErr) throw new Error(clubErr.message);
         const clubMap = new Map<string, { name: string; teacher: string }>();
         (clubRows ?? []).forEach((c: any) => {
-          const tn = (Array.isArray(c.teachers) ? c.teachers[0]?.name : c.teachers?.name) ?? c.external_teacher_name ?? '';
+          const tn = (c.teacher_id ? teacherName.get(c.teacher_id) : '') || c.external_teacher_name || '';
           clubMap.set(c.id, { name: c.name, teacher: tn });
         });
 

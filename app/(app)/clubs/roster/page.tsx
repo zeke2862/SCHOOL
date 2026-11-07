@@ -66,7 +66,8 @@ export default function ClubRosterPage() {
         setTeacherName(tn?.name ?? '');
       }
       // 教務處人員看得到全部社團；其他老師只看自己指導的
-      let q = supabase.from('clubs').select('id, name, external_teacher_name, teachers:teacher_id(name)').eq('is_active', true);
+      // 指導老師姓名分開查（內嵌關聯在這個資料庫上不穩定，會讀成空白）
+      let q = supabase.from('clubs').select('id, name, teacher_id, external_teacher_name').eq('is_active', true);
       if (!seeAll) q = q.eq('teacher_id', teacherId as string);
       if (t) q = q.eq('academic_year', t.academic_year).eq('term', t.term);
       const { data, error: clubErr } = await q.order('name');
@@ -85,11 +86,17 @@ export default function ClubRosterPage() {
       const ids = (data as any[]).map((c) => c.id);
       const { data: locRows, error: locErr } = await supabase.from('clubs').select('id, location').in('id', ids);
       if (!locErr) (locRows ?? []).forEach((r: any) => r.location && (locByClub[r.id] = r.location));
+      const teacherIds = Array.from(new Set((data as any[]).map((c) => c.teacher_id).filter(Boolean)));
+      const teacherNameById = new Map<string, string>();
+      if (teacherIds.length > 0) {
+        const { data: tRows } = await supabase.from('teachers').select('id, name').in('id', teacherIds);
+        (tRows ?? []).forEach((r: any) => teacherNameById.set(r.id, r.name));
+      }
       setClubs(
         (data as any[]).map((c) => ({
           id: c.id,
           name: c.name,
-          teacher_name: (Array.isArray(c.teachers) ? c.teachers[0]?.name : c.teachers?.name) ?? c.external_teacher_name ?? '',
+          teacher_name: (c.teacher_id ? teacherNameById.get(c.teacher_id) : '') || c.external_teacher_name || '',
           // 沒有另外設定授課位置時，沿用社團名稱「-」後面的字（例如「弟子規-三孝」→「三孝」、「舞蹈-活動中心」→「活動中心」）
           location: locByClub[c.id] || (/-([^-]+)$/.exec(c.name)?.[1] ?? ''),
         }))
