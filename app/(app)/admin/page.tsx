@@ -9,6 +9,7 @@ import { visibleHubs, hubVisibleTabs, type HubDef } from '@/lib/permissions';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { useTileMetrics, maxTitleLines, TileMetrics } from '@/lib/useTileMetrics';
 import { useFeatureUsage, recordUse, hubUse, levelOf, shadeBg, topSchool } from '@/lib/featureUsage';
+import HubIcon from '@/components/hub/HubIcon';
 
 // 布告欄關卡：有新公告時，先看過按「我知道」才放行（用 localStorage 記看到哪一篇）。
 const BULLETIN_ACK_KEY = 'admin_bulletin_ack_published_at';
@@ -63,6 +64,7 @@ function HubCard({ hub, count, label, desc, titleLines, tm, level, popular }: { 
       style={{ position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: tm.tileH, padding: 12, overflow: 'hidden', background: shadeBg(level), border: '1px solid var(--line)', borderRadius: 12, color: 'var(--ink)', textAlign: 'center', alignItems: 'center' }}
     >
       {popular && <span title="全校老師常用" style={{ position: 'absolute', top: 6, right: 8, fontSize: 11, color: 'var(--primary-ink)' }}>★ 全校常用</span>}
+      {tm.tileH >= 150 + (titleLines - 1) * tm.titleSize && <div style={{ marginBottom: 6 }}><HubIcon hubKey={hub.key} /></div>}
       {/* 標題區高度統一（以行數最多的標題為準），所有按鈕的說明才會對齊 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: Math.round(titleLines * tm.titleSize * 1.3), fontSize: tm.titleSize, fontWeight: 700, lineHeight: 1.3 }}>{label}</div>
       {tm.tileH >= 110 + (titleLines - 1) * tm.titleSize && <div style={{ fontSize: tm.descSize, color: 'var(--sub)', marginTop: 4, lineHeight: 1.35 }}>{desc}</div>}

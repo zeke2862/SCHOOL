@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { getHub, hubVisibleTabs } from '@/lib/permissions';
 import { useCaps } from '@/lib/useCaps';
 import { useTileMetrics, maxTitleLines } from '@/lib/useTileMetrics';
+import HubIcon from './HubIcon';
 import { useFeatureUsage, recordUse, levelOf, shadeBg, topSchool } from '@/lib/featureUsage';
 import { loadSiteContentCached, SITE_CONTENT_DEFAULTS, hubLabelKey, tabLabelKey, tabHintKey } from '@/lib/siteContent';
 
@@ -91,6 +92,7 @@ function HubShellInner({ hubKey, renderers }: { hubKey: string; renderers: Recor
               }}
             >
               {popularTabs.has(`tab:${hubKey}/${t.key}`) && <span title="全校老師常用" style={{ position: 'absolute', top: 6, right: 8, fontSize: 11, color: 'var(--primary-ink)' }}>★ 全校常用</span>}
+              {tm.tileH >= 150 + (titleLines - 1) * tm.titleSize && <HubIcon hubKey={hubKey} size={32} />}
               {/* 標題區高度統一：以字最多（行數最多）的那顆為準，所有按鈕的說明才會對齊 */}
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: Math.round(titleLines * tm.titleSize * 1.3), fontSize: tm.titleSize, fontWeight: 700, lineHeight: 1.3 }}>
                 {tabName(t.key, t.label)}

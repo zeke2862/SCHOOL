@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import UnreadNotifier from '@/components/UnreadNotifier';
 import TopNav from '@/components/TopNav';
+import SideNav from '@/components/SideNav';
 import ClickSoundListener from '@/components/ClickSoundListener';
 import { supabase } from '@/lib/supabaseClient';
 import GuestNav from '@/components/competition/GuestNav';
@@ -105,7 +106,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <ClickSoundListener />
       <TopNav />
       <UnreadNotifier />
-      {children}
+      <div className="app-shell">
+        <SideNav />
+        <div className="app-main">{children}</div>
+      </div>
     </>
   );
 }
