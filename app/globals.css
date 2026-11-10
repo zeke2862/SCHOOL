@@ -142,6 +142,9 @@ button:not(table button):not(.keep-size) {
 }
 
 @media screen and (max-width: 959px) {
+  /* 頂端「代理／視角」下拉：手機改成貼齊螢幕、置於底部按鈕列上方，不被邊緣裁掉或被底部列蓋住 */
+  .switch-menu { position: fixed !important; left: 8px !important; right: 8px !important; top: auto !important; bottom: calc(68px + env(safe-area-inset-bottom)) !important; margin: 0 !important; min-width: 0 !important; max-height: 70vh; overflow-y: auto; z-index: 50 !important; box-shadow: 0 4px 20px rgba(0,0,0,.25) !important; }
+  .switch-menu button, .switch-menu a { white-space: normal; word-break: break-word; }
   .app-main { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
   .sn-bottom { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--surface); border-top: 1px solid var(--line-strong); padding-bottom: env(safe-area-inset-bottom); }
   .sn-bottom a, .sn-bottom button {

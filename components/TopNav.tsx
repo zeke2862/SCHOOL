@@ -396,6 +396,7 @@ export default function TopNav() {
             </button>
             {switching && (
               <div
+                className="switch-menu"
                 style={{
                   position: 'absolute',
                   top: '100%',
