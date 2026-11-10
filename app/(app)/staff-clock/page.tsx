@@ -19,7 +19,7 @@ import {
   shiftLabel,
 } from '@/lib/staffClock';
 import { ClockTerm, buildDays, loadClockCalendar, loadClockRange, loadClockTerms, loadEmployees, loadLastDataAt, loadShifts, termsToYears } from '@/lib/staffClockData';
-import { DayTable, MonthPicker, StatsCards, TermPicker, btn, input } from '@/components/staff-clock/ClockParts';
+import { MonthPicker, StatsWithDays, TermPicker, btn, input } from '@/components/staff-clock/ClockParts';
 
 // 我的打卡紀錄：每位教職員只查得到「對應到自己」的打卡（資料庫 RLS 把關，不是只靠畫面隱藏）。
 // 教務處／系統管理員S／管理員A 另外可以在上方下拉選單切換查看任何人。
@@ -195,8 +195,7 @@ export default function MyStaffClockPage() {
                 {employeeLabel(selected, selected.teacher_id ? teacherNames.get(selected.teacher_id) : null)}　班別：
                 {myShifts.length ? myShifts.map(shiftLabel).join('；') : '尚未設定'}
               </div>
-              <StatsCards stats={stats} />
-              <DayTable days={days} hideEmptyOffDays />
+              <StatsWithDays stats={stats} days={days} />
             </>
           )}
           {!selected && canManage && <p style={{ fontSize: 13, color: 'var(--sub)' }}>請選擇要查看的人員。</p>}

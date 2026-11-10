@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { DaySummary, DayStatus, RangeStats, STATUS_COLOR, WEEKDAY_LABEL, fmtHours, shiftMonth } from '@/lib/staffClock';
 import type { ClockTerm } from '@/lib/staffClockData';
 
@@ -63,7 +64,20 @@ export function TermPicker({
   );
 }
 
-export function StatsCards({ stats }: { stats: RangeStats }) {
+type PickKey = '遲到' | '早退' | '漏打卡' | '缺勤' | '請假' | '公出';
+const PICKABLE: PickKey[] = ['遲到', '早退', '漏打卡', '缺勤', '請假', '公出'];
+
+/** 點選統計卡片時，哪些日子算「有這項紀錄」（與 summarizeRange 的計數規則一致） */
+function matchesPick(d: DaySummary, k: PickKey): boolean {
+  if (k === '公出') return d.status === '公出';
+  if (k === '請假') return d.status === '請假';
+  if (!d.expected) return false;
+  if (k === '遲到') return d.status === '遲到' || d.status === '遲到早退';
+  if (k === '早退') return d.status === '早退' || d.status === '遲到早退';
+  return d.status === k;
+}
+
+export function StatsCards({ stats, picked, onPick }: { stats: RangeStats; picked?: string | null; onPick?: (label: string | null) => void }) {
   const items: { label: string; value: string | number; warn?: boolean }[] = [
     { label: '應到天數', value: stats.expectedDays },
     { label: '正常', value: stats.normal },
@@ -78,16 +92,47 @@ export function StatsCards({ stats }: { stats: RangeStats }) {
   ];
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>
-      {items.map((it) => (
-        <div
-          key={it.label}
-          style={{ border: '1px solid var(--line)', borderRadius: 8, padding: '8px 12px', minWidth: 78, background: it.warn ? '#fff8f0' : 'var(--surface)' }}
-        >
-          <div style={{ fontSize: 11, color: 'var(--sub)' }}>{it.label}</div>
-          <div style={{ fontSize: 17, fontWeight: 600, color: it.warn ? '#c2410c' : 'var(--ink)' }}>{it.value}</div>
-        </div>
-      ))}
+      {items.map((it) => {
+        const clickable = !!onPick && (PICKABLE as string[]).includes(it.label);
+        const on = picked === it.label;
+        return (
+          <div
+            key={it.label}
+            onClick={clickable ? () => onPick!(on ? null : it.label) : undefined}
+            title={clickable ? '點一下只看這項的日期' : undefined}
+            style={{
+              border: on ? '2px solid var(--primary)' : '1px solid var(--line)',
+              borderRadius: 8,
+              padding: on ? '7px 11px' : '8px 12px',
+              minWidth: 78,
+              background: it.warn ? '#fff8f0' : 'var(--surface)',
+              cursor: clickable ? 'pointer' : undefined,
+            }}
+          >
+            <div style={{ fontSize: 11, color: 'var(--sub)' }}>{it.label}{clickable ? ' ▾' : ''}</div>
+            <div style={{ fontSize: 17, fontWeight: 600, color: it.warn ? '#c2410c' : 'var(--ink)' }}>{it.value}</div>
+          </div>
+        );
+      })}
     </div>
+  );
+}
+
+/** 統計卡片＋每日明細：點卡片（遲到／早退／漏打卡／缺勤／請假／公出）就列出有該紀錄的日期 */
+export function StatsWithDays({ stats, days, initialPick }: { stats: RangeStats; days: DaySummary[]; initialPick?: string | null }) {
+  const [picked, setPicked] = useState<string | null>(initialPick ?? null);
+  const hit = picked ? days.filter((d) => matchesPick(d, picked as PickKey)) : null;
+  return (
+    <>
+      <StatsCards stats={stats} picked={picked} onPick={setPicked} />
+      {hit && (
+        <p style={{ fontSize: 13, margin: '0 0 8px' }}>
+          <b>{picked}</b>：{hit.length ? `${hit.length} 天（${hit.map((d) => d.date.slice(5).replace('-', '/')).join('、')}）` : '這段期間沒有紀錄'}
+          　<button style={{ ...btn, padding: '2px 8px', fontSize: 12 }} onClick={() => setPicked(null)}>顯示全部</button>
+        </p>
+      )}
+      <DayTable days={hit ?? days} hideEmptyOffDays={!hit} />
+    </>
   );
 }
 

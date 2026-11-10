@@ -18,7 +18,7 @@ import {
   summarizeRange,
 } from '@/lib/staffClock';
 import { ClockTerm, buildDays, loadClockCalendar, loadClockRange, loadClockTerms, termsToYears } from '@/lib/staffClockData';
-import { DayTable, MonthPicker, StatsCards, StatusBadge, TermPicker, btn, input, td, th } from './ClockParts';
+import { MonthPicker, StatsWithDays, StatusBadge, TermPicker, btn, input, td, th } from './ClockParts';
 
 type Props = {
   employees: ClockEmployee[];
@@ -44,6 +44,7 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openCode, setOpenCode] = useState<number | null>(null);
+  const [pick, setPick] = useState<string | null>(null); // 點表格裡的遲到／早退…數字，展開該人並只列出那類日期
   const [terms, setTerms] = useState<ClockTerm[]>([]);
   const [termKey, setTermKey] = useState('');
   const [yearKey, setYearKey] = useState('');
@@ -130,6 +131,13 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
         };
       });
   }, [employees, shifts, records, overrides, holidays, periods, range.dates, showInactive, teacherNames]);
+
+  function pickCell(e: React.MouseEvent, code: number, label: string, n: number) {
+    if (n <= 0) return; // 沒有紀錄時維持原本「點整列展開」
+    e.stopPropagation();
+    setPick(label);
+    setOpenCode(code);
+  }
 
   const autoHolidays = holidays.filter((h) => h.name.startsWith('自動判定')).sort((a, b) => a.holiday_date.localeCompare(b.holiday_date));
 
@@ -231,7 +239,7 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
                 const warn = (n: number) => (n > 0 ? { color: '#c2410c', fontWeight: 600 } : undefined);
                 return (
                   <Fragment key={r.emp.device_code}>
-                    <tr onClick={() => setOpenCode(open ? null : r.emp.device_code)} style={{ cursor: 'pointer', background: open ? '#f6f8ff' : undefined, opacity: r.emp.active ? 1 : 0.5 }}>
+                    <tr onClick={() => { setPick(null); setOpenCode(open ? null : r.emp.device_code); }} style={{ cursor: 'pointer', background: open ? '#f6f8ff' : undefined, opacity: r.emp.active ? 1 : 0.5 }}>
                       <td style={td}>{r.emp.device_code}</td>
                       <td style={td}>
                         {open ? '▾ ' : '▸ '}
@@ -243,10 +251,10 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
                       </td>
                       <td style={td}>{r.stats.expectedDays}</td>
                       <td style={td}>{r.stats.normal}</td>
-                      <td style={{ ...td, ...warn(r.stats.late) }}>{r.stats.late}</td>
-                      <td style={{ ...td, ...warn(r.stats.early) }}>{r.stats.early}</td>
-                      <td style={{ ...td, ...warn(r.stats.missing) }}>{r.stats.missing}</td>
-                      <td style={{ ...td, ...warn(r.stats.absent) }}>{r.stats.absent}</td>
+                      <td style={{ ...td, ...warn(r.stats.late), textDecoration: r.stats.late > 0 ? 'underline' : undefined }} onClick={(e) => pickCell(e, r.emp.device_code, '遲到', r.stats.late)} title="點一下看日期">{r.stats.late}</td>
+                      <td style={{ ...td, ...warn(r.stats.early), textDecoration: r.stats.early > 0 ? 'underline' : undefined }} onClick={(e) => pickCell(e, r.emp.device_code, '早退', r.stats.early)} title="點一下看日期">{r.stats.early}</td>
+                      <td style={{ ...td, ...warn(r.stats.missing), textDecoration: r.stats.missing > 0 ? 'underline' : undefined }} onClick={(e) => pickCell(e, r.emp.device_code, '漏打卡', r.stats.missing)} title="點一下看日期">{r.stats.missing}</td>
+                      <td style={{ ...td, ...warn(r.stats.absent), textDecoration: r.stats.absent > 0 ? 'underline' : undefined }} onClick={(e) => pickCell(e, r.emp.device_code, '缺勤', r.stats.absent)} title="點一下看日期">{r.stats.absent}</td>
                       <td style={td}>{r.stats.leave}</td>
                       <td style={td}>{r.stats.official}</td>
                       <td style={td}>{r.stats.lateMinutes}</td>
@@ -255,8 +263,7 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
                     {open && (
                       <tr>
                         <td colSpan={13} style={{ padding: 12, background: '#fbfcff', borderBottom: '1px solid var(--line)' }}>
-                          <StatsCards stats={r.stats} />
-                          <DayTable days={r.days} hideEmptyOffDays />
+                          <StatsWithDays key={`${r.emp.device_code}-${pick ?? ''}`} stats={r.stats} days={r.days} initialPick={pick} />
                         </td>
                       </tr>
                     )}
