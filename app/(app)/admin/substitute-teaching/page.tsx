@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useDepartmentPermissions } from '@/lib/useDepartmentPermissions';
+import { isDepartmentLead } from '@/lib/departments';
 import LeaveForm from '@/components/leave/LeaveForm';
-import { PendingLeavePanel } from '@/components/leave/LeaveList';
+import { ApproveLeavePanel, PendingLeavePanel } from '@/components/leave/LeaveList';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
 
 // 代課安排：登記某節課由誰代課。
@@ -332,6 +333,14 @@ export default function SubstituteTeachingPage() {
       </p>
       {loadError && <p style={{ fontSize: 13, color: '#A32D2D', marginBottom: 12 }}>{loadError}</p>}
 
+      <section id="approve-leave" style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 16, marginBottom: 24 }}>
+        <h2 style={{ fontSize: 14, marginBottom: 4 }}>待核准的請假</h2>
+        <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 12 }}>
+          老師自己送出的請假要由教務主任同意後才生效；同意後系統才會通知請假老師與代課老師（並提醒先做課程交接）。教務處代為輸入的請假不用核准。
+        </p>
+        <ApproveLeavePanel teachers={teachers} canDecide={perms.isSystemAdmin || isDepartmentLead(perms.myDepartments, 'academic')} refreshKey={leaveRefresh} onChanged={() => { setLeaveRefresh((k) => k + 1); load(); }} />
+      </section>
+
       <section id="proxy-leave" style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 16, marginBottom: 24 }}>
         <h2 style={{ fontSize: 14, marginBottom: 4 }}>代為輸入請假（臨時接到請假通知）</h2>
         <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 12 }}>
@@ -509,7 +518,7 @@ export default function SubstituteTeachingPage() {
                 <td style={{ padding: 8 }}>{a.reason || '—'}</td>
                 <td style={{ padding: 8 }}>{a.status}</td>
                 <td style={{ padding: 8 }}>
-                  {(a.status === '已排定' || a.status === '待安排') && (
+                  {(a.status === '已排定' || a.status === '待安排' || a.status === '待核准') && (
                     <button onClick={() => handleCancel(a)} style={{ fontSize: 12, padding: '4px 10px' }}>
                       取消
                     </button>

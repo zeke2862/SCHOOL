@@ -164,13 +164,18 @@ export default function LeaveForm(props: {
       requested_by: userId,
       created_by: userId,
       entered_by_academic: mode === 'proxy',
-      status: p.substituteId ? '已排定' : '待安排',
+      // 教師自己請假：先「待核准」，教務主任同意後才生效並通知代課老師；教務處代為輸入則立即生效
+      status: mode === 'self' ? '待核准' : p.substituteId ? '已排定' : '待安排',
     }));
     const noSub = rows.filter((r) => !r.substitute_teacher_id).length;
     const msg =
-      `${mode === 'proxy' ? teacherName + ' ' : ''}共請假 ${rows.length} 節` +
-      (noSub ? `，其中 ${noSub} 節還沒選代課老師（會先列為「待安排」，由教務處之後安排）` : '，每一節都已指定代課老師') +
-      '。確定送出嗎？';
+      mode === 'self'
+        ? `共請假 ${rows.length} 節` +
+          (noSub ? `，其中 ${noSub} 節還沒選代課老師（核准後會列為「待安排」，由教務處安排）` : '') +
+          '。\n\n送出後會通知教務主任，等教務主任同意後才正式生效，代課老師也要等核准後才會收到通知。\n請您先與預定的代課老師當面或對話聯絡，做好課程進度與教材的交接。\n\n確定送出嗎？'
+        : `${teacherName} 共請假 ${rows.length} 節` +
+          (noSub ? `，其中 ${noSub} 節還沒選代課老師（會先列為「待安排」，由教務處之後安排）` : '，每一節都已指定代課老師') +
+          '。確定送出嗎？';
     if (!confirm(msg)) return;
     setBusy(true);
     const { error } = await supabase.from('substitute_assignments').insert(rows);
@@ -180,7 +185,16 @@ export default function LeaveForm(props: {
       alert(dup ? '其中有幾節已經登記過請假／代課了（同一班同一天同一節只能登記一次），請到下方清單查看，必要時先取消再重新登記。' : '送出失敗：' + error.message);
       return;
     }
-    alert('已送出。系統會發站內通知給請假老師與代課老師。');
+    if (mode === 'self') {
+      // 通知教務主任的站內通知由資料庫產生；這裡立刻把佇列裡的通知信寄出
+      supabase.auth.getSession().then(({ data }) => {
+        const token = data.session?.access_token;
+        if (token) fetch('/api/delegation/notify', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+      });
+      alert('已送出，已通知教務主任（並寄信提醒），等待核准。\n核准後系統才會通知代課老師；請您先與預定的代課老師聯絡，完成課程交接。');
+    } else {
+      alert('已送出。系統會發站內通知給請假老師與代課老師。');
+    }
     setDays([]);
     setOptions({});
     setFrom('');
