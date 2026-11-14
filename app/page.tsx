@@ -7,6 +7,7 @@ import { supabase, getCurrentAppUser, getMyIdentity, resetIdentityCache } from '
 import { BulletinPost, getPublishedPosts } from '@/lib/bulletin';
 import ThemeSwitch from '@/components/ThemeSwitch';
 import { canUseTeacherView } from '@/lib/permissions';
+import { getGameMode } from '@/lib/gameMode';
 
 type CardKey = 'staff' | 'parent';
 
@@ -175,7 +176,8 @@ export default function LoginPage() {
     const plainTeacher = !!ident && ['subject_teacher', 'homeroom_teacher'].includes(ident.role) && ident.departments.length === 0;
     if (plainTeacher) {
       const { data: settingRow } = await supabase.from('teacher_login_settings').select('home_path').eq('id', true).maybeSingle();
-      router.push(settingRow?.home_path || '/admin');
+      // 選了 RPG／經營面板的人，登入後直接到有面板的首頁；沒選的照學校設定的登入首頁走
+      router.push(getGameMode() !== 'classic' ? '/admin' : settingRow?.home_path || '/admin');
       return;
     }
     router.push('/admin');

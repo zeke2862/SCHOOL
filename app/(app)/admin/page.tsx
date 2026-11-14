@@ -159,8 +159,9 @@ export default function AdminHomePage() {
         </div>
       )}
 
-      {/* 遊戲化面板：預設「原始」不顯示；有教師身分且不是代理中才顯示（進度屬於本人） */}
-      {gameMode !== 'classic' && caps.ident.teacherId && !caps.ident.acting && !caps.preview && (
+      {/* 遊戲化面板：預設「原始」不顯示；有教師身分且不是代理中才顯示（進度屬於本人）。
+          「預覽教師畫面」仍是本人，所以也要顯示（行政人員平常就是在教師畫面）。 */}
+      {gameMode !== 'classic' && caps.ident.teacherId && !caps.ident.acting && (
         <GameHome key={gameMode} teacherId={caps.ident.teacherId} mode={gameMode} />
       )}
 
