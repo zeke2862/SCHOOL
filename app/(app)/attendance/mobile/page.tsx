@@ -37,6 +37,7 @@ type PeriodEntry = {
   classId: string;
   classLabel?: string;
   source: PeriodSource;
+  isSubstitute?: boolean;
 };
 type StudentRow = { student_no: string; seat_no: number; name: string };
 type ClassOption = { id: string; label: string; grade_level: string };
@@ -213,7 +214,29 @@ export default function MobileAttendancePage() {
         .eq('teacher_id', teacherRowId)
         .eq('weekday', weekday);
       if (currentTerm) scheduleQuery = scheduleQuery.eq('academic_year', currentTerm.academic_year).eq('term', currentTerm.term);
-      const { data: teachRows } = await scheduleQuery;
+      const { data: scheduleRows } = await scheduleQuery;
+
+      // 代課：當天已排定（或已完成）的代課安排。
+      //  - 我是原任課教師：那一節當天改由代課老師點名，從我的節次清單隱藏
+      //  - 我是代課教師：那一節加進我的節次清單（標示「代課」）
+      const { data: subRows } = await supabase
+        .from('substitute_assignments')
+        .select('class_id, period_no, subject, original_teacher_id, substitute_teacher_id')
+        .eq('substitute_date', date)
+        .in('status', ['已排定', '已完成'])
+        .or(`original_teacher_id.eq.${teacherRowId},substitute_teacher_id.eq.${teacherRowId}`);
+      const coveredAway = new Set(
+        (subRows ?? [])
+          .filter((s: any) => s.original_teacher_id === teacherRowId && s.substitute_teacher_id && s.substitute_teacher_id !== teacherRowId)
+          .map((s: any) => `${s.class_id}-${s.period_no}`),
+      );
+      const subInRows = (subRows ?? []).filter((s: any) => s.substitute_teacher_id === teacherRowId);
+      const teachRows = [
+        ...(scheduleRows ?? []).filter((r: any) => !coveredAway.has(`${r.class_id}-${r.period_no}`)),
+        ...subInRows
+          .filter((s: any) => !(scheduleRows ?? []).some((r: any) => r.class_id === s.class_id && r.period_no === s.period_no))
+          .map((s: any) => ({ period_no: s.period_no, subject: s.subject, class_id: s.class_id, isSubstitute: true })),
+      ];
 
       // 任課節次可能橫跨不同班級，先把用得到的班級名稱一次查回來，節次按鈕上才看得出來是哪個班。
       const classIds = Array.from(new Set((teachRows ?? []).map((r: any) => r.class_id)));
@@ -236,6 +259,7 @@ export default function MobileAttendancePage() {
           classId: r.class_id,
           classLabel: classLabelById.get(r.class_id),
           source: 'teach' as const,
+          isSubstitute: !!r.isSubstitute,
         }));
 
       let homeroomEntries: PeriodEntry[] = [];
@@ -586,7 +610,7 @@ export default function MobileAttendancePage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              第{p.period_no}節{p.classLabel && p.source !== 'admin' ? `・${p.classLabel}` : ''}
+              第{p.period_no}節{p.classLabel && p.source !== 'admin' ? `・${p.classLabel}` : ''}{p.isSubstitute ? '（代課）' : ''}
             </button>
           );
         })}
