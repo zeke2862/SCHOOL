@@ -1,5 +1,6 @@
 import './globals.css';
 import LangSwitch from '@/components/LangSwitch';
+import OpenInBrowser from '@/components/OpenInBrowser';
 
 export const metadata = {
   title: '學校成績系統',
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body style={{ margin: 0 }}>
+        <OpenInBrowser />
         {children}
         <LangSwitch />
       </body>
