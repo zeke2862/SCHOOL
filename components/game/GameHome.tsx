@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { GameMode } from '@/lib/gameMode';
+import PetCard from '@/components/game/PetCard';
+import GardenCard from '@/components/game/GardenCard';
 import {
   BUILDINGS, IDLE_CAP_HOURS, Profile, Quest, EMPTY_PROFILE,
   claim, levelOf, levelRange, loadProfile, loadQuests, pending, perHour, saveProfile, titleOf, upgradeCost,
@@ -122,6 +124,7 @@ export default function GameHome({ teacherId, mode }: { teacherId: string; mode:
       <section style={{ ...card, marginBottom: 20, background: 'var(--primary-soft)' }}>
         {header}
         {toastEl}
+        <PetCard profile={profile} commit={commit} notify={setToast} sleepy={!!profile.last_day && (Date.now() - new Date(profile.last_day + 'T00:00:00+08:00').getTime()) / 86400000 > 4} />
         {newNotices.length > 0 && (
           <div style={{ background: '#FFF4D6', border: '1px solid #E4D5A8', borderRadius: 10, padding: '10px 12px', marginBottom: 12 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#8A5A00' }}>🔔 新任務出現！（{newNotices.length}）</div>
@@ -138,7 +141,7 @@ export default function GameHome({ teacherId, mode }: { teacherId: string; mode:
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {quests.map((q) => (
             <div key={q.key} style={{ ...card, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', opacity: q.done ? 0.55 : 1 }}>
-              <span style={{ fontSize: 18 }}>{q.done ? '✅' : q.kind === 'notice' ? '📜' : '⬜'}</span>
+              <span style={{ fontSize: 18 }}>{q.done ? '✅' : q.kind === 'notice' ? '📜' : q.kind === 'clock' ? '⏰' : '⬜'}</span>
               <div style={{ flex: 1, fontSize: 14 }}>
                 {q.title}
                 {q.sub && <div style={{ fontSize: 12, color: 'var(--sub)' }}>{q.sub}</div>}
@@ -177,6 +180,13 @@ export default function GameHome({ teacherId, mode }: { teacherId: string; mode:
     }
     const nt = quests.filter((q) => q.kind === 'notice');
     const left = nt.filter((q) => !q.done).length;
+    if (key === 'gate') {
+      const ck = quests.filter((q) => q.kind === 'clock');
+      const left = ck.filter((q) => !q.done).length;
+      const visitors = quests.filter((q) => q.kind === 'notice' && !q.done).length;
+      if (ck.length > 0 && left > 0) return { text: `${left} 次打卡未完成`, href: '/clock' };
+      return { text: visitors === 0 ? '大廳很安靜' : `${visitors} 位訪客等你接待`, href: visitors === 0 ? '/clock' : '/notifications' };
+    }
     if (key === 'office') return { text: left === 0 ? '沒有待處理的通知' : `${left} 件待處理`, href: '/notifications' };
     return { text: left === 0 ? '大廳很安靜' : `${left} 位訪客等你接待`, href: '/notifications' };
   };
@@ -232,6 +242,7 @@ export default function GameHome({ teacherId, mode }: { teacherId: string; mode:
           );
         })}
       </div>
+      <GardenCard profile={profile} commit={commit} notify={setToast} now={now} />
       <p style={{ fontSize: 12, color: 'var(--sub)', margin: '10px 0 0' }}>建築會自己累積星星，不用盯著畫面。完成點名、處理通知也會直接獲得星星與經驗值。</p>
       {footer}
     </section>

@@ -19,6 +19,9 @@ create table if not exists public.game_profiles (
   updated_at timestamptz not null default now()
 );
 
+-- 寵物（飼料、領養的夥伴）與花園（花圃、圖鑑）。已經執行過舊版的人，重跑這份即可補上欄位
+alter table public.game_profiles add column if not exists extras jsonb not null default '{}'::jsonb;
+
 alter table public.game_profiles enable row level security;
 
 drop policy if exists game_profiles_own on public.game_profiles;

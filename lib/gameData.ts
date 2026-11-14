@@ -8,7 +8,7 @@ import { resolveCurrentTerm } from '@/lib/academicTerm';
 
 export type Quest = {
   key: string;
-  kind: 'rollcall' | 'notice';
+  kind: 'rollcall' | 'notice' | 'clock';
   title: string;
   sub?: string;
   xp: number;
@@ -17,6 +17,10 @@ export type Quest = {
 };
 
 export type Building = { lv: number; t: number };
+export type Plot = { plant: string; t: number; bonus: number };
+// 寵物與花園：飼料（任務換來、拿去餵寵物）、已領養的寵物（種類 → 已餵食量）、花圃、圖鑑
+export type Extras = { food: number; active: string | null; pets: Record<string, number>; plots: (Plot | null)[]; dex: string[] };
+export const EMPTY_EXTRAS: Extras = { food: 0, active: null, pets: {}, plots: [null, null], dex: [] };
 export type Profile = {
   xp: number;
   stars: number;
@@ -25,9 +29,11 @@ export type Profile = {
   claimed_day: string | null;
   claimed: string[];
   buildings: Record<string, Building>;
+  extras: Extras;
 };
 
-export const EMPTY_PROFILE: Profile = { xp: 0, stars: 0, streak: 0, last_day: null, claimed_day: null, claimed: [], buildings: {} };
+export const EMPTY_PROFILE: Profile = { xp: 0, stars: 0, streak: 0, last_day: null, claimed_day: null, claimed: [], buildings: {}, extras: EMPTY_EXTRAS };
+const mergeExtras = (e: any): Extras => ({ ...EMPTY_EXTRAS, ...(e && typeof e === 'object' ? e : {}) });
 
 const NOTICE_TARGET: Record<string, { href: string; label: string }> = {
   審核通知: { href: '/review?tab=portal-requests', label: '家長／學生帳號申請' },
@@ -119,6 +125,30 @@ export async function loadQuests(teacherId: string): Promise<Quest[]> {
     }
   }
 
+  // 打卡：有對應到打卡機代碼的教職員，平日（非放假）才有上班／下班兩個任務
+  if (weekday <= 5) {
+    try {
+      const [{ data: emp }, { data: hol }] = await Promise.all([
+        supabase.from('clock_employee_map').select('device_code').eq('teacher_id', teacherId).eq('active', true).limit(1),
+        supabase.from('clock_holidays').select('holiday_date').eq('holiday_date', today).limit(1),
+      ]);
+      const code = emp?.[0]?.device_code;
+      if (code != null && !(hol && hol.length)) {
+        const { data: recs } = await supabase.from('clock_records').select('punched_at, voided').eq('device_code', code).eq('punch_date', today).order('punched_at');
+        const times = (recs ?? []).filter((r: any) => !r.voided).map((r: any) => new Date(r.punched_at).getTime());
+        const hhmm = (t: number) => new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', hour12: false }).format(t);
+        const hasIn = times.length > 0;
+        const hasOut = times.length > 1 && times[times.length - 1] - times[0] >= 3 * 3600000;
+        quests.unshift(
+          { key: `ck-in:${today}`, kind: 'clock', title: '上班打卡', sub: hasIn ? `${hhmm(times[0])} 已打卡` : '今天還沒有打卡紀錄', xp: 10, done: hasIn, href: '/clock' },
+          { key: `ck-out:${today}`, kind: 'clock', title: '下班打卡', sub: hasOut ? `${hhmm(times[times.length - 1])} 已打卡` : '下班時記得打卡', xp: 10, done: hasOut, href: '/clock' },
+        );
+      }
+    } catch {
+      /* 打卡資料讀不到就不出打卡任務，不影響其他任務 */
+    }
+  }
+
   // 通知：未讀的是「新任務」，今天已讀的算完成
   const startOfToday = `${today}T00:00:00+08:00`;
   const [{ data: unread }, { data: handled }] = await Promise.all([
@@ -136,6 +166,14 @@ export async function loadQuests(teacherId: string): Promise<Quest[]> {
 
 // ---- 玩家進度：優先存資料庫，沒建表就退回這台瀏覽器 ----
 const localKey = (id: string) => `game_profile_${id}`;
+function localExtras(id: string): any {
+  try {
+    const raw = localStorage.getItem(localKey(id));
+    return raw ? JSON.parse(raw).extras : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function loadProfile(teacherId: string): Promise<{ profile: Profile; remote: boolean }> {
   try {
@@ -152,6 +190,8 @@ export async function loadProfile(teacherId: string): Promise<{ profile: Profile
           claimed_day: data.claimed_day ?? null,
           claimed: Array.isArray(data.claimed) ? data.claimed : [],
           buildings: data.buildings && typeof data.buildings === 'object' ? data.buildings : {},
+          // 資料庫還沒有 extras 欄位時，用這台裝置暫存的
+          extras: mergeExtras(data.extras ?? localExtras(teacherId)),
         },
       };
     }
@@ -160,7 +200,10 @@ export async function loadProfile(teacherId: string): Promise<{ profile: Profile
   }
   try {
     const raw = localStorage.getItem(localKey(teacherId));
-    if (raw) return { profile: { ...EMPTY_PROFILE, ...JSON.parse(raw) }, remote: false };
+    if (raw) {
+      const j = JSON.parse(raw);
+      return { profile: { ...EMPTY_PROFILE, ...j, extras: mergeExtras(j.extras) }, remote: false };
+    }
   } catch {
     /* 略過 */
   }
@@ -168,14 +211,19 @@ export async function loadProfile(teacherId: string): Promise<{ profile: Profile
 }
 
 export async function saveProfile(teacherId: string, p: Profile, remote: boolean): Promise<void> {
-  if (remote) {
-    const { error } = await supabase.from('game_profiles').upsert({ teacher_id: teacherId, ...p, updated_at: new Date().toISOString() });
-    if (!error) return;
-  }
+  // 一律在本機留一份（資料庫缺 extras 欄位時，寵物與花園靠這份）
   try {
     localStorage.setItem(localKey(teacherId), JSON.stringify(p));
   } catch {
     /* 略過 */
+  }
+  if (remote) {
+    const row = { teacher_id: teacherId, ...p, updated_at: new Date().toISOString() };
+    const { error } = await supabase.from('game_profiles').upsert(row);
+    if (error) {
+      const { extras: _x, ...core } = row;
+      await supabase.from('game_profiles').upsert(core);
+    }
   }
 }
 
@@ -196,6 +244,7 @@ export function claim(p: Profile, quests: Quest[]): { profile: Profile; gained: 
     streak,
     last_day: today,
     claimed: [...base.claimed, ...fresh.map((q) => q.key)],
+    extras: { ...base.extras, food: base.extras.food + gained },
   };
   return { profile: next, gained, levelUp: levelOf(next.xp) > levelOf(base.xp) };
 }
@@ -212,4 +261,59 @@ export const upgradeCost = (lv: number) => 40 * lv;
 export function pending(b: Building, now: number): number {
   const hours = Math.min(IDLE_CAP_HOURS, Math.max(0, (now - b.t) / 3600000));
   return Math.floor(hours * perHour(b.lv));
+}
+
+// ---- RPG：寵物 ----
+// 每次任務完成換同樣數量的「飼料」，拿去餵寵物；XP 只增不減（決定等級），不會因為餵食倒退。
+export type Species = { key: string; name: string; emoji: string; unlock: number; hello: string[] };
+export const SPECIES: Species[] = [
+  { key: 'chick', name: '小雞', emoji: '🐥', unlock: 1, hello: ['啾啾！', '今天也要加油喔', '我肚子有點餓～'] },
+  { key: 'cat', name: '小貓', emoji: '🐱', unlock: 1, hello: ['喵～', '摸摸我就有精神了', '點名完了嗎？'] },
+  { key: 'dog', name: '小狗', emoji: '🐶', unlock: 3, hello: ['汪汪！', '我陪你上課', '散步時間到了嗎？'] },
+  { key: 'rabbit', name: '兔兔', emoji: '🐰', unlock: 5, hello: ['蹦蹦跳跳', '你辛苦了', '想吃紅蘿蔔'] },
+  { key: 'fox', name: '狐狸', emoji: '🦊', unlock: 8, hello: ['嘿嘿，我看到你很認真', '今天的任務很順利', '本狐很滿意'] },
+  { key: 'panda', name: '熊貓', emoji: '🐼', unlock: 12, hello: ['慢慢來，不急', '吃竹子，休息一下', '你很棒'] },
+  { key: 'unicorn', name: '獨角獸', emoji: '🦄', unlock: 16, hello: ['閃閃發光', '你是傳說級老師', '魔法加持中'] },
+];
+export const STAGES: { min: number; label: string; size: number }[] = [
+  { min: 0, label: '蛋', size: 34 },
+  { min: 30, label: '幼崽', size: 34 },
+  { min: 100, label: '成長期', size: 46 },
+  { min: 250, label: '完全體', size: 58 },
+];
+export const FEED_AMOUNT = 10;
+export function stageOf(fed: number): number {
+  let s = 0;
+  STAGES.forEach((st, i) => {
+    if (fed >= st.min) s = i;
+  });
+  return s;
+}
+
+// ---- 經營：花園 ----
+// 等待是免費的、加速要花星星，所以放著不管也一定賺；澆水／施肥只是用星星換時間。
+export type PlantDef = { key: string; name: string; flower: string; fruit: string; seed: number; hours: number; reward: number };
+export const PLANTS: PlantDef[] = [
+  { key: 'sunflower', name: '向日葵', flower: '🌻', fruit: '🌻', seed: 10, hours: 4, reward: 18 },
+  { key: 'strawberry', name: '草莓', flower: '🌸', fruit: '🍓', seed: 15, hours: 6, reward: 30 },
+  { key: 'tomato', name: '番茄', flower: '🌼', fruit: '🍅', seed: 20, hours: 8, reward: 42 },
+  { key: 'lavender', name: '薰衣草', flower: '🪻', fruit: '🪻', seed: 25, hours: 10, reward: 55 },
+  { key: 'apple', name: '蘋果樹', flower: '🌸', fruit: '🍎', seed: 40, hours: 16, reward: 95 },
+];
+export const WATER_COST = 3;
+export const WATER_HOURS = 1;
+export const FERT_COST = 10;
+export const FERT_HOURS = 4;
+export const MAX_PLOTS = 6;
+export const plotCost = (count: number) => 50 * (count - 1);
+export function plantProgress(pl: Plot, def: PlantDef, now: number): number {
+  const hours = Math.max(0, (now - pl.t) / 3600000) + pl.bonus;
+  return Math.min(1, hours / def.hours);
+}
+export function plantStage(def: PlantDef, p: number): { e: string; size: number; label: string } {
+  if (p >= 1) return { e: def.fruit, size: 44, label: '可收成' };
+  if (p >= 0.75) return { e: def.flower, size: 38, label: '開花' };
+  if (p >= 0.5) return { e: '🪴', size: 32, label: '花苞' };
+  if (p >= 0.25) return { e: '🌿', size: 28, label: '長葉' };
+  return { e: '🌱', size: 24, label: '發芽' };
 }
