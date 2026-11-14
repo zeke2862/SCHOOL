@@ -26,6 +26,11 @@ const nextConfig = {
         source: '/images/:path*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
+      // 遊戲面板插圖：快取 30 天（沒設成 immutable，之後若換圖檔，最久 30 天內大家會自動更新）
+      {
+        source: '/game/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=2592000' }],
+      },
       {
         source: '/scheduler/:path*',
         headers: [{ key: 'Cache-Control', value: 'no-cache, must-revalidate' }],

@@ -1,7 +1,47 @@
-import type { ReactNode } from 'react';
+'use client';
 
-// 遊戲面板用的向量插圖：全部是行內 SVG，不載入任何圖檔、不連外部網路，
-// 每張只有幾個圖形元素，對頁面速度的影響可以忽略。viewBox 統一是 100 x 100。
+import { useState, type ReactNode } from 'react';
+
+// 遊戲面板用的插圖。
+//   1. 優先用 public/game 裡的 WebP 圖（Canva 繪製，每張約 10KB、透明背景，共 35 張）。
+//      只有顯示面板的人才會載入，而且用到哪張才載哪張（lazy）；原始面板完全不載。
+//   2. 圖片載入失敗（檔案不見、網路不通）時，自動退回下面這組行內 SVG，畫面不會破圖。
+// SVG 的 viewBox 統一是 100 x 100。
+
+function ArtImg({ file, size, scale = 1, alt, fallback, filter }: { file: string; size: number; scale?: number; alt: string; fallback: ReactNode; filter?: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <>{fallback}</>;
+  const w = Math.round(size * scale);
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'flex-end', justifyContent: 'center', width: size, height: size, lineHeight: 0 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`/game/${file}.webp`} width={w} height={w} alt={alt} loading="lazy" decoding="async" draggable={false} onError={() => setFailed(true)} style={{ display: 'block', filter }} />
+    </span>
+  );
+}
+
+export function PetArt(p: { species: string; stage: number; sleepy?: boolean; size?: number }) {
+  const size = p.size ?? 64;
+  const scale = [0.78, 0.66, 0.84, 1][Math.max(0, Math.min(3, p.stage))];
+  return (
+    <ArtImg
+      file={p.stage <= 0 ? 'pet-egg' : `pet-${p.species}-${Math.min(3, p.stage)}`}
+      size={size}
+      scale={scale}
+      alt={p.stage <= 0 ? '蛋' : '寵物'}
+      filter={p.sleepy ? 'saturate(0.55) brightness(0.97)' : undefined}
+      fallback={<PetSvg {...p} />}
+    />
+  );
+}
+
+export function PlantArt(p: { plant: string; progress: number; size?: number }) {
+  const size = p.size ?? 64;
+  if (p.plant === 'none') return <PlantSvg {...p} />;
+  const st = p.progress >= 1 ? 4 : p.progress >= 0.75 ? 3 : p.progress >= 0.5 ? 2 : p.progress >= 0.25 ? 1 : 0;
+  const file = st === 0 ? 'plant-sprout' : st === 1 ? 'plant-leaf' : st === 2 ? 'plant-bud' : `plant-${p.plant}-${st === 3 ? 'flower' : 'fruit'}`;
+  return <ArtImg file={file} size={size} alt="植物" fallback={<PlantSvg {...p} />} />;
+}
 
 const INK = '#3B2F2A';
 const BLUSH = '#FF9FB0';
@@ -206,7 +246,7 @@ function PetFront({ k, c }: { k: string; c: PetDef }): ReactNode {
   return null;
 }
 
-export function PetArt({ species, stage, sleepy = false, size = 64 }: { species: string; stage: number; sleepy?: boolean; size?: number }) {
+function PetSvg({ species, stage, sleepy = false, size = 64 }: { species: string; stage: number; sleepy?: boolean; size?: number }) {
   const c = PET[species] ?? PET.chick;
   // 蛋：用物種主色畫幾塊斑點，孵化前就能看出是哪一隻
   if (stage <= 0) {
@@ -254,7 +294,7 @@ function Leaf({ x, y, dir, s = 1 }: { x: number; y: number; dir: 1 | -1; s?: num
   return <path transform={`translate(${x} ${y}) scale(${dir * s} ${s})`} d="M0 0 C6 -10 16 -10 20 -4 C14 4 6 6 0 0 Z" fill="#5BBF72" stroke="#3E9A56" strokeWidth="1" strokeLinejoin="round" />;
 }
 
-export function PlantArt({ plant, progress, size = 64 }: { plant: string; progress: number; size?: number }) {
+function PlantSvg({ plant, progress, size = 64 }: { plant: string; progress: number; size?: number }) {
   const st = progress >= 1 ? 4 : progress >= 0.75 ? 3 : progress >= 0.5 ? 2 : progress >= 0.25 ? 1 : 0;
   const topY = 74 - [6, 18, 30, 40, 42][st];
   const cx = 50;

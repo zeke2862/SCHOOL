@@ -24,8 +24,9 @@ mask = mask.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.8
 rgba.putalpha(mask)
 
 # 裁到主體範圍再置中放進正方形
+# 第 4 個參數 nocrop：不裁切（植物各階段要維持同樣大小的花盆，不能每張都被放大到填滿）
 box = rgba.getchannel('A').point(lambda v: 255 if v > 24 else 0).getbbox()
-if box:
+if box and not (len(sys.argv) > 4 and sys.argv[4] == 'nocrop'):
     rgba = rgba.crop(box)
 w, h = rgba.size
 scale = (side * 0.94) / max(w, h)
