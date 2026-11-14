@@ -10,6 +10,7 @@ import { isSoundMuted, setSoundMuted } from '@/lib/clickSound';
 import { PREVIEW_KIND_LABEL, readPreviewKind, readPreviewKindOrNull, canUseTeacherView } from '@/lib/permissions';
 import BackgroundMusicPlayer from '@/components/BackgroundMusicPlayer';
 import ThemeSwitch from '@/components/ThemeSwitch';
+import GameModeSwitch from '@/components/GameModeSwitch';
 
 const ADMIN_ROLES: UserRole[] = ['system_admin_s', 'admin_a', 'admin_b'];
 
@@ -342,6 +343,7 @@ export default function TopNav() {
         {!isPortal && me && (
           <>
             <ThemeSwitch />
+            <GameModeSwitch />
             {/* 字級 大/中/小：中是預設，套用到整個畫面（含按鈕、留白），不只是文字。 */}
             <span style={{ display: 'flex', gap: 2, alignItems: 'center', fontSize: 11 }} title="字級">
               {(['small', 'medium', 'large'] as FontScale[]).map((s) => (

@@ -10,6 +10,8 @@ import { useIsMobile } from '@/lib/useIsMobile';
 import { useTileMetrics, maxTitleLines, TileMetrics } from '@/lib/useTileMetrics';
 import { useFeatureUsage, recordUse, hubUse, levelOf, shadeBg, topSchool } from '@/lib/featureUsage';
 import HubIcon from '@/components/hub/HubIcon';
+import GameHome from '@/components/game/GameHome';
+import { useGameMode } from '@/lib/gameMode';
 
 // 布告欄關卡：有新公告時，先看過按「我知道」才放行（用 localStorage 記看到哪一篇）。
 const BULLETIN_ACK_KEY = 'admin_bulletin_ack_published_at';
@@ -81,6 +83,7 @@ export default function AdminHomePage() {
   const [bulletinAcked, setBulletinAcked] = useState(true);
   const [manageOpen, setManageOpen] = useState<boolean | null>(null);
   const usage = useFeatureUsage();
+  const gameMode = useGameMode();
   // 方形按鈕自動大小：按鈕少就大、按鈕多（管理職）就自動縮小，整體約佔畫面高度的 2/3
   const allHubs = caps ? visibleHubs(caps).filter((h) => h.key !== 'clock') : [];
   const tileTotal =
@@ -154,6 +157,11 @@ export default function AdminHomePage() {
         <div style={{ background: '#EAF3EC', border: '1px solid #BFE0C6', color: '#3B6D11', padding: '8px 12px', borderRadius: 8, marginBottom: 16, fontSize: 13 }}>
           目前是「預覽教師畫面」，只顯示一般教師看得到的功能。
         </div>
+      )}
+
+      {/* 遊戲化面板：預設「原始」不顯示；有教師身分且不是代理中才顯示（進度屬於本人） */}
+      {gameMode !== 'classic' && caps.ident.teacherId && !caps.ident.acting && !caps.preview && (
+        <GameHome key={gameMode} teacherId={caps.ident.teacherId} mode={gameMode} />
       )}
 
       {favs.length > 0 && (
