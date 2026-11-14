@@ -336,9 +336,9 @@ export default function SubstituteTeachingPage() {
       <section id="approve-leave" style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 16, marginBottom: 24 }}>
         <h2 style={{ fontSize: 14, marginBottom: 4 }}>待核准的請假</h2>
         <p style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 12 }}>
-          老師自己送出的請假要由教務主任同意後才生效；同意後系統才會通知請假老師與代課老師（並提醒先做課程交接）。教務處代為輸入的請假不用核准。
+          老師自己送出的請假要由教務主任同意後才生效（教務主任自己的請假由校長／管理員S核定，任何人都不能核定自己的請假）；同意後系統才會通知請假老師與代課老師（並提醒先做課程交接）。教務處代為輸入的請假不用核准。
         </p>
-        <ApproveLeavePanel teachers={teachers} canDecide={perms.isSystemAdmin || isDepartmentLead(perms.myDepartments, 'academic')} refreshKey={leaveRefresh} onChanged={() => { setLeaveRefresh((k) => k + 1); load(); }} />
+        <ApproveLeavePanel teachers={teachers} isLead={isDepartmentLead(perms.myDepartments, 'academic')} isPrincipal={perms.isSystemAdmin} refreshKey={leaveRefresh} onChanged={() => { setLeaveRefresh((k) => k + 1); load(); }} />
       </section>
 
       <section id="proxy-leave" style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 16, marginBottom: 24 }}>

@@ -164,7 +164,20 @@ export function PendingLeavePanel({ term, teachers, onChanged, refreshKey }: { t
 }
 
 /** 教務主任（教務處主管／系統管理員S）：老師自己送出的請假，在這裡同意或退回；同意後才通知代課老師 */
-export function ApproveLeavePanel({ teachers, canDecide, onChanged, refreshKey }: { teachers: TeacherOption[]; canDecide: boolean; onChanged: () => void; refreshKey: number }) {
+export function ApproveLeavePanel({ teachers, isLead, isPrincipal, onChanged, refreshKey }: { teachers: TeacherOption[]; isLead: boolean; isPrincipal: boolean; onChanged: () => void; refreshKey: number }) {
+  // 規則：一般老師的請假由教務主任（或校長／管理員S）核定；教務主任自己的請假只能由校長（管理員S）核定；
+  // 任何人都不能核定自己的請假。資料庫端同樣會擋。
+  const [leadIds, setLeadIds] = useState<Set<string>>(new Set());
+  const [myTeacherId, setMyTeacherId] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.rpc('academic_lead_teacher_ids').then(({ data }) => setLeadIds(new Set((data ?? []) as string[])));
+    supabase.auth.getUser().then(async ({ data }) => {
+      const uid = data.user?.id;
+      if (!uid) return;
+      const { data: t } = await supabase.from('teachers').select('id').eq('app_user_id', uid).maybeSingle();
+      setMyTeacherId(t?.id ?? null);
+    });
+  }, []);
   const [rows, setRows] = useState<Row[]>([]);
   const [busy, setBusy] = useState(false);
   const names = Object.fromEntries(teachers.map((t) => [t.id, t.name]));
@@ -209,6 +222,10 @@ export function ApproveLeavePanel({ teachers, canDecide, onChanged, refreshKey }
       {groups.map((g) => {
         const first = g[0];
         const dates = Array.from(new Set(g.map((r) => r.substitute_date))).sort();
+        const byLead = leadIds.has(first.original_teacher_id);
+        const mine = !!myTeacherId && first.original_teacher_id === myTeacherId;
+        const can = !mine && (byLead ? isPrincipal : isPrincipal || isLead);
+        const why = mine ? '這是您自己的請假，不能自己核定，請由另一位核定人處理。' : byLead ? '教務主任的請假由校長（管理員S）核定。' : '只有教務主任（教務處主管）可以同意或退回。';
         return (
           <div key={first.leave_group ?? first.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: 12, background: '#fffaf0' }}>
             <div style={{ fontSize: 13, marginBottom: 6 }}>
@@ -228,13 +245,13 @@ export function ApproveLeavePanel({ teachers, canDecide, onChanged, refreshKey }
                 ))}
               </tbody>
             </table>
-            {canDecide ? (
+            {can ? (
               <span style={{ display: 'flex', gap: 8 }}>
                 <button disabled={busy} onClick={() => decide(g, true)} style={{ padding: '4px 14px', fontSize: 13 }}>同意</button>
                 <button disabled={busy} onClick={() => decide(g, false)} style={{ padding: '4px 14px', fontSize: 13 }}>退回</button>
               </span>
             ) : (
-              <span style={{ fontSize: 12, color: 'var(--sub)' }}>只有教務主任（教務處主管）可以同意或退回。</span>
+              <span style={{ fontSize: 12, color: 'var(--sub)' }}>{why}</span>
             )}
           </div>
         );
