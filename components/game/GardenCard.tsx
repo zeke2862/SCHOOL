@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { PlantArt } from '@/components/game/GameArt';
 import { FERT_COST, FERT_HOURS, MAX_PLOTS, PLANTS, Profile, WATER_COST, WATER_HOURS, plantProgress, plantStage, plotCost } from '@/lib/gameData';
 
 // 經營面板的花園：種子 → 發芽 → 長葉 → 花苞 → 開花 → 結果。
@@ -35,7 +36,7 @@ export default function GardenCard({ profile, commit, notify, now }: { profile: 
           if (!pl) {
             return (
               <div key={i} style={{ ...card, textAlign: 'center' }}>
-                <div style={{ fontSize: 26, opacity: 0.5 }}>🟫</div>
+                <div style={{ lineHeight: 0, opacity: 0.55 }}><PlantArt plant="none" progress={0} size={56} /></div>
                 {picking === i ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
                     {PLANTS.map((d) => (
@@ -49,7 +50,7 @@ export default function GardenCard({ profile, commit, notify, now }: { profile: 
                           notify(`種下了${d.name}，${d.hours} 小時後成熟`);
                         }}
                       >
-                        <span>{d.flower} {d.name}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><PlantArt plant={d.key} progress={1} size={22} />{d.name}</span>
                         <span>{d.seed}⭐</span>
                       </button>
                     ))}
@@ -67,9 +68,10 @@ export default function GardenCard({ profile, commit, notify, now }: { profile: 
           const remain = d.hours - ((now - pl.t) / 3600000 + pl.bonus);
           return (
             <div key={i} style={{ ...card, textAlign: 'center' }}>
-              <div style={{ fontSize: s.size, lineHeight: 1.2, height: 54, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ display: 'inline-block', transformOrigin: '50% 100%', animation: p >= 1 ? 'gm-glow 1.6s ease-in-out infinite' : 'gm-sway 3s ease-in-out infinite' }}>{s.e}</span>
-                {p >= 1 && <span style={{ fontSize: 16 }}>✨</span>}
+              <div style={{ lineHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ display: 'inline-block', transformOrigin: '50% 100%', animation: p >= 1 ? 'gm-glow 1.6s ease-in-out infinite' : 'gm-sway 3s ease-in-out infinite' }}>
+                  <PlantArt plant={d.key} progress={p} size={84} />
+                </span>
               </div>
               <div style={{ fontSize: 13, fontWeight: 700 }}>{d.name} · {s.label}</div>
               <div style={{ height: 6, borderRadius: 3, background: 'var(--primary-soft)', overflow: 'hidden', margin: '5px 0 3px' }}>
@@ -129,8 +131,13 @@ export default function GardenCard({ profile, commit, notify, now }: { profile: 
           </div>
         )}
       </div>
-      <div style={{ fontSize: 12, color: 'var(--sub)', marginTop: 8 }}>
-        圖鑑 {ex.dex.length} / {PLANTS.length}：{PLANTS.map((d) => (ex.dex.includes(d.key) ? d.fruit : '❔')).join(' ')}
+      <div style={{ fontSize: 12, color: 'var(--sub)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+        圖鑑 {ex.dex.length} / {PLANTS.length}：
+        {PLANTS.map((d) => (
+          <span key={d.key} title={ex.dex.includes(d.key) ? d.name : '尚未收成'} style={{ lineHeight: 0, filter: ex.dex.includes(d.key) ? 'none' : 'grayscale(1) opacity(.35)' }}>
+            <PlantArt plant={d.key} progress={1} size={28} />
+          </span>
+        ))}
         <span style={{ marginLeft: 8 }}>💧 +{WATER_HOURS} 小時　🧪 +{FERT_HOURS} 小時</span>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { FEED_AMOUNT, Profile, SPECIES, STAGES, levelOf, stageOf } from '@/lib/gameData';
+import { PetArt } from '@/components/game/GameArt';
 
 // RPG 面板上的小寵物：任務換來的飼料拿去餵，吃夠了就進化。
 // 不會餓死、不會生氣；太久沒來只是在打瞌睡，回來摸一下就醒了。
@@ -18,7 +19,8 @@ export default function PetCard({ profile, commit, notify, sleepy }: { profile: 
 
   const choose = (key: string) => {
     const sp = SPECIES.find((s) => s.key === key);
-    if (!sp || lv < sp.unlock) return;
+    // 第一隻可以自由挑任何一種；之後要換、要收集，其他夥伴依等級解鎖
+    if (!sp || (ex.active && lv < sp.unlock && !(key in ex.pets))) return;
     commit({ ...profile, extras: { ...ex, active: key, pets: { ...ex.pets, [key]: ex.pets[key] ?? 0 } } });
     setLine('');
     notify(ex.active ? `換成${sp.name}出場` : `${sp.name}的蛋孵化中，多完成任務來餵牠吧`);
@@ -31,13 +33,13 @@ export default function PetCard({ profile, commit, notify, sleepy }: { profile: 
         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>🥚 選一顆蛋，領養你的第一位夥伴</div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {SPECIES.map((s) => (
-            <button key={s.key} onClick={() => choose(s.key)} style={{ ...(lv >= s.unlock ? btnGhost : { ...btnGhost, opacity: 0.45, cursor: 'not-allowed' }), display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 20 }}>{lv >= s.unlock ? s.emoji : '🔒'}</span>
-              {lv >= s.unlock ? s.name : `Lv ${s.unlock}`}
+            <button key={s.key} onClick={() => choose(s.key)} style={{ ...btnGhost, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '6px 10px' }}>
+              <PetArt species={s.key} stage={2} size={48} />
+              {s.name}
             </button>
           ))}
         </div>
-        <p style={{ fontSize: 11, color: 'var(--sub)', margin: '6px 0 0' }}>之後升級還會解鎖新的夥伴，可以隨時換。</p>
+        <p style={{ fontSize: 11, color: 'var(--sub)', margin: '6px 0 0' }}>第一隻可以自由挑選；其他夥伴會隨等級解鎖（之後都能換出場）。</p>
       </div>
     );
   }
@@ -48,7 +50,6 @@ export default function PetCard({ profile, commit, notify, sleepy }: { profile: 
   const st = STAGES[stage];
   const next = STAGES[stage + 1];
   const pct = next ? ((fed - st.min) / (next.min - st.min)) * 100 : 100;
-  const face = stage === 0 ? '🥚' : sp.emoji;
 
   return (
     <div style={card}>
@@ -57,11 +58,12 @@ export default function PetCard({ profile, commit, notify, sleepy }: { profile: 
         <button
           aria-label={`${sp.name}，點一下互動`}
           onClick={() => setLine(sleepy ? '嗯…你回來啦（揉眼睛）' : sp.hello[Math.floor(Math.random() * sp.hello.length)])}
-          style={{ position: 'relative', width: 74, height: 74, border: 'none', background: 'var(--primary-soft)', borderRadius: '50%', cursor: 'pointer', fontSize: st.size, lineHeight: 1, minHeight: 0, padding: 0, animation: sleepy ? 'none' : 'gm-bounce 2.2s ease-in-out infinite' }}
+          style={{ position: 'relative', width: 84, height: 84, border: 'none', background: 'var(--primary-soft)', borderRadius: '50%', cursor: 'pointer', lineHeight: 0, minHeight: 0, padding: 0, animation: sleepy ? 'none' : 'gm-bounce 2.2s ease-in-out infinite' }}
         >
-          <span key={evolve} style={{ display: 'inline-block', animation: evolve ? 'gm-pop .6s' : 'none' }}>{face}</span>
-          {stage === 3 && <span style={{ position: 'absolute', top: -2, right: 4, fontSize: 20 }}>👑</span>}
-          {sleepy && <span style={{ position: 'absolute', top: 2, right: 2, fontSize: 18 }}>😴</span>}
+          <span key={evolve} style={{ display: 'inline-block', animation: evolve ? 'gm-pop .6s' : 'none' }}>
+            <PetArt species={sp.key} stage={stage} sleepy={sleepy} size={80} />
+          </span>
+          {sleepy && <span style={{ position: 'absolute', top: 0, right: 0, fontSize: 16, lineHeight: 1 }}>💤</span>}
         </button>
         <div style={{ flex: 1, minWidth: 160 }}>
           <div style={{ fontSize: 14, fontWeight: 700 }}>{sp.name} · {st.label}</div>
@@ -94,11 +96,11 @@ export default function PetCard({ profile, commit, notify, sleepy }: { profile: 
         <summary style={{ fontSize: 12, color: 'var(--sub)', cursor: 'pointer' }}>我的夥伴（{Object.keys(ex.pets).length} / {SPECIES.length}）· 換一隻出場</summary>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
           {SPECIES.map((s) => {
-            const open = lv >= s.unlock;
             const mine = s.key in ex.pets;
+            const open = mine || lv >= s.unlock;
             return (
               <button key={s.key} onClick={() => choose(s.key)} style={{ ...btnGhost, opacity: open ? 1 : 0.45, cursor: open ? 'pointer' : 'not-allowed', border: s.key === ex.active ? '2px solid var(--primary)' : '1px solid var(--line-strong)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 18 }}>{open ? s.emoji : '🔒'}</span>
+                <span style={{ lineHeight: 0, filter: open ? 'none' : 'grayscale(1)' }}><PetArt species={s.key} stage={mine ? Math.max(1, stageOf(ex.pets[s.key] ?? 0)) : 1} size={32} /></span>
                 <span style={{ fontSize: 12 }}>{open ? (mine ? STAGES[stageOf(ex.pets[s.key] ?? 0)].label : '新夥伴') : `Lv ${s.unlock}`}</span>
               </button>
             );
