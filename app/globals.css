@@ -250,8 +250,26 @@ button:not(table button):not(.keep-size) {
   html[data-game='idle'] .sn-item:hover:not(.on)::before { content: '🌱'; }
 
   /* ===== 全站遊戲層（components/game/GameLayer.tsx）：狀態列、小夥伴、任務完成提示 ===== */
-  .game-hud { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 5px 14px; font-size: 13px; color: var(--ink); background: var(--primary-soft); border-bottom: 2px solid var(--line-strong); }
-  .game-hud b { font-weight: 800; }
+  /* 場景橫幅：每一頁在遊戲世界裡的地點（lib/gameScenes.ts）＋等級、星星、今日任務 */
+  .game-scene { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 16px; color: var(--ink); border-bottom: 3px solid var(--game-edge); }
+  html[data-game='rpg'] .game-scene { background: linear-gradient(90deg, #E6CD97, #F7EAC8 50%, #EADFF8); }
+  html[data-game='idle'] .game-scene { background: linear-gradient(90deg, #DDF3D2, #F7FFF2 50%, #FFE9F0); border-bottom: 3px dashed var(--line-strong); }
+  .game-scene-badge { flex: none; width: 42px; height: 42px; display: grid; place-items: center; font-size: 22px; line-height: 1; background: var(--surface); border: 2px solid var(--game-edge); border-radius: 10px; box-shadow: 0 3px 0 var(--game-edge); }
+  html[data-game='idle'] .game-scene-badge { border-radius: 50%; border-color: var(--line-strong); box-shadow: 0 3px 8px rgba(63, 165, 107, .25); }
+  .game-scene-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+  .game-scene-name { font-size: 16px; font-weight: 800; letter-spacing: .06em; }
+  .game-scene-line { font-size: 12px; color: var(--sub); }
+  .game-scene-stats { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 13px; }
+  .game-scene-stats b { font-weight: 800; }
+  .game-quest-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; white-space: nowrap; color: #3A2716; text-decoration: none; background: var(--game-gold); border: 2px solid var(--game-edge); border-radius: 999px; box-shadow: 0 2px 0 var(--game-edge); }
+  html[data-game='idle'] .game-quest-chip { background: #FFE3EC; border-color: #FFB3C7; box-shadow: none; }
+  @media (max-width: 640px) {
+    .game-scene { padding: 6px 10px; gap: 4px 8px; }
+    .game-scene-badge { width: 34px; height: 34px; font-size: 18px; }
+    .game-scene-line { display: none; }
+    .game-scene-stats { margin-left: 0; width: 100%; gap: 2px 10px; font-size: 12px; }
+  }
+
   .game-bar { display: inline-block; width: 90px; height: 9px; border-radius: 6px; background: var(--surface); border: 1.5px solid var(--game-edge); overflow: hidden; vertical-align: middle; }
   .game-bar > i { display: block; height: 100%; background: var(--game-gold); transition: width .5s; }
   .game-toast { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 9998; max-width: calc(100vw - 24px); padding: 10px 18px; border-radius: var(--game-radius); background: #FFF4D6; color: #6B4400; border: 2px solid var(--game-edge); box-shadow: 0 4px 0 var(--game-edge); font-size: 14px; font-weight: 700; cursor: pointer; animation: gm-drop .35s ease-out; }
@@ -262,9 +280,73 @@ button:not(table button):not(.keep-size) {
   @keyframes gm-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
   .game-bubble { max-width: 200px; padding: 8px 12px; margin-bottom: 30px; font-size: 13px; line-height: 1.5; color: var(--ink); background: var(--surface); border: 2px solid var(--game-edge); border-radius: var(--game-radius); box-shadow: 0 3px 0 var(--game-edge); }
   @media (min-width: 960px) { .game-buddy { left: 188px; bottom: 12px; } }
+  /* ===== 遊戲版：各介面的細部換裝 ===== */
+  /* 大標題底下的裝飾線：RPG＝卷軸雙線；經營＝粉紅波浪線 */
+  html[data-game='rpg'] h1 { padding-bottom: 6px; border-bottom: 3px double var(--game-edge); }
+  html[data-game='idle'] h1 { text-decoration: underline wavy #FFB3C7 2px; text-underline-offset: 8px; padding-bottom: 8px; }
+
+  /* 功能方塊：滑過去左上角出現「出發／逛逛」小牌子 */
+  html[data-game] .tile { position: relative; }
+  html[data-game] .tile::after { position: absolute; left: 6px; top: 6px; padding: 1px 8px; font-size: 11px; font-weight: 700; line-height: 1.6; border-radius: 999px; opacity: 0; transform: translateY(-4px); transition: opacity .15s, transform .15s; pointer-events: none; }
+  html[data-game='rpg'] .tile::after { content: '▶ 出發'; background: var(--game-gold); color: #3A2716; border: 1.5px solid var(--game-edge); }
+  html[data-game='idle'] .tile::after { content: '🌱 逛逛'; background: #FFE3EC; color: #A8456A; border: 1.5px solid #FFB3C7; }
+  html[data-game] .tile:hover::after, html[data-game] .tile:focus-visible::after { opacity: 1; transform: none; }
+
+  /* 表格：滑過的那一列淡淡亮起，對得準資料（自己有底色的格子不動，狀態色照舊） */
+  html[data-game='rpg'] tbody tr:hover > td:not([style*='background']) { background: rgba(242, 183, 5, .13); }
+  html[data-game='idle'] tbody tr:hover > td:not([style*='background']) { background: rgba(255, 179, 199, .16); }
+  html[data-game] thead th:not([style*='border']) { border-bottom: 2px solid var(--game-edge); }
+
+  /* 連結：滑過去出現底線顏色 */
+  html[data-game] .app-main a:not([class]):not([style]):hover { text-decoration: underline; text-decoration-color: var(--game-gold); text-decoration-thickness: 2px; }
+
+  /* 手機底部按鈕列與功能面板 */
+  html[data-game] .sn-bottom { border-top: 4px solid var(--game-edge); }
+  html[data-game='rpg'] .sn-bottom { background: #F7EAC8; }
+  html[data-game='idle'] .sn-bottom { background: #F7FFF2; border-top: 3px dashed var(--line-strong); }
+  html[data-game] .sn-bottom .on { background: var(--game-gold); color: #3A2716; }
+  html[data-game='idle'] .sn-bottom .on { background: #FFE3EC; color: #A8456A; }
+  html[data-game] .sn-panel { border: 3px solid var(--game-edge); border-bottom: 0; }
+  html[data-game] .sn-grid a { border: 2px solid var(--line-strong); box-shadow: 0 3px 0 var(--game-edge); border-radius: var(--game-radius); }
+  html[data-game='idle'] .sn-grid a { box-shadow: 0 4px 10px rgba(63, 165, 107, .16); }
+  html[data-game] .sn-grid a.on { background: var(--game-gold); border-color: var(--game-edge); }
+  html[data-game='idle'] .sn-grid a.on { background: #FFE3EC; }
+
+  /* 頂端下拉選單（代理／視角） */
+  html[data-game] .switch-menu { border: 2px solid var(--game-edge) !important; border-radius: var(--game-radius) !important; box-shadow: 0 4px 0 var(--game-edge) !important; }
+
+  /* 收合區塊的小三角 */
+  html[data-game='rpg'] summary::marker { color: var(--game-edge); }
+  html[data-game='idle'] summary::marker { color: #FF9BB5; }
+
+  /* ===== 歡迎畫面：第一次登入選擇風格（components/game/GameWelcome.tsx）===== */
+  .game-welcome { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 14px; background: rgba(30, 30, 40, .55); overflow-y: auto; }
+  .game-welcome-box { width: 100%; max-width: 680px; margin: auto; padding: 22px 20px 16px; text-align: center; background: #FFFDF6; color: #2B2B2B; border-radius: 20px; box-shadow: 0 12px 40px rgba(0, 0, 0, .3); animation: gm-pop .3s ease-out; }
+  @keyframes gm-pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+  .game-welcome-title { font-size: 22px; font-weight: 800; }
+  .game-welcome-sub { margin: 6px 0 16px; font-size: 13px; color: #6B6B6B; line-height: 1.6; }
+  .game-welcome-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .game-welcome-card { display: flex !important; flex-direction: column; align-items: center; gap: 4px; padding: 16px 12px 14px !important; min-height: 0; cursor: pointer; font: inherit; text-align: center; transition: transform .15s, box-shadow .15s; }
+  .game-welcome-card:hover { transform: translateY(-4px) !important; filter: none !important; }
+  .game-welcome-rpg { background: #F7EAC8 !important; color: #3A2716 !important; border: 3px solid #8E5F2F !important; border-radius: 10px !important; box-shadow: 0 5px 0 #8E5F2F !important; }
+  .game-welcome-idle { background: #F2FAEC !important; color: #2C4A2B !important; border: 3px solid #9ACD87 !important; border-radius: 24px !important; box-shadow: 0 8px 18px rgba(63, 165, 107, .25) !important; }
+  .game-welcome-art { height: 90px; display: flex; align-items: flex-end; justify-content: center; line-height: 0; }
+  .game-welcome-name { font-size: 20px; font-weight: 800; letter-spacing: .05em; }
+  .game-welcome-tag { font-size: 13px; opacity: .8; }
+  .game-welcome-points { display: flex; flex-direction: column; gap: 2px; margin: 8px 0 10px; font-size: 13px; line-height: 1.5; text-align: left; }
+  .game-welcome-go { padding: 5px 22px; font-size: 15px; font-weight: 800; border-radius: 999px; }
+  .game-welcome-rpg .game-welcome-go { background: #F2B705; border: 2px solid #8E5F2F; }
+  .game-welcome-idle .game-welcome-go { background: #3FA56B; color: #fff; }
+  .game-welcome-skip { margin-top: 14px; background: none !important; border: none !important; box-shadow: none !important; color: #777 !important; font-size: 13px !important; text-decoration: underline; cursor: pointer; }
+  @media (max-width: 560px) {
+    .game-welcome-grid { grid-template-columns: 1fr; }
+    .game-welcome-title { font-size: 19px; }
+    .game-welcome-art { height: 76px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    html[data-game] h1::before, .game-buddy-btn, .game-toast { animation: none; }
+    html[data-game] h1::before, .game-buddy-btn, .game-toast, .game-welcome-box { animation: none; }
     html[data-game] .tile:hover { transform: none; }
   }
 }
-@media print { .game-hud, .game-buddy, .game-toast { display: none !important; } }
+@media print { .game-scene, .game-buddy, .game-toast, .game-welcome { display: none !important; } }

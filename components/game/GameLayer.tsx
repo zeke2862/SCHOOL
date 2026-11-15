@@ -9,9 +9,10 @@ import {
   PLANTS, PROFILE_EVENT, Profile, SPECIES, levelOf, levelRange, loadProfile, peekProfile, peekQuestSummary, plantProgress, rewardText, stageOf, syncGame, titleOf,
 } from '@/lib/gameData';
 import { PetArt, PlantArt } from '@/components/game/GameArt';
+import { sceneFor } from '@/lib/gameScenes';
 
 // 全站的遊戲層（只有選了 RPG／經營的人才會載入）：
-//   1. 上方狀態列：等級、經驗、星星、連勝、今日任務（RPG）／星星、可收成的花（經營）
+//   1. 上方場景橫幅：這一頁在遊戲世界裡的地點（lib/gameScenes.ts）＋等級、經驗、星星、連勝、今日任務
 //   2. 每一頁角落的小夥伴：RPG 是你的寵物、經營是花園裡的植物，點一下會說話
 //   3. 在別的頁面完成任務（點名、打卡、處理通知）後，換頁時自動結算並跳出「任務完成」
 // 狀態列與小夥伴只讀這台裝置暫存的進度，不查資料庫；結算最多每 90 秒查一次。
@@ -120,29 +121,43 @@ function GameLayerInner({ teacherId, mode }: { teacherId: string; mode: Exclude<
 
   const chip: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' };
 
+  const scene = sceneFor(pathname, mode);
+  const questChip = summary && (
+    <Link href="/admin" className="game-quest-chip" title="回首頁看今天的任務">
+      {mode === 'rpg' ? '📜 今日任務' : '🧺 今日完成'} <b>{summary.done}/{summary.total}</b>
+      {summary.total > 0 && summary.done === summary.total ? ' ✅' : ''}
+    </Link>
+  );
   const hud = !onHome && (
-    <div className="game-hud no-print" role="status" aria-label="遊戲狀態">
-      {mode === 'rpg' ? (
-        <>
-          <span style={chip}>⚔️ <b>Lv {lv}</b> {titleOf(lv)}</span>
-          <span style={{ ...chip, minWidth: 90 }} title={`${profile.xp - range.from} / ${range.to - range.from} XP`}>
-            <span className="game-bar"><i style={{ width: `${xpPct}%` }} /></span>
-          </span>
-          <span style={chip}>⭐ {profile.stars}</span>
-          <span style={chip}>🔥 連勝 {profile.streak} 天</span>
-          {summary && <span style={chip}>📜 今日任務 {summary.done}/{summary.total}</span>}
-          <span style={chip}>🍖 飼料 {ex.food}</span>
-        </>
-      ) : (
-        <>
-          <span style={chip}>🏫 <b>校譽 Lv {lv}</b></span>
-          <span style={chip}>⭐ {profile.stars}</span>
-          <span style={chip}>🌱 {ready > 0 ? <Link href="/admin" style={{ color: 'inherit', fontWeight: 700 }}>{ready} 株可以收成了</Link> : '花園成長中'}</span>
-          <span style={chip}>💧 {ex.water}　🧪 {ex.fert}</span>
-          <span style={chip}>🔥 連續 {profile.streak} 天</span>
-          {summary && <span style={chip}>🧺 今日完成 {summary.done}/{summary.total}</span>}
-        </>
-      )}
+    <div className="game-scene no-print" role="status" aria-label="遊戲狀態">
+      <span className="game-scene-badge" aria-hidden="true">{scene.icon}</span>
+      <span className="game-scene-text">
+        <span className="game-scene-name">{scene.place}</span>
+        <span className="game-scene-line">{scene.line}</span>
+      </span>
+      <span className="game-scene-stats">
+        {mode === 'rpg' ? (
+          <>
+            <span style={chip}>⚔️ <b>Lv {lv}</b> {titleOf(lv)}</span>
+            <span style={{ ...chip, minWidth: 90 }} title={`${profile.xp - range.from} / ${range.to - range.from} XP`}>
+              <span className="game-bar"><i style={{ width: `${xpPct}%` }} /></span>
+            </span>
+            <span style={chip}>⭐ {profile.stars}</span>
+            <span style={chip}>🔥 {profile.streak} 天</span>
+            <span style={chip}>🍖 {ex.food}</span>
+            {questChip}
+          </>
+        ) : (
+          <>
+            <span style={chip}>🏫 <b>校譽 Lv {lv}</b></span>
+            <span style={chip}>⭐ {profile.stars}</span>
+            <span style={chip}>🌱 {ready > 0 ? <Link href="/admin" style={{ color: 'inherit', fontWeight: 700 }}>{ready} 株可收成</Link> : '成長中'}</span>
+            <span style={chip}>💧 {ex.water}　🧪 {ex.fert}</span>
+            <span style={chip}>🔥 {profile.streak} 天</span>
+            {questChip}
+          </>
+        )}
+      </span>
     </div>
   );
 

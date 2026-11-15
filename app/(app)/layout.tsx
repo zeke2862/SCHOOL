@@ -7,6 +7,7 @@ import TopNav from '@/components/TopNav';
 import SideNav from '@/components/SideNav';
 import ClickSoundListener from '@/components/ClickSoundListener';
 import GameLayer from '@/components/game/GameLayer';
+import GameWelcome from '@/components/game/GameWelcome';
 import { supabase } from '@/lib/supabaseClient';
 import GuestNav from '@/components/competition/GuestNav';
 
@@ -107,6 +108,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <ClickSoundListener />
       <TopNav />
       <GameLayer />
+      <GameWelcome />
       <UnreadNotifier />
       <div className="app-shell">
         <SideNav />
