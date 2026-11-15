@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useCaps } from '@/lib/useCaps';
 import { useGameMode, type GameMode } from '@/lib/gameMode';
 import {
-  PLANTS, PROFILE_EVENT, Profile, SPECIES, levelOf, levelRange, loadProfile, peekProfile, peekQuestSummary, plantProgress, stageOf, syncGame, titleOf,
+  PLANTS, PROFILE_EVENT, Profile, SPECIES, levelOf, levelRange, loadProfile, peekProfile, peekQuestSummary, plantProgress, rewardText, stageOf, syncGame, titleOf,
 } from '@/lib/gameData';
 import { PetArt, PlantArt } from '@/components/game/GameArt';
 
@@ -93,13 +93,13 @@ function GameLayerInner({ teacherId, mode }: { teacherId: string; mode: Exclude<
       .then((r) => {
         if (!alive) return;
         reload();
-        if (r.gained > 0) setToast(`任務完成！+${r.gained} XP／+${r.gained} 星星${r.levelUp ? '，升級了！' : ''}`);
+        if (r.gained > 0) setToast(rewardText(r, mode));
       })
       .catch(() => {});
     return () => {
       alive = false;
     };
-  }, [pathname, teacherId, onHome, reload]);
+  }, [pathname, teacherId, onHome, reload, mode]);
 
   useEffect(() => {
     if (!toast) return;
@@ -138,6 +138,7 @@ function GameLayerInner({ teacherId, mode }: { teacherId: string; mode: Exclude<
           <span style={chip}>🏫 <b>校譽 Lv {lv}</b></span>
           <span style={chip}>⭐ {profile.stars}</span>
           <span style={chip}>🌱 {ready > 0 ? <Link href="/admin" style={{ color: 'inherit', fontWeight: 700 }}>{ready} 株可以收成了</Link> : '花園成長中'}</span>
+          <span style={chip}>💧 {ex.water}　🧪 {ex.fert}</span>
           <span style={chip}>🔥 連續 {profile.streak} 天</span>
           {summary && <span style={chip}>🧺 今日完成 {summary.done}/{summary.total}</span>}
         </>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { PlantArt } from '@/components/game/GameArt';
-import { FERT_COST, FERT_HOURS, MAX_PLOTS, PLANTS, Profile, WATER_COST, WATER_HOURS, plantProgress, plantStage, plotCost } from '@/lib/gameData';
+import { FERT_HOURS, MAX_PLOTS, PLANTS, Profile, WATER_HOURS, plantProgress, plantStage, plotCost } from '@/lib/gameData';
 
 // 經營面板的花園：種子 → 發芽 → 長葉 → 花苞 → 開花 → 結果。
 // 等待是免費的（用真實時間計算，沒開網頁也在長），澆水、施肥只是用星星換時間；植物不會枯萎。
@@ -21,6 +21,12 @@ function left(hours: number) {
 export default function GardenCard({ profile, commit, notify, now }: { profile: Profile; commit: (p: Profile) => void; notify: (m: string) => void; now: number }) {
   const ex = profile.extras;
   const [picking, setPicking] = useState<number | null>(null);
+  // 澆水／施肥：消耗完成任務得到的水與肥料，不花星星
+  const applyItem = (i: number, v: (typeof ex.plots)[number], used: { water?: number; fert?: number }) => {
+    const plots = ex.plots.slice();
+    plots[i] = v;
+    commit({ ...profile, extras: { ...ex, ...used, plots } });
+  };
   const setPlot = (i: number, v: (typeof ex.plots)[number], stars: number, dex = ex.dex) => {
     const plots = ex.plots.slice();
     plots[i] = v;
@@ -30,7 +36,11 @@ export default function GardenCard({ profile, commit, notify, now }: { profile: 
   return (
     <div style={{ marginTop: 14 }}>
       <style>{KEYFRAMES}</style>
-      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>🌱 我的花園 <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--sub)' }}>放著不管也會自己長大</span></div>
+      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span>🌱 我的花園</span>
+        <span style={{ fontSize: 13, fontWeight: 700 }} title={`每瓶水加速 ${WATER_HOURS} 小時，每包肥料加速 ${FERT_HOURS} 小時`}>💧 水 {ex.water}　🧪 肥料 {ex.fert}</span>
+        <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--sub)' }}>水與肥料靠完成任務獲得（水 +{WATER_HOURS} 小時、肥料 +{FERT_HOURS} 小時）；放著不管也會自己長大</span>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
         {ex.plots.map((pl, i) => {
           if (!pl) {
@@ -94,20 +104,20 @@ export default function GardenCard({ profile, commit, notify, now }: { profile: 
                   <button
                     style={btnGhost}
                     onClick={() => {
-                      if (profile.stars < WATER_COST) return notify(`澆水要 ${WATER_COST} 星星`);
-                      setPlot(i, { ...pl, bonus: pl.bonus + WATER_HOURS }, profile.stars - WATER_COST);
+                      if (ex.water < 1) return notify('沒有水了，完成任務（點名、打卡、處理通知）就能獲得水');
+                      applyItem(i, { ...pl, bonus: pl.bonus + WATER_HOURS }, { water: ex.water - 1 });
                     }}
                   >
-                    💧 {WATER_COST}
+                    💧 −1
                   </button>
                   <button
                     style={btnGhost}
                     onClick={() => {
-                      if (profile.stars < FERT_COST) return notify(`肥料要 ${FERT_COST} 星星`);
-                      setPlot(i, { ...pl, bonus: pl.bonus + FERT_HOURS }, profile.stars - FERT_COST);
+                      if (ex.fert < 1) return notify('沒有肥料了，完成點名或處理通知就能獲得肥料');
+                      applyItem(i, { ...pl, bonus: pl.bonus + FERT_HOURS }, { fert: ex.fert - 1 });
                     }}
                   >
-                    🧪 {FERT_COST}
+                    🧪 −1
                   </button>
                 </div>
               )}
@@ -138,7 +148,6 @@ export default function GardenCard({ profile, commit, notify, now }: { profile: 
             <PlantArt plant={d.key} progress={1} size={28} />
           </span>
         ))}
-        <span style={{ marginLeft: 8 }}>💧 +{WATER_HOURS} 小時　🧪 +{FERT_HOURS} 小時</span>
       </div>
     </div>
   );

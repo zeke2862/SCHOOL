@@ -19,8 +19,9 @@ export type Quest = {
 export type Building = { lv: number; t: number };
 export type Plot = { plant: string; t: number; bonus: number };
 // 寵物與花園：飼料（任務換來、拿去餵寵物）、已領養的寵物（種類 → 已餵食量）、花圃、圖鑑
-export type Extras = { food: number; active: string | null; pets: Record<string, number>; plots: (Plot | null)[]; dex: string[] };
-export const EMPTY_EXTRAS: Extras = { food: 0, active: null, pets: {}, plots: [null, null], dex: [] };
+// water／fert：完成任務獲得的水與肥料（花園澆水、施肥用）；一開始送 3 瓶水、1 包肥料讓新手先玩玩
+export type Extras = { food: number; water: number; fert: number; active: string | null; pets: Record<string, number>; plots: (Plot | null)[]; dex: string[] };
+export const EMPTY_EXTRAS: Extras = { food: 0, water: 3, fert: 1, active: null, pets: {}, plots: [null, null], dex: [] };
 export type Profile = {
   xp: number;
   stars: number;
@@ -242,7 +243,7 @@ export function peekQuestSummary(teacherId: string): { done: number; total: numb
 }
 
 // 查一次任務、領經驗值並存檔（給「在其他頁面完成任務也會算」用，呼叫端自己控制頻率）
-export async function syncGame(teacherId: string): Promise<{ profile: Profile; gained: number; levelUp: boolean }> {
+export async function syncGame(teacherId: string): Promise<ClaimResult> {
   const [{ profile: loaded, remote }, quests] = await Promise.all([loadProfile(teacherId), loadQuests(teacherId)]);
   const res = claim(loaded, quests);
   saveQuestSummary(teacherId, quests);
@@ -271,12 +272,17 @@ export async function saveProfile(teacherId: string, p: Profile, remote: boolean
 
 // 把「今天剛完成、還沒領過」的任務換成經驗值與星星，並更新連勝。
 // 連勝：隔了 3 天以內（含週末）都算接續；超過就從 1 重新開始，不扣分。
-export function claim(p: Profile, quests: Quest[]): { profile: Profile; gained: number; levelUp: boolean } {
+export type ClaimResult = { profile: Profile; gained: number; water: number; fert: number; levelUp: boolean };
+
+export function claim(p: Profile, quests: Quest[]): ClaimResult {
   const today = taipeiDay();
   const base: Profile = p.claimed_day === today ? p : { ...p, claimed_day: today, claimed: [] };
   const fresh = quests.filter((q) => q.done && !base.claimed.includes(q.key));
-  if (fresh.length === 0) return { profile: base, gained: 0, levelUp: false };
+  if (fresh.length === 0) return { profile: base, gained: 0, water: 0, fert: 0, levelUp: false };
   const gained = fresh.reduce((s, q) => s + q.xp, 0);
+  // 花園的水與肥料：每個任務依分量給水（打卡 1、其他 2），點名與通知這類比較費工的另外給 1 包肥料
+  const water = fresh.reduce((s, q) => s + Math.ceil(q.xp / 10), 0);
+  const fert = fresh.filter((q) => q.kind !== 'clock').length;
   let streak = base.streak;
   if (base.last_day !== today) streak = base.last_day && daysBetween(base.last_day, today) <= 3 ? streak + 1 : 1;
   const next: Profile = {
@@ -286,9 +292,9 @@ export function claim(p: Profile, quests: Quest[]): { profile: Profile; gained: 
     streak,
     last_day: today,
     claimed: [...base.claimed, ...fresh.map((q) => q.key)],
-    extras: { ...base.extras, food: base.extras.food + gained },
+    extras: { ...base.extras, food: base.extras.food + gained, water: base.extras.water + water, fert: base.extras.fert + fert },
   };
-  return { profile: next, gained, levelUp: levelOf(next.xp) > levelOf(base.xp) };
+  return { profile: next, gained, water, fert, levelUp: levelOf(next.xp) > levelOf(base.xp) };
 }
 
 // ---- 經營：建築 ----
@@ -342,10 +348,15 @@ export const PLANTS: PlantDef[] = [
   { key: 'lavender', name: '薰衣草', flower: '🪻', fruit: '🪻', seed: 25, hours: 10, reward: 55 },
   { key: 'apple', name: '蘋果樹', flower: '🌸', fruit: '🍎', seed: 40, hours: 16, reward: 95 },
 ];
-export const WATER_COST = 3;
+// 澆水、施肥不花星星，用完成任務得到的水與肥料（用完就要再去完成任務）
 export const WATER_HOURS = 1;
-export const FERT_COST = 10;
-export const FERT_HOURS = 4;
+export const FERT_HOURS = 3;
+
+// 完成任務的獎勵提示文字：RPG 說飼料，經營說水與肥料
+export function rewardText(r: ClaimResult, mode: 'rpg' | 'idle'): string {
+  const extra = mode === 'rpg' ? `🍖 飼料 +${r.gained}` : `💧 水 +${r.water}${r.fert > 0 ? `／🧪 肥料 +${r.fert}` : ''}`;
+  return `任務完成！+${r.gained} XP／+${r.gained} 星星／${extra}${r.levelUp ? '，升級了！' : ''}`;
+}
 export const MAX_PLOTS = 6;
 export const plotCost = (count: number) => 50 * (count - 1);
 export function plantProgress(pl: Plot, def: PlantDef, now: number): number {
