@@ -285,7 +285,7 @@ export default function TopNav() {
       // 自己（例如 ClassSummaryTab.tsx）用 <style> 定義的全域規則，只要那個頁面
       // 當下有掛載、規則就會生效；沒有定義這條規則的頁面，這個 class 單純不起
       // 作用，不影響平常顯示。
-      className="no-print"
+      className="no-print topnav"
       style={{
         display: 'flex',
         justifyContent: 'space-between',

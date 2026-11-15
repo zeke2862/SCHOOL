@@ -7,7 +7,7 @@ import PetCard from '@/components/game/PetCard';
 import GardenCard from '@/components/game/GardenCard';
 import {
   BUILDINGS, IDLE_CAP_HOURS, Profile, Quest, EMPTY_PROFILE,
-  claim, levelOf, levelRange, loadProfile, loadQuests, pending, perHour, saveProfile, titleOf, upgradeCost,
+  claim, levelOf, levelRange, loadProfile, loadQuests, pending, perHour, saveProfile, saveQuestSummary, titleOf, upgradeCost,
 } from '@/lib/gameData';
 
 // 首頁的遊戲化面板（RPG／經營）。預設的「原始」面板不會載入這個元件。
@@ -63,6 +63,7 @@ export default function GameHome({ teacherId, mode }: { teacherId: string; mode:
         setProfile(next);
       }
       if (res.gained > 0) setToast(`任務完成！+${res.gained} XP／+${res.gained} 星星${res.levelUp ? '，升級了！' : ''}`);
+      saveQuestSummary(teacherId, qs);
       setQuests(qs);
     } catch {
       setQuests((q) => q ?? []);

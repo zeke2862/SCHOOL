@@ -162,3 +162,109 @@ button:not(table button):not(.keep-size) {
 }
 
 @media print { .sn-side, .sn-bottom, .sn-sheet { display: none !important; } .app-shell { display: block !important; } .app-main { padding-bottom: 0 !important; } }
+
+/* =====================================================================
+   遊戲化外觀：RPG 冒險／閒置經營（上方「介面」切換；原始面板完全不吃到這裡的規則）
+   <html data-game="rpg|idle"> 時整個系統換裝：配色、厚邊框與立體陰影、按鈕、標題符號、
+   導覽選單游標、底紋、捲軸。全部是 CSS，沒有圖片、沒有 JavaScript 運算。
+   只用在螢幕顯示（列印維持黑白）；狀態色（紅＝缺席、綠＝正常）不受影響。
+   ===================================================================== */
+@media screen {
+  html[data-game='rpg'], html[data-game='rpg'][data-theme] {
+    --bg: #F1E3C6; --surface: #FFF9EA; --line: #D9BF8C; --line-strong: #8E5F2F; --ink: #3A2716; --sub: #7A5A38;
+    --primary: #6A3FB0; --primary-soft: #EADFF8; --on-primary: #FFFFFF; --primary-ink: #4A2689;
+    --a1: #F2B705; --a2: #D9482B; --a3: #3E9E5B;
+    --game-edge: #8E5F2F; --game-gold: #F2B705; --game-radius: 8px;
+    --game-pattern: radial-gradient(rgba(142, 95, 47, .13) 1.3px, transparent 1.5px);
+    --game-pattern-size: 18px 18px;
+  }
+  html[data-game='idle'], html[data-game='idle'][data-theme] {
+    --bg: #F2FAEC; --surface: #FFFFFF; --line: #D5EBCB; --line-strong: #9ACD87; --ink: #2C4A2B; --sub: #667F60;
+    --primary: #3FA56B; --primary-soft: #E2F5DB; --on-primary: #FFFFFF; --primary-ink: #2B7F50;
+    --a1: #FFD36B; --a2: #FF9BB5; --a3: #7ED6A5;
+    --game-edge: #BFE3B0; --game-gold: #FFB3C7; --game-radius: 18px;
+    --game-pattern: radial-gradient(circle at 12px 14px, rgba(255, 155, 181, .22) 3px, transparent 3.5px), radial-gradient(circle at 54px 46px, rgba(255, 211, 107, .26) 3px, transparent 3.5px);
+    --game-pattern-size: 72px 72px;
+  }
+
+  /* 底紋：RPG＝羊皮紙地圖的小點；經營＝草地上的小花 */
+  html[data-game] body { background: var(--bg) var(--game-pattern) 0 0 / var(--game-pattern-size) !important; }
+  html[data-game] ::selection { background: var(--game-gold); color: #3A2716; }
+  html[data-game] * { scrollbar-color: var(--line-strong) var(--bg); }
+  html[data-game] ::-webkit-scrollbar { width: 12px; height: 12px; }
+  html[data-game] ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; border: 2px solid var(--bg); }
+
+  /* 卡片與區塊：厚邊框＋立體陰影，像遊戲選單視窗（表格內的格子不動，避免撐壞密集版面） */
+  html[data-game] :is(div, section, article, aside, li, a, details, form)[style*='solid var(--line)']:not([style*='50%']):not(.sn-item) {
+    border-width: 2px !important;
+    border-color: var(--line-strong) !important;
+    border-radius: var(--game-radius) !important;
+    box-shadow: 0 3px 0 var(--game-edge) !important;
+  }
+  html[data-game='idle'] :is(div, section, article, aside, li, a, details, form)[style*='solid var(--line)']:not([style*='50%']):not(.sn-item) {
+    box-shadow: 0 6px 14px rgba(63, 165, 107, .14) !important;
+  }
+  html[data-game] .tile { border-top-width: 6px !important; }
+  html[data-game='rpg'] .tile:hover { transform: translateY(-4px) rotate(-.6deg); box-shadow: 0 6px 0 var(--game-edge) !important; }
+  html[data-game='idle'] .tile:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 10px 20px rgba(63, 165, 107, .22) !important; }
+
+  /* 標題：前面加遊戲符號（RPG 是劍與菱形，經營是小芽與小花），並輕輕上下浮動 */
+  html[data-game] h1::before, html[data-game] h2::before { display: inline-block; margin-right: .3em; }
+  html[data-game='rpg'] h1::before { content: '⚔️'; animation: gm-bob 3.2s ease-in-out infinite; }
+  html[data-game='rpg'] h2::before { content: '◆'; color: var(--game-gold); font-size: .8em; }
+  html[data-game='idle'] h1::before { content: '🌱'; animation: gm-bob 3.2s ease-in-out infinite; }
+  html[data-game='idle'] h2::before { content: '🌼'; font-size: .9em; }
+  html[data-game='rpg'] h1, html[data-game='rpg'] h2 { text-shadow: 1px 1px 0 rgba(142, 95, 47, .25); letter-spacing: .03em; }
+  @keyframes gm-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+  /* 按鈕：RPG＝石板按鈕（按下去會陷下去）；經營＝圓潤的膠囊，滑過會彈一下 */
+  html[data-game] button:not(table button):not([style]) {
+    border-width: 2px; border-color: var(--game-edge); border-radius: var(--game-radius);
+    box-shadow: 0 3px 0 var(--game-edge); font-weight: 700;
+  }
+  html[data-game='idle'] button:not(table button):not([style]) { border-radius: 999px; box-shadow: 0 3px 8px rgba(63, 165, 107, .22); }
+  html[data-game] button:not(table button):not(:disabled):active { transform: translateY(2px); box-shadow: 0 1px 0 var(--game-edge); }
+  html[data-game='idle'] button:not(table button):not(:disabled):hover { transform: translateY(-2px); }
+  html[data-game='rpg'] .btn-primary { background: var(--game-gold) !important; color: #3A2716 !important; border-color: var(--game-edge) !important; }
+  html[data-game='idle'] .btn-primary { background: var(--primary) !important; color: #fff !important; }
+  html[data-game] :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):not([style*='border']) {
+    border-width: 2px; border-color: var(--line-strong); border-radius: var(--game-radius);
+  }
+  html[data-game] th:not([style*='background']) { background: var(--primary-soft); }
+
+  /* 上方導覽列：底下一條粗邊（RPG 木框＋金線，經營 粉綠緞帶） */
+  html[data-game] nav.topnav { border-bottom: 4px solid var(--game-edge) !important; box-shadow: 0 3px 0 var(--game-gold); }
+
+  /* 左側導覽（電腦）：像遊戲選單，目前所在處有 ▶／🌸 游標；手機底部列也一起換裝 */
+  html[data-game='rpg'] .sn-side { background: #F7EAC8; border-right: 4px double var(--game-edge); }
+  html[data-game='idle'] .sn-side { background: #F7FFF2; border-right: 2px dashed var(--line-strong); border-radius: 0 24px 24px 0; }
+  html[data-game] .sn-group { font-weight: 700; color: var(--primary-ink); letter-spacing: .08em; }
+  html[data-game] .sn-item { border-radius: var(--game-radius); border: 2px solid transparent; }
+  html[data-game='idle'] .sn-item { border-radius: 999px; }
+  html[data-game] .sn-item:hover { border-color: var(--line-strong); }
+  html[data-game] .sn-item.on { background: var(--game-gold); color: #3A2716; border-color: var(--game-edge); box-shadow: 0 2px 0 var(--game-edge); }
+  html[data-game='rpg'] .sn-item.on::before { content: '▶'; color: var(--game-edge); font-size: 12px; margin-right: -4px; }
+  html[data-game='idle'] .sn-item.on { background: #FFE3EC; }
+  html[data-game='idle'] .sn-item.on::before { content: '🌸'; font-size: 12px; margin-right: -4px; }
+  html[data-game] .sn-item:hover::before { content: '▶'; font-size: 12px; margin-right: -4px; color: var(--game-edge); }
+  html[data-game='idle'] .sn-item:hover:not(.on)::before { content: '🌱'; }
+
+  /* ===== 全站遊戲層（components/game/GameLayer.tsx）：狀態列、小夥伴、任務完成提示 ===== */
+  .game-hud { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 5px 14px; font-size: 13px; color: var(--ink); background: var(--primary-soft); border-bottom: 2px solid var(--line-strong); }
+  .game-hud b { font-weight: 800; }
+  .game-bar { display: inline-block; width: 90px; height: 9px; border-radius: 6px; background: var(--surface); border: 1.5px solid var(--game-edge); overflow: hidden; vertical-align: middle; }
+  .game-bar > i { display: block; height: 100%; background: var(--game-gold); transition: width .5s; }
+  .game-toast { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 9998; max-width: calc(100vw - 24px); padding: 10px 18px; border-radius: var(--game-radius); background: #FFF4D6; color: #6B4400; border: 2px solid var(--game-edge); box-shadow: 0 4px 0 var(--game-edge); font-size: 14px; font-weight: 700; cursor: pointer; animation: gm-drop .35s ease-out; }
+  @keyframes gm-drop { from { opacity: 0; transform: translate(-50%, -14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  .game-buddy { position: fixed; z-index: 30; left: 8px; bottom: calc(72px + env(safe-area-inset-bottom)); display: flex; align-items: flex-end; gap: 6px; pointer-events: none; }
+  .game-buddy > * { pointer-events: auto; }
+  .game-buddy-btn { width: 72px; height: 72px; padding: 0 !important; min-height: 0 !important; border: none !important; background: transparent !important; box-shadow: none !important; cursor: pointer; line-height: 0; animation: gm-bounce 2.4s ease-in-out infinite; }
+  @keyframes gm-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .game-bubble { max-width: 200px; padding: 8px 12px; margin-bottom: 30px; font-size: 13px; line-height: 1.5; color: var(--ink); background: var(--surface); border: 2px solid var(--game-edge); border-radius: var(--game-radius); box-shadow: 0 3px 0 var(--game-edge); }
+  @media (min-width: 960px) { .game-buddy { left: 188px; bottom: 12px; } }
+  @media (prefers-reduced-motion: reduce) {
+    html[data-game] h1::before, .game-buddy-btn, .game-toast { animation: none; }
+    html[data-game] .tile:hover { transform: none; }
+  }
+}
+@media print { .game-hud, .game-buddy, .game-toast { display: none !important; } }

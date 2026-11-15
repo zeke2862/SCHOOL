@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* 頁面一載入就套用老師上次選的配色，避免閃一下預設色 */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "try{var t=localStorage.getItem('app_theme');if(t==='sky'||t==='mint'||t==='forest')document.documentElement.setAttribute('data-theme',t)}catch(e){}",
+            __html: "try{var t=localStorage.getItem('app_theme');if(t==='sky'||t==='mint'||t==='forest')document.documentElement.setAttribute('data-theme',t);var g=localStorage.getItem('app_game_mode');if(g==='rpg'||g==='idle')document.documentElement.setAttribute('data-game',g)}catch(e){}",
           }}
         />
       </head>

@@ -7,6 +7,14 @@ import { useCaps } from '@/lib/useCaps';
 import { visibleHubs, type HubDef } from '@/lib/permissions';
 import { loadSiteContentCached, hubLabelKey } from '@/lib/siteContent';
 import HubIcon from '@/components/hub/HubIcon';
+import { useGameMode } from '@/lib/gameMode';
+
+// RPG／經營面板時，導覽的圖示與分組名稱換成遊戲用語（只換外觀符號，功能名稱不變）
+const SKIN = {
+  classic: { home: '🏠', menu: '▦', bell: '🔔', me: '👤', teach: '教學作業', manage: '行政管理' },
+  rpg: { home: '🏰', menu: '🎒', bell: '📜', me: '🛡️', teach: '⚔️ 教學作業', manage: '🏛️ 行政管理' },
+  idle: { home: '🏡', menu: '🧺', bell: '🐝', me: '🌿', teach: '🌼 教學作業', manage: '🏫 行政管理' },
+} as const;
 
 // 方案 B：電腦版＝左側固定導覽；手機版＝底部四顆大按鈕（首頁／功能／通知／帳號），
 // 「功能」點開是大按鈕面板，拇指一手就點得到。只列出這個身分有權限的入口（跟首頁同一套規則）。
@@ -27,6 +35,7 @@ export default function SideNav() {
   const pathname = usePathname() ?? '';
   const { hubs, label } = useHubs();
   const [sheet, setSheet] = useState(false);
+  const sk = SKIN[useGameMode()];
 
   // 換頁就把面板收起來
   useEffect(() => {
@@ -49,34 +58,34 @@ export default function SideNav() {
     <>
       <aside className="sn-side no-print" aria-label="功能選單">
         <Link href="/admin" className={'sn-item' + (pathname === '/admin' ? ' on' : '')}>
-          <span className="sn-home" aria-hidden="true">🏠</span>
+          <span className="sn-home" aria-hidden="true">{sk.home}</span>
           <span>首頁</span>
         </Link>
-        {teach.length > 0 && <div className="sn-group">教學作業</div>}
+        {teach.length > 0 && <div className="sn-group">{sk.teach}</div>}
         {teach.map(item)}
-        {manage.length > 0 && <div className="sn-group">行政管理</div>}
+        {manage.length > 0 && <div className="sn-group">{sk.manage}</div>}
         {manage.map(item)}
       </aside>
 
       <nav className="sn-bottom no-print" aria-label="快速選單">
         <Link href="/admin" className={pathname === '/admin' ? 'on' : ''}>
-          <span aria-hidden="true">🏠</span>首頁
+          <span aria-hidden="true">{sk.home}</span>首頁
         </Link>
         <button type="button" className={'keep-size' + (sheet ? ' on' : '')} onClick={() => setSheet((v) => !v)} aria-expanded={sheet}>
-          <span aria-hidden="true">▦</span>功能
+          <span aria-hidden="true">{sk.menu}</span>功能
         </button>
         <Link href="/notifications" className={pathname.startsWith('/notifications') ? 'on' : ''}>
-          <span aria-hidden="true">🔔</span>通知
+          <span aria-hidden="true">{sk.bell}</span>通知
         </Link>
         <Link href="/account" className={pathname.startsWith('/account') ? 'on' : ''}>
-          <span aria-hidden="true">👤</span>帳號
+          <span aria-hidden="true">{sk.me}</span>帳號
         </Link>
       </nav>
 
       {sheet && (
         <div className="sn-sheet no-print" role="dialog" aria-label="全部功能" onClick={() => setSheet(false)}>
           <div className="sn-panel" onClick={(e) => e.stopPropagation()}>
-            {[{ t: '教學作業', l: teach }, { t: '行政管理', l: manage }].map(
+            {[{ t: sk.teach, l: teach }, { t: sk.manage, l: manage }].map(
               (g) =>
                 g.l.length > 0 && (
                   <section key={g.t}>

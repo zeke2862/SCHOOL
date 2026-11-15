@@ -23,10 +23,19 @@ export function getGameMode(): GameMode {
   return 'classic';
 }
 
+// 整個系統的外觀靠 <html data-game="rpg|idle"> 切換（樣式在 app/globals.css）；原始面板就不加這個屬性。
+export function applyGameMode(m: GameMode) {
+  try {
+    if (m === 'classic') document.documentElement.removeAttribute('data-game');
+    else document.documentElement.setAttribute('data-game', m);
+  } catch {}
+}
+
 export function setGameMode(m: GameMode) {
   try {
     localStorage.setItem(GAME_MODE_KEY, m);
   } catch {}
+  applyGameMode(m);
   window.dispatchEvent(new CustomEvent(EVENT, { detail: m }));
 }
 
@@ -34,7 +43,11 @@ export function useGameMode(): GameMode {
   const [mode, setMode] = useState<GameMode>('classic');
   useEffect(() => {
     setMode(getGameMode());
-    const on = () => setMode(getGameMode());
+    applyGameMode(getGameMode());
+    const on = () => {
+      setMode(getGameMode());
+      applyGameMode(getGameMode());
+    };
     window.addEventListener(EVENT, on);
     window.addEventListener('storage', on);
     return () => {

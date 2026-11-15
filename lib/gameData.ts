@@ -210,10 +210,52 @@ export async function loadProfile(teacherId: string): Promise<{ profile: Profile
   return { profile: { ...EMPTY_PROFILE }, remote: false };
 }
 
+// 讀本機暫存的進度（不查資料庫）：上方狀態列與各頁的小夥伴用它，換頁不增加任何查詢
+export function peekProfile(teacherId: string): Profile | null {
+  try {
+    const raw = localStorage.getItem(localKey(teacherId));
+    if (!raw) return null;
+    const j = JSON.parse(raw);
+    return { ...EMPTY_PROFILE, ...j, extras: mergeExtras(j.extras) };
+  } catch {
+    return null;
+  }
+}
+
+export const PROFILE_EVENT = 'game-profile-update';
+
+// 今天任務完成幾個／共幾個，存在這個分頁的 sessionStorage，給狀態列顯示
+export function saveQuestSummary(teacherId: string, quests: Quest[]) {
+  try {
+    sessionStorage.setItem(`game_quests_${teacherId}`, JSON.stringify({ done: quests.filter((q) => q.done).length, total: quests.length, at: Date.now() }));
+  } catch {
+    /* 略過 */
+  }
+}
+export function peekQuestSummary(teacherId: string): { done: number; total: number } | null {
+  try {
+    const raw = sessionStorage.getItem(`game_quests_${teacherId}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+// 查一次任務、領經驗值並存檔（給「在其他頁面完成任務也會算」用，呼叫端自己控制頻率）
+export async function syncGame(teacherId: string): Promise<{ profile: Profile; gained: number; levelUp: boolean }> {
+  const [{ profile: loaded, remote }, quests] = await Promise.all([loadProfile(teacherId), loadQuests(teacherId)]);
+  const res = claim(loaded, quests);
+  saveQuestSummary(teacherId, quests);
+  if (res.profile !== loaded) await saveProfile(teacherId, res.profile, remote);
+  else window.dispatchEvent(new CustomEvent(PROFILE_EVENT));
+  return res;
+}
+
 export async function saveProfile(teacherId: string, p: Profile, remote: boolean): Promise<void> {
   // 一律在本機留一份（資料庫缺 extras 欄位時，寵物與花園靠這份）
   try {
     localStorage.setItem(localKey(teacherId), JSON.stringify(p));
+    window.dispatchEvent(new CustomEvent(PROFILE_EVENT));
   } catch {
     /* 略過 */
   }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase, getCurrentTeacherId } from '@/lib/supabaseClient';
+import { getGameMode } from '@/lib/gameMode';
 
 // 未讀通知提醒：有新的通知（例如家長／學生帳號申請、考場名冊、審核）時，在畫面上跳出
 // 「您有 N 則未讀通知」，一鍵前往處理；上方導覽列的「通知（N）」數字也會即時更新。
@@ -82,6 +83,7 @@ export default function UnreadNotifier() {
   }, [pathname]);
 
   if (!toast) return null;
+  const gm = getGameMode();
   const target = TARGET_BY_CATEGORY[toast.newest.category] ?? { href: '/notifications', label: toast.newest.category };
   return (
     <div
@@ -106,7 +108,8 @@ export default function UnreadNotifier() {
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
         <div>
-          🔔 您有 <b style={{ color: '#FFD166' }}>{toast.count}</b> 則未讀通知
+          {gm === 'rpg' ? '📜 新任務出現！' : gm === 'idle' ? '🚶 有訪客來訪！' : '🔔 您有'} <b style={{ color: '#FFD166' }}>{toast.count}</b>{' '}
+          {gm === 'rpg' ? '個任務等你接' : gm === 'idle' ? '位在大廳等你' : '則未讀通知'}
           <div style={{ fontSize: 12.5, color: '#ddd' }}>最新：{target.label}</div>
         </div>
         <button
