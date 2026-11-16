@@ -23,15 +23,6 @@ export function getGameMode(): GameMode {
   return 'classic';
 }
 
-// 遊戲版：還沒選過介面的人，登入後會先看到「選擇風格」畫面（components/game/GameWelcome.tsx）
-export function hasChosenGameMode(): boolean {
-  try {
-    const v = localStorage.getItem(GAME_MODE_KEY);
-    return v === 'rpg' || v === 'idle' || v === 'classic';
-  } catch {}
-  return true; // 瀏覽器不給用暫存就不問，直接用原始介面
-}
-
 // 整個系統的外觀靠 <html data-game="rpg|idle"> 切換（樣式在 app/globals.css）；原始面板就不加這個屬性。
 export function applyGameMode(m: GameMode) {
   try {

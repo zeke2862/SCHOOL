@@ -319,34 +319,9 @@ button:not(table button):not(.keep-size) {
   html[data-game='rpg'] summary::marker { color: var(--game-edge); }
   html[data-game='idle'] summary::marker { color: #FF9BB5; }
 
-  /* ===== 歡迎畫面：第一次登入選擇風格（components/game/GameWelcome.tsx）===== */
-  .game-welcome { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 14px; background: rgba(30, 30, 40, .55); overflow-y: auto; }
-  .game-welcome-box { width: 100%; max-width: 680px; margin: auto; padding: 22px 20px 16px; text-align: center; background: #FFFDF6; color: #2B2B2B; border-radius: 20px; box-shadow: 0 12px 40px rgba(0, 0, 0, .3); animation: gm-pop .3s ease-out; }
-  @keyframes gm-pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
-  .game-welcome-title { font-size: 22px; font-weight: 800; }
-  .game-welcome-sub { margin: 6px 0 16px; font-size: 13px; color: #6B6B6B; line-height: 1.6; }
-  .game-welcome-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-  .game-welcome-card { display: flex !important; flex-direction: column; align-items: center; gap: 4px; padding: 16px 12px 14px !important; min-height: 0; cursor: pointer; font: inherit; text-align: center; transition: transform .15s, box-shadow .15s; }
-  .game-welcome-card:hover { transform: translateY(-4px) !important; filter: none !important; }
-  .game-welcome-rpg { background: #F7EAC8 !important; color: #3A2716 !important; border: 3px solid #8E5F2F !important; border-radius: 10px !important; box-shadow: 0 5px 0 #8E5F2F !important; }
-  .game-welcome-idle { background: #F2FAEC !important; color: #2C4A2B !important; border: 3px solid #9ACD87 !important; border-radius: 24px !important; box-shadow: 0 8px 18px rgba(63, 165, 107, .25) !important; }
-  .game-welcome-art { height: 90px; display: flex; align-items: flex-end; justify-content: center; line-height: 0; }
-  .game-welcome-name { font-size: 20px; font-weight: 800; letter-spacing: .05em; }
-  .game-welcome-tag { font-size: 13px; opacity: .8; }
-  .game-welcome-points { display: flex; flex-direction: column; gap: 2px; margin: 8px 0 10px; font-size: 13px; line-height: 1.5; text-align: left; }
-  .game-welcome-go { padding: 5px 22px; font-size: 15px; font-weight: 800; border-radius: 999px; }
-  .game-welcome-rpg .game-welcome-go { background: #F2B705; border: 2px solid #8E5F2F; }
-  .game-welcome-idle .game-welcome-go { background: #3FA56B; color: #fff; }
-  .game-welcome-skip { margin-top: 14px; background: none !important; border: none !important; box-shadow: none !important; color: #777 !important; font-size: 13px !important; text-decoration: underline; cursor: pointer; }
-  @media (max-width: 560px) {
-    .game-welcome-grid { grid-template-columns: 1fr; }
-    .game-welcome-title { font-size: 19px; }
-    .game-welcome-art { height: 76px; }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    html[data-game] h1::before, .game-buddy-btn, .game-toast, .game-welcome-box { animation: none; }
+    html[data-game] h1::before, .game-buddy-btn, .game-toast { animation: none; }
     html[data-game] .tile:hover { transform: none; }
   }
 }
-@media print { .game-scene, .game-buddy, .game-toast, .game-welcome { display: none !important; } }
+@media print { .game-scene, .game-buddy, .game-toast { display: none !important; } }
