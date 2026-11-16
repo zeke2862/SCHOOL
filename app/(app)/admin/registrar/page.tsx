@@ -2,6 +2,8 @@
 
 import HubShell from '@/components/hub/HubShell';
 import StudentsSearchTab from '@/components/admin-tabs/StudentsSearchTab';
+import StudentPhotosTab from '@/components/admin-tabs/StudentPhotosTab';
+import SeatingChartTab from '@/components/admin-tabs/SeatingChartTab';
 import StudentsNewTab from '@/components/admin-tabs/StudentsNewTab';
 import StudentsImportTab from '@/components/admin-tabs/StudentsImportTab';
 import StudentsStatusChangeTab from '@/components/admin-tabs/StudentsStatusChangeTab';
@@ -18,6 +20,8 @@ export default function RegistrarHubPage() {
       hubKey="registrar"
       renderers={{
         search: () => <StudentsSearchTab />,
+        photos: () => <StudentPhotosTab />,
+        seating: () => <SeatingChartTab />,
         new: () => <StudentsNewTab />,
         import: () => <StudentsImportTab />,
         'status-change': () => <StudentsStatusChangeTab />,

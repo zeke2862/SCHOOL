@@ -8,6 +8,8 @@ import { getSiteContentMap } from '@/lib/siteContent';
 import { departmentForGrade } from '@/lib/gradeMapping';
 import { getEffectivePeriodCount } from '@/lib/periodConfig';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
+import { loadPhotoUrls, type PhotoMap } from '@/lib/studentPhotos';
+import StudentPhoto from '@/components/StudentPhoto';
 import StatusChangeRequestPanel from '@/components/attendance/StatusChangeRequestPanel';
 import { getMyDepartments, hasDepartment } from '@/lib/departments';
 
@@ -90,6 +92,23 @@ export default function MobileAttendancePage() {
   const [periods, setPeriods] = useState<PeriodEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [students, setStudents] = useState<StudentRow[]>([]);
+  // 點名時顯示學生照片（sql/152）：預設關，老師自己打開後記在這台裝置；關著就完全不載入照片
+  const [showPhotos, setShowPhotos] = useState(false);
+  const [photos, setPhotos] = useState<PhotoMap>({});
+  useEffect(() => {
+    try {
+      setShowPhotos(localStorage.getItem('att_show_photos') === '1');
+    } catch {}
+  }, []);
+  const photoKey = showPhotos ? students.map((s) => s.student_no).join(',') : '';
+  useEffect(() => {
+    if (!photoKey) return;
+    let alive = true;
+    loadPhotoUrls(photoKey.split(',')).then((r) => alive && setPhotos(r.urls)).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [photoKey]);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [statusMap, setStatusMap] = useState<Record<string, string>>({});
   // 【本輪新增】反映事項「一日登記表要有防呆機制：按下儲存後把目前登記非出席的
@@ -654,6 +673,22 @@ export default function MobileAttendancePage() {
         </div>
       )}
 
+      {students.length > 0 && (
+        <label className="no-print" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--sub)', margin: '4px 0' }}>
+          <input
+            type="checkbox"
+            checked={showPhotos}
+            onChange={(e) => {
+              setShowPhotos(e.target.checked);
+              try {
+                localStorage.setItem('att_show_photos', e.target.checked ? '1' : '0');
+              } catch {}
+            }}
+          />
+          顯示學生照片
+        </label>
+      )}
+
       {students.map((s) => (
         <div
           key={s.student_no}
@@ -667,7 +702,8 @@ export default function MobileAttendancePage() {
             gap: 8,
           }}
         >
-          <span style={{ fontSize: 16 }}>
+          <span style={{ fontSize: 16, display: 'inline-flex', alignItems: 'center' }}>
+            {showPhotos && <span style={{ marginRight: 8, lineHeight: 0 }}><StudentPhoto url={photos[s.student_no]} name={s.name} width={42} /></span>}
             <span style={{ color: 'var(--sub)', marginRight: 6 }}>{s.seat_no}</span>
             {s.name}
           </span>

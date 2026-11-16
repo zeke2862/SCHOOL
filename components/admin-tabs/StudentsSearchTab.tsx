@@ -8,6 +8,8 @@ import { getHiddenStudentNos } from '@/lib/hiddenStudents';
 import { useCaps } from '@/lib/useCaps';
 import { compareForSeat, SEAT_ORDER_OPTIONS, SeatOrder } from '@/lib/studentNoSort';
 import { resolveCurrentTerm, estimateTermStart } from '@/lib/academicTerm';
+import { loadPhotoUrls, type PhotoMap } from '@/lib/studentPhotos';
+import StudentPhoto from '@/components/StudentPhoto';
 
 type ClassOption = { id: string; label: string; academic_year: number; grade_level: string; class_name: string };
 type EnrolledStudent = {
@@ -90,6 +92,7 @@ export default function StudentSearchPage() {
   const [attendanceSummary, setAttendanceSummary] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<PhotoMap>({});
   const loadReq = useRef(0);
 
   const { caps } = useCaps();
@@ -501,6 +504,21 @@ export default function StudentSearchPage() {
       )
     : students;
 
+  // 學生照片（sql/152）：畫面上的學生在 60 人以內才載入（選了一個班、或用關鍵字找到少數幾位），
+  // 全校一千多人的清單不載，避免拖慢。上傳照片在「學生照片」分頁。
+  const photoNos = filtered.length <= 60 ? filtered.map((s) => s.student_no) : [];
+  const photoKey = photoNos.join(',');
+  useEffect(() => {
+    if (photoNos.length === 0) return;
+    let alive = true;
+    loadPhotoUrls(photoNos).then((r) => alive && setPhotos((prev) => ({ ...prev, ...r.urls }))).catch(() => {});
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoKey]);
+  const editingStudent = editingStudentNo ? students.find((s) => s.student_no === editingStudentNo) : null;
+
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>查詢學生（全校／各班級）</h1>
@@ -620,7 +638,12 @@ export default function StudentSearchPage() {
                 </td>
               )}
               <td style={{ padding: 6 }}>{s.student_no}</td>
-              <td style={{ padding: 6 }}>{s.students?.name ?? '—'}</td>
+              <td style={{ padding: 6 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  {photos[s.student_no] && <StudentPhoto url={photos[s.student_no]} name={s.students?.name} width={30} />}
+                  {s.students?.name ?? '—'}
+                </span>
+              </td>
               <td style={{ padding: 6 }}>
                 {s.classes ? `${s.classes.academic_year} ${s.classes.grade_level}${s.classes.class_name}` : '—'}
               </td>
@@ -661,6 +684,10 @@ export default function StudentSearchPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }} onClick={() => setPhones(null)}>
           <div style={{ background: 'var(--surface)', borderRadius: 8, padding: 20, width: 360, maxWidth: '92vw' }} onClick={(e) => e.stopPropagation()}>
             <h2 style={{ fontSize: 15, margin: '0 0 8px' }}>{phones.name}　監護人聯絡電話</h2>
+            {(() => {
+              const hit = students.find((x) => x.students?.name === phones.name && photos[x.student_no]);
+              return hit ? <div style={{ marginBottom: 8 }}><StudentPhoto url={photos[hit.student_no]} name={phones.name} width={96} /></div> : null;
+            })()}
             {phones.rows === null && <p style={{ fontSize: 13, color: 'var(--sub)' }}>讀取中…</p>}
             {phones.error && <p style={{ fontSize: 13, color: '#A32D2D' }}>讀取失敗：{phones.error}</p>}
             {phones.rows && phones.rows.length === 0 && !phones.error && <p style={{ fontSize: 13, color: 'var(--sub)' }}>沒有登記監護人電話。</p>}
@@ -691,7 +718,10 @@ export default function StudentSearchPage() {
             style={{ background: 'var(--surface)', borderRadius: 8, padding: 24, width: 480, maxWidth: '92vw', boxSizing: 'border-box', maxHeight: '85vh', overflowY: 'auto' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ fontSize: 15, marginBottom: 4 }}>修正學生資料（學號：{editingStudentNo}）</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+              {photos[editingStudentNo] && <StudentPhoto url={photos[editingStudentNo]} name={editingStudent?.students?.name} width={72} />}
+              <h2 style={{ fontSize: 15, margin: 0 }}>修正學生資料（學號：{editingStudentNo}）</h2>
+            </div>
 
             {!editForm && !editError && <p style={{ fontSize: 13, color: 'var(--sub)' }}>載入中…</p>}
             <ErrorBanner message={editError} />

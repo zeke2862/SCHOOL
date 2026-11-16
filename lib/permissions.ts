@@ -174,6 +174,8 @@ export const HUBS: HubDef[] = [
     group: 'teach',
     tabs: [
       { key: 'search', label: '查詢學生（全校／各班級）', show: (c) => anyStaff(c) },
+      { key: 'photos', label: '學生照片', show: (c) => anyStaff(c), hint: '班級相片名冊；導師可上傳照片' },
+      { key: 'seating', label: '班級座位表', show: (c) => anyStaff(c), hint: '導師排座位，任課老師看座位認人' },
       { key: 'new', label: '新生入學登記（完整版）', show: (c) => c.academic },
       { key: 'import', label: '既有學生快速建檔（精簡版）', show: (c) => c.academic },
       { key: 'status-change', label: '學籍狀態變更', show: (c) => c.academic },
