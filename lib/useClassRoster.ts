@@ -100,7 +100,11 @@ export function useClassRoster() {
 
   const current = classes.find((c) => c.id === classId) ?? null;
   // 能不能改這個班（上傳照片、排座位）：教務處／管理員，或這個班的導師。資料庫權限會再把關一次。
-  const canWrite = !!caps && !!current && (caps.academic || (!!teacherId && current.homeroom_teacher_id === teacherId && !caps.ident.acting));
+  // 管理員與教務處用「帳號本身」的角色與部門判斷，跟資料庫規則一致：就算切到「教師畫面」預覽，
+  // 系統管理員S／管理員A／教務處仍然可以改（caps.academic 在教師畫面會被歸零，不能用它）。
+  const ident = caps?.ident;
+  const adminWrite = !!ident && (ident.realRole === 'system_admin_s' || ident.realRole === 'admin_a' || ident.departments.some((d) => d.department === 'academic'));
+  const canWrite = !!caps && !!current && (adminWrite || (!!teacherId && current.homeroom_teacher_id === teacherId && !caps.ident.acting));
 
   return { caps, classes, classId, setClassId, current, students, photos, photosAvailable, loading: loading || capsLoading, error, canWrite, reloadPhotos };
 }
