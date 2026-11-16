@@ -21,6 +21,9 @@ export function useClassRoster() {
   const [students, setStudents] = useState<RosterStudent[]>([]);
   const [photos, setPhotos] = useState<PhotoMap>({});
   const [photosAvailable, setPhotosAvailable] = useState(true);
+  // 標記「不放照片」的學號（sql/153）；optOutAvailable=false 代表 sql/153 還沒執行，畫面不顯示這個功能
+  const [optOut, setOptOut] = useState<Set<string>>(new Set());
+  const [optOutAvailable, setOptOutAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const req = useRef(0);
@@ -57,6 +60,8 @@ export function useClassRoster() {
     const r = await loadPhotoUrls(nos);
     setPhotos(r.urls);
     setPhotosAvailable(r.available);
+    setOptOut(new Set(r.optOut));
+    setOptOutAvailable(r.optOutAvailable);
   }, []);
 
   const isAdminView = !!caps && (caps.academic || caps.discipline || caps.sd || caps.a);
@@ -106,5 +111,5 @@ export function useClassRoster() {
   const adminWrite = !!ident && (ident.realRole === 'system_admin_s' || ident.realRole === 'admin_a' || ident.departments.some((d) => d.department === 'academic'));
   const canWrite = !!caps && !!current && (adminWrite || (!!teacherId && current.homeroom_teacher_id === teacherId && !caps.ident.acting));
 
-  return { caps, classes, classId, setClassId, current, students, photos, photosAvailable, loading: loading || capsLoading, error, canWrite, reloadPhotos };
+  return { caps, classes, classId, setClassId, current, students, photos, photosAvailable, optOut, optOutAvailable, loading: loading || capsLoading, error, canWrite, reloadPhotos };
 }

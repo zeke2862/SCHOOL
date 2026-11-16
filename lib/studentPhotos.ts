@@ -82,6 +82,9 @@ function forget(studentNo: string) {
 
 /** 上傳（或更換）一位學生的照片；失敗會丟出中文錯誤訊息 */
 export async function uploadStudentPhoto(studentNo: string, file: Blob): Promise<void> {
+  // 標記「不放照片」的學生不能上傳（資料庫也會擋，這裡先給清楚的訊息；sql/153 還沒執行時查不到這一欄就略過）
+  const { data: flag } = await supabase.from('student_photos').select('opt_out').eq('student_no', studentNo).maybeSingle();
+  if ((flag as any)?.opt_out) throw new Error('這位學生已標記「不放照片」，要上傳請先取消標記');
   const blob = await resizeToPhoto(file);
   const { error } = await supabase.storage.from(BUCKET).upload(pathOf(studentNo), blob, { upsert: true, contentType: 'image/jpeg', cacheControl: String(URL_TTL_SEC) });
   if (error) throw new Error(explain(error.message));
@@ -98,7 +101,26 @@ export async function deleteStudentPhoto(studentNo: string): Promise<void> {
   forget(studentNo);
 }
 
+/**
+ * 標記／取消「此生不放照片」（sql/153）。標記時會把已上傳的照片刪掉，之後也不能再上傳；
+ * 取消標記後就能正常上傳。
+ */
+export async function setPhotoOptOut(studentNo: string, on: boolean): Promise<void> {
+  if (on) {
+    // 先寫標記再刪檔：就算刪檔失敗，畫面也不會再顯示這張照片
+    const { error } = await supabase.from('student_photos').upsert({ student_no: studentNo, opt_out: true, updated_at: new Date().toISOString() });
+    if (error) throw new Error(explain(error.message));
+    const { error: e2 } = await supabase.storage.from(BUCKET).remove([pathOf(studentNo)]);
+    if (e2) throw new Error('已標記不放照片，但原本的照片檔刪除失敗：' + explain(e2.message));
+  } else {
+    const { error } = await supabase.from('student_photos').delete().eq('student_no', studentNo).eq('opt_out', true);
+    if (error) throw new Error(explain(error.message));
+  }
+  forget(studentNo);
+}
+
 function explain(msg: string): string {
+  if (/opt_out/i.test(msg)) return '「不放照片」功能尚未啟用（請管理員先執行 sql/153）';
   if (/row-level security|policy|not authorized|Unauthorized|403/i.test(msg)) return '沒有權限（只有該班導師與教務處可以上傳或刪除照片）';
   if (/Bucket not found|does not exist|schema cache/i.test(msg)) return '照片功能尚未啟用（請管理員先執行 sql/152）';
   if (/exceeded|too large|size/i.test(msg)) return '照片檔案太大';
@@ -109,16 +131,32 @@ function explain(msg: string): string {
  * 讀取一批學生的照片網址。回傳 available=false 代表 sql/152 還沒執行（畫面顯示「尚未啟用」）。
  * 一個班只會多兩次查詢：誰有照片（student_photos）＋一次取得全部簽名網址；7 天內重開不用再取。
  */
-export async function loadPhotoUrls(studentNos: string[]): Promise<{ urls: PhotoMap; available: boolean }> {
+export async function loadPhotoUrls(studentNos: string[]): Promise<{ urls: PhotoMap; available: boolean; optOut: string[]; optOutAvailable: boolean }> {
   const urls: PhotoMap = {};
+  const optOut: string[] = [];
+  let optOutAvailable = true;
   const uniq = Array.from(new Set(studentNos.filter(Boolean)));
-  if (uniq.length === 0) return { urls, available: true };
+  if (uniq.length === 0) return { urls, available: true, optOut, optOutAvailable };
   const stamps: Record<string, string> = {};
   for (const part of chunk(uniq, 200)) {
-    const { data, error } = await supabase.from('student_photos').select('student_no, updated_at').in('student_no', part);
-    if (error) return { urls: {}, available: false };
+    let data: any[] | null = null;
+    let error: { message: string } | null = null;
+    if (optOutAvailable) {
+      const r = await supabase.from('student_photos').select('student_no, updated_at, opt_out').in('student_no', part);
+      data = r.data as any[] | null;
+      error = r.error;
+      // sql/153 還沒執行：沒有「不放照片」這一欄，照片本身照常顯示
+      if (error && /opt_out/i.test(error.message ?? '')) optOutAvailable = false;
+    }
+    if (!optOutAvailable) {
+      const r = await supabase.from('student_photos').select('student_no, updated_at').in('student_no', part);
+      data = r.data as any[] | null;
+      error = r.error;
+    }
+    if (error) return { urls: {}, available: false, optOut: [], optOutAvailable: false };
     (data ?? []).forEach((r: any) => {
-      stamps[r.student_no] = r.updated_at;
+      if (r.opt_out) optOut.push(r.student_no);
+      else stamps[r.student_no] = r.updated_at;
     });
   }
   const need: string[] = [];
@@ -151,7 +189,7 @@ export async function loadPhotoUrls(studentNos: string[]): Promise<{ urls: Photo
       }
     });
   }
-  return { urls, available: true };
+  return { urls, available: true, optOut, optOutAvailable };
 }
 
 /** 批次上傳時，用檔名找學生：先比學號，再比座號（檔名開頭的數字），最後比姓名 */

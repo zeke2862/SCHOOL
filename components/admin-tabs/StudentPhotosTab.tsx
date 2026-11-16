@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useClassRoster, type RosterStudent } from '@/lib/useClassRoster';
-import { deleteStudentPhoto, matchFileToStudent, uploadStudentPhoto } from '@/lib/studentPhotos';
+import { deleteStudentPhoto, matchFileToStudent, setPhotoOptOut, uploadStudentPhoto } from '@/lib/studentPhotos';
 import StudentPhoto from '@/components/StudentPhoto';
 
 // 學生照片（班級相片名冊）：
@@ -13,7 +13,7 @@ import StudentPhoto from '@/components/StudentPhoto';
 type BatchResult = { ok: string[]; failed: { file: string; why: string }[]; unmatched: string[] };
 
 export default function StudentPhotosTab() {
-  const { classes, classId, setClassId, current, students, photos, photosAvailable, loading, error, canWrite, reloadPhotos } = useClassRoster();
+  const { classes, classId, setClassId, current, students, photos, photosAvailable, optOut, optOutAvailable, loading, error, canWrite, reloadPhotos } = useClassRoster();
   const [busyNo, setBusyNo] = useState<string | null>(null);
   const [msg, setMsg] = useState('');
   const [batch, setBatch] = useState<{ done: number; total: number } | null>(null);
@@ -63,6 +63,21 @@ export default function StudentPhotosTab() {
     setBusyNo(null);
   }
 
+  async function toggleOptOut(s: RosterStudent) {
+    const on = !optOut.has(s.student_no);
+    if (on && !confirm(`確定把 ${s.name} 標記為「不放照片」嗎？${photos[s.student_no] ? '已上傳的照片會被刪除，' : ''}之後也不能再上傳，直到取消標記。`)) return;
+    setBusyNo(s.student_no);
+    setMsg('');
+    try {
+      await setPhotoOptOut(s.student_no, on);
+      setMsg(on ? `已將 ${s.name} 標記為不放照片` : `已取消 ${s.name} 的不放照片標記`);
+    } catch (err: any) {
+      setMsg(`${s.name}：${err?.message ?? err}`);
+    }
+    await reloadPhotos(nos);
+    setBusyNo(null);
+  }
+
   async function onBatch(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     e.target.value = '';
@@ -73,6 +88,7 @@ export default function StudentPhotosTab() {
     for (const f of files) {
       const s = matchFileToStudent(f.name, students);
       if (!s) res.unmatched.push(f.name);
+      else if (optOut.has(s.student_no)) res.failed.push({ file: f.name, why: `${s.name} 已標記「不放照片」，沒有上傳` });
       else if (used.has(s.student_no)) res.failed.push({ file: f.name, why: `和另一個檔案對到同一位學生（${s.name}）` });
       else {
         used.add(s.student_no);
@@ -136,7 +152,7 @@ export default function StudentPhotosTab() {
             <option key={c.id} value={c.id}>{c.label}</option>
           ))}
         </select>
-        {classId && !loading && <span style={{ fontSize: 13, color: 'var(--sub)' }}>已有照片 {have} / {students.length} 人</span>}
+        {classId && !loading && <span style={{ fontSize: 13, color: 'var(--sub)' }}>已有照片 {have} / {students.length} 人{optOut.size > 0 && `（${optOut.size} 人不放照片）`}</span>}
         {classId && students.length > 0 && <button type="button" style={btn} onClick={() => window.print()}>列印相片名冊</button>}
         {canWrite && photosAvailable && students.length > 0 && (
           <>
@@ -163,6 +179,12 @@ export default function StudentPhotosTab() {
           點學生的照片框就能選照片（手機可以直接拍）。系統會自動裁成直式大頭照並縮小，原圖多大都沒關係。
           <br />
           批次上傳：一次選全班的照片，檔名用<b>座號</b>（例如 05.jpg）、<b>學號</b>或<b>姓名</b>，系統會自動對應。
+          {optOutAvailable && (
+            <>
+              <br />
+              家長不同意使用肖像的學生，請按「不放照片」：已上傳的照片會刪除，之後也無法再上傳。
+            </>
+          )}
         </p>
       )}
       {msg && <p className="no-print" role="status" style={{ fontSize: 13, color: 'var(--primary-ink)', margin: '0 0 10px' }}>{msg}</p>}
@@ -184,22 +206,30 @@ export default function StudentPhotosTab() {
         {students.map((s) => {
           const url = photos[s.student_no];
           const busy = busyNo === s.student_no;
+          const out = optOut.has(s.student_no);
           return (
             <div key={s.student_no} className="sp-card">
               <button
                 type="button"
                 className="keep-size sp-photo"
                 disabled={busy}
-                onClick={() => (editing ? pick(s) : url ? setBig(s) : canWrite && photosAvailable ? pick(s) : undefined)}
-                aria-label={editing || !url ? `上傳 ${s.name} 的照片` : `放大 ${s.name} 的照片`}
+                onClick={() => (out ? undefined : editing ? pick(s) : url ? setBig(s) : canWrite && photosAvailable ? pick(s) : undefined)}
+                aria-label={out ? `${s.name} 不放照片` : editing || !url ? `上傳 ${s.name} 的照片` : `放大 ${s.name} 的照片`}
+                style={out ? { cursor: 'default' } : undefined}
               >
-                <StudentPhoto url={url} name={s.name} width={96} />
+                <StudentPhoto url={out ? null : url} name={s.name} width={96} title={out ? `${s.name}（不放照片）` : undefined} />
                 {busy && <span className="sp-hint">處理中…</span>}
-                {!busy && editing && <span className="sp-hint no-print">{url ? '更換' : '上傳'}</span>}
+                {!busy && out && <span className="sp-hint no-print">不放照片</span>}
+                {!busy && !out && editing && <span className="sp-hint no-print">{url ? '更換' : '上傳'}</span>}
               </button>
               <span className="sp-seat">{s.seat_no ?? '—'} 號</span>
               <span className="sp-name">{s.name}</span>
-              {editing && url && !busy && (
+              {editing && optOutAvailable && !busy && (
+                <button type="button" className="keep-size no-print" onClick={() => toggleOptOut(s)} style={{ fontSize: 12, padding: '1px 8px', minHeight: 0 }}>
+                  {out ? '取消不放照片' : '不放照片'}
+                </button>
+              )}
+              {editing && url && !out && !busy && (
                 <button type="button" className="keep-size no-print" onClick={() => remove(s)} style={{ fontSize: 12, padding: '1px 8px', minHeight: 0, color: '#A32D2D' }}>
                   刪除
                 </button>
