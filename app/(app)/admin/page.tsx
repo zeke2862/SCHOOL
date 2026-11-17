@@ -10,7 +10,9 @@ import { useIsMobile } from '@/lib/useIsMobile';
 import { useTileMetrics, maxTitleLines, TileMetrics } from '@/lib/useTileMetrics';
 import { useFeatureUsage, recordUse, hubUse, levelOf, shadeBg, topSchool } from '@/lib/featureUsage';
 import HubIcon from '@/components/hub/HubIcon';
-import GameHome from '@/components/game/GameHome';
+import dynamic from 'next/dynamic';
+// 遊戲面板只有選了 RPG／經營的人才需要，用原始介面的人不下載這段程式
+const GameHome = dynamic(() => import('@/components/game/GameHome'), { ssr: false });
 import { useGameMode } from '@/lib/gameMode';
 
 // 布告欄關卡：有新公告時，先看過按「我知道」才放行（用 localStorage 記看到哪一篇）。

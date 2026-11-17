@@ -3,6 +3,7 @@
 const ICONS: Record<string, { e: string; bg: string }> = {
   attendance: { e: '✅', bg: '#E3F4EB' },
   grading: { e: '📝', bg: '#FFF3D1' },
+  seating: { e: '💺', bg: '#DDF5EA' },
   registrar: { e: '🎒', bg: '#E3EEFF' },
   rewards: { e: '🏅', bg: '#FFE6DD' },
   exam: { e: '🪑', bg: '#ECE7FF' },

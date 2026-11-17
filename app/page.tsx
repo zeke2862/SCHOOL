@@ -80,6 +80,10 @@ function BulletinBoard() {
   );
 }
 
+// 「忘記密碼」信裡的連結點回來時，網址後面會帶 #...type=recovery（或 #error=...）。
+// 登入套件處理完就會把它清掉，所以在頁面程式一載入時先記下來。
+const INITIAL_HASH = typeof window !== 'undefined' ? window.location.hash : '';
+
 export default function LoginPage() {
   const [card, setCard] = useState<CardKey | null>(null);
   const [email, setEmail] = useState('');
@@ -89,6 +93,31 @@ export default function LoginPage() {
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
   const router = useRouter();
+
+  // 忘記密碼：使用者點了信裡的連結回到這裡 → 直接帶去「設定新密碼」頁，不用再登入一次。
+  // 連結過期或已經用過，就打開忘記密碼表單請他重寄。
+  useEffect(() => {
+    if (/error_code=otp_expired|error=access_denied/.test(INITIAL_HASH)) {
+      setCard('staff');
+      setForgotMode(true);
+      setError('這個重設密碼連結已經失效或用過了，請重新寄送一次。');
+      try {
+        window.history.replaceState(null, '', window.location.pathname);
+      } catch {}
+      return;
+    }
+    const go = () => router.replace('/change-password?recovery=1');
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') go();
+    });
+    if (/type=recovery/.test(INITIAL_HASH)) {
+      // getSession 會等連結裡的憑證處理完；有登入狀態就代表連結有效
+      supabase.auth.getSession().then(({ data }) => {
+        if (data.session) go();
+      });
+    }
+    return () => sub.subscription.unsubscribe();
+  }, [router]);
 
   function chooseCard(key: CardKey) {
     setError(null);
@@ -116,7 +145,11 @@ export default function LoginPage() {
       setError('請先輸入電子郵件');
       return;
     }
-    const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email);
+    // 點信裡的連結後直接到「設定新密碼」頁；若該網址沒有列在登入服務的允許清單，
+    // 會退回系統首頁，首頁（上面的 useEffect）一樣會把人帶去設定新密碼。
+    const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/change-password?recovery=1`,
+    });
     if (resetErr) {
       setError('寄送重設密碼信失敗：' + resetErr.message);
       return;
@@ -297,7 +330,7 @@ export default function LoginPage() {
         <>
           {forgotSent ? (
             <p style={{ fontSize: 13, color: '#3B6D11', marginBottom: 12 }}>
-              已寄出重設密碼信到 {email}，請至信箱點擊連結重設密碼。若您沒有收到信、或無法收信，請聯絡系統管理員協助重設。
+              已寄出重設密碼信到 {email}，請至信箱點擊信裡的連結，就會直接進到「設定新密碼」畫面。連結只能用一次、一小時內有效。若您沒有收到信、或無法收信，請聯絡系統管理員協助重設。
             </p>
           ) : (
             <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

@@ -19,6 +19,11 @@ const SCENES: SceneDef[] = [
     idle: { icon: '📒', place: '成績小屋', line: '一筆一筆記下大家的成長' },
   },
   {
+    prefixes: ['/seating'],
+    rpg: { icon: '🪑', place: '隊伍編成室', line: '安排每位隊員的位置' },
+    idle: { icon: '💺', place: '教室佈置間', line: '誰坐哪裡，排得剛剛好' },
+  },
+  {
     prefixes: ['/admin/registrar', '/admin/students', '/reports/profile-requests', '/admin/class-accounts'],
     rpg: { icon: '📚', place: '冒險者公會', line: '入隊、轉隊、升級都在這裡登記' },
     idle: { icon: '🗂️', place: '學籍服務台', line: '把每位孩子的資料收得整整齊齊' },

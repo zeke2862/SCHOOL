@@ -4,12 +4,16 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useDepartmentPermissions } from '@/lib/useDepartmentPermissions';
 import { hasDepartment } from '@/lib/departments';
-import SchedulingPage from '../scheduling/page';
-import SchoolTimetableAdminPage from '../school-timetable/page';
-import SubstituteTeachingPage from '../substitute-teaching/page';
-import ScheduleLookupPage from '../../schedule-lookup/page';
-import ScheduleDuplicatesPanel from '@/components/scheduling/ScheduleDuplicatesPanel';
-import TimetablePrint from '@/components/scheduling/TimetablePrint';
+import dynamic from 'next/dynamic';
+import TabLoading from '@/components/hub/TabLoading';
+
+// 各分頁改成「點進去才下載」：進排課中心時只載目前這個分頁，不會一次把排課、課表、代課、列印的程式全抓下來
+const SchedulingPage = dynamic(() => import('../scheduling/page'), { loading: TabLoading });
+const SchoolTimetableAdminPage = dynamic(() => import('../school-timetable/page'), { loading: TabLoading });
+const SubstituteTeachingPage = dynamic(() => import('../substitute-teaching/page'), { loading: TabLoading });
+const ScheduleLookupPage = dynamic(() => import('../../schedule-lookup/page'), { loading: TabLoading });
+const ScheduleDuplicatesPanel = dynamic(() => import('@/components/scheduling/ScheduleDuplicatesPanel'), { loading: TabLoading });
+const TimetablePrint = dynamic(() => import('@/components/scheduling/TimetablePrint'), { loading: TabLoading });
 
 // ============================================================
 // 排課與代課中心

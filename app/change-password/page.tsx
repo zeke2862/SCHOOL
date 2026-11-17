@@ -15,12 +15,30 @@ export default function ChangePasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 從「忘記密碼」信裡的連結進來（網址帶 ?recovery=1）：說明文字不同，其餘流程一樣
+  const [recovery, setRecovery] = useState(false);
+  const [linkError, setLinkError] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     (async () => {
+      const isRecovery = new URLSearchParams(window.location.search).get('recovery') === '1';
+      const hash = window.location.hash;
+      setRecovery(isRecovery);
+      // 連結過期或已經用過：不要默默跳回登入頁，直接告訴使用者怎麼辦
+      if (/error_code=|error=access_denied/.test(hash)) {
+        setLinkError(true);
+        setChecking(false);
+        return;
+      }
+      // getSession 會等信裡連結帶來的憑證處理完才回傳
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
+        if (isRecovery) {
+          setLinkError(true);
+          setChecking(false);
+          return;
+        }
         router.replace('/');
         return;
       }
@@ -71,11 +89,27 @@ export default function ChangePasswordPage() {
 
   if (checking) return <main style={{ padding: 24 }}>載入中…</main>;
 
+  if (linkError) {
+    return (
+      <main style={{ maxWidth: 360, margin: '80px auto', padding: 24 }}>
+        <h1 style={{ fontSize: 18, marginBottom: 8 }}>重設密碼連結已失效</h1>
+        <p style={{ fontSize: 14, color: 'var(--sub)', marginBottom: 20, lineHeight: 1.7 }}>
+          這個連結已經過期或用過了（每個連結只能用一次、一小時內有效）。請回登入頁按「忘記密碼？」重新寄送，或請系統管理員協助重設。
+        </p>
+        <button type="button" onClick={() => router.replace('/')} style={{ padding: 12, width: '100%', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8 }}>
+          回登入頁
+        </button>
+      </main>
+    );
+  }
+
   return (
     <main style={{ maxWidth: 360, margin: '80px auto', padding: 24 }}>
-      <h1 style={{ fontSize: 18, marginBottom: 8 }}>請先設定新密碼</h1>
+      <h1 style={{ fontSize: 18, marginBottom: 8 }}>{recovery ? '重設密碼' : '請先設定新密碼'}</h1>
       <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 24 }}>
-        這是您第一次登入（或密碼剛被管理員重設），系統要求先自己設定一組新密碼，才能繼續使用。
+        {recovery
+          ? '請輸入一組新密碼。更新後會直接登入系統，之後請用新密碼登入。'
+          : '這是您第一次登入（或密碼剛被管理員重設），系統要求先自己設定一組新密碼，才能繼續使用。'}
       </p>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <input
