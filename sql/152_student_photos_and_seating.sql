@@ -72,7 +72,7 @@ drop policy if exists staff_read_student_photo_files on storage.objects;
 create policy staff_read_student_photo_files on storage.objects for select
   using (
     bucket_id = 'student-photos' and public.is_staff_user()
-    and exists (select 1 from public.students s where s.student_no = public.photo_student_no(name))
+    and exists (select 1 from public.students s where s.student_no = public.photo_student_no(objects.name))
   );
 drop policy if exists writer_insert_student_photo_files on storage.objects;
 create policy writer_insert_student_photo_files on storage.objects for insert
