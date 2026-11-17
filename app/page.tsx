@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { isWeakPassword } from '@/lib/weakPasswords';
 import { supabase, getCurrentAppUser, getMyIdentity, resetIdentityCache } from '@/lib/supabaseClient';
@@ -92,6 +92,14 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
+  // 忘記密碼（驗證碼）：信裡的驗證碼、新密碼
+  const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [resendAt, setResendAt] = useState(0);
+  // 用驗證碼改密碼時，登入套件也會發出「密碼重設」事件；這時不要被下面的 useEffect 帶去另一頁
+  const codeFlow = useRef(false);
   const router = useRouter();
 
   // 忘記密碼：使用者點了信裡的連結回到這裡 → 直接帶去「設定新密碼」頁，不用再登入一次。
@@ -108,7 +116,7 @@ export default function LoginPage() {
     }
     const go = () => router.replace('/change-password?recovery=1');
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') go();
+      if (event === 'PASSWORD_RECOVERY' && !codeFlow.current) go();
     });
     if (/type=recovery/.test(INITIAL_HASH)) {
       // getSession 會等連結裡的憑證處理完；有登入狀態就代表連結有效
@@ -155,6 +163,45 @@ export default function LoginPage() {
       return;
     }
     setForgotSent(true);
+    setCode('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setResendAt(Date.now() + 60_000);
+  }
+
+  // 忘記密碼第二步：輸入信裡的驗證碼＋新密碼，驗證通過就直接改好並登入
+  async function handleCodeReset(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const token = code.replace(/\D/g, '');
+    if (token.length < 6) return setError('請輸入信裡的驗證碼（6 位數字）');
+    if (newPassword.length < 6) return setError('密碼至少要6個字元');
+    if (isWeakPassword(newPassword)) return setError('這組密碼太常見，請設定其他密碼');
+    if (newPassword !== confirmPassword) return setError('兩次輸入的密碼不一致');
+    setBusy(true);
+    codeFlow.current = true;
+    try {
+      const { data, error: otpErr } = await supabase.auth.verifyOtp({ email: email.trim(), token, type: 'recovery' });
+      if (otpErr || !data.session) {
+        setError('驗證碼不正確或已過期（每組驗證碼只能用一次、一小時內有效）。請確認是最新一封信裡的驗證碼，或重新寄送。');
+        return;
+      }
+      const res = await fetch('/api/account/complete-password-change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
+        body: JSON.stringify({ newPassword }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        // 驗證碼已經用掉、也已經登入了，只是密碼沒改成：帶去「重設密碼」頁再試一次，不用重寄驗證碼
+        setError((body.error ?? '更新密碼失敗') + '。即將帶您到重設密碼畫面再試一次…');
+        setTimeout(() => router.replace('/change-password?recovery=1'), 1800);
+        return;
+      }
+      await enterSystem();
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -176,6 +223,11 @@ export default function LoginPage() {
       }
     }
 
+    await enterSystem();
+  }
+
+  // 登入成功之後決定要去哪一頁（一般登入、用驗證碼改完密碼後都走這裡）
+  async function enterSystem() {
     // 先清快取再查：getCurrentAppUser 會順便把身分查好放進快取，後面 getMyIdentity 直接用，不用再打一次
     if (typeof window !== 'undefined') sessionStorage.removeItem('viewMode');
     resetIdentityCache();
@@ -329,12 +381,61 @@ export default function LoginPage() {
       ) : (
         <>
           {forgotSent ? (
-            <p style={{ fontSize: 13, color: '#3B6D11', marginBottom: 12 }}>
-              已寄出重設密碼信到 {email}，請至信箱點擊信裡的連結，就會直接進到「設定新密碼」畫面。連結只能用一次、一小時內有效。若您沒有收到信、或無法收信，請聯絡系統管理員協助重設。
-            </p>
+            <form onSubmit={handleCodeReset} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <p style={{ fontSize: 13, color: '#3B6D11', margin: 0, lineHeight: 1.7 }}>
+                驗證碼已寄到 <b>{email}</b>。請打開信箱（手機的郵件 App 也可以），把信裡的 6 位數驗證碼填在下面，並設定新密碼。
+              </p>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                placeholder="驗證碼（6 位數字）"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc', fontSize: 20, letterSpacing: '0.3em', textAlign: 'center' }}
+                required
+              />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                placeholder="新密碼（至少6碼）"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+                required
+              />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                placeholder="再輸入一次新密碼"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+                required
+              />
+              <label style={{ fontSize: 13, color: '#666', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <input type="checkbox" checked={showPassword} onChange={(e) => setShowPassword(e.target.checked)} /> 顯示密碼
+              </label>
+              {error && <p style={{ color: '#A32D2D', fontSize: 13, margin: 0 }}>{error}</p>}
+              <button type="submit" disabled={busy} style={{ padding: 10, borderRadius: 8, background: busy ? '#999' : 'var(--primary)', color: 'var(--on-primary)', border: 'none' }}>
+                {busy ? '處理中…' : '更新密碼並登入'}
+              </button>
+              <p style={{ fontSize: 12, color: '#666', margin: 0, lineHeight: 1.7 }}>
+                沒收到信？請先看垃圾信匣，一分鐘後可以
+                <button
+                  type="button"
+                  className="keep-size"
+                  onClick={(e) => (Date.now() < resendAt ? setError('剛寄出不久，請稍等一分鐘再重寄') : handleForgotPassword(e as unknown as React.FormEvent))}
+                  style={{ background: 'none', border: 'none', padding: '0 2px', minHeight: 0, color: 'var(--primary-ink)', textDecoration: 'underline', cursor: 'pointer', fontSize: '12px' }}
+                >
+                  重新寄送
+                </button>
+                。信裡的連結也一樣可以用。仍然收不到，請聯絡系統管理員協助重設。
+              </p>
+            </form>
           ) : (
             <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <p style={{ fontSize: 13, color: '#666' }}>輸入您的登入信箱，我們會寄送重設密碼連結給您；若無法收信，也可以請系統管理員（S/A/B）協助重製密碼。</p>
+              <p style={{ fontSize: 13, color: '#666' }}>輸入您的登入信箱，我們會寄一組驗證碼給您，在這個畫面輸入驗證碼就能直接設定新密碼；若無法收信，也可以請系統管理員（S/A/B）協助重製密碼。</p>
               <input
                 type="email"
                 placeholder="帳號（電子郵件）"
@@ -348,7 +449,7 @@ export default function LoginPage() {
                 type="submit"
                 style={{ padding: 10, borderRadius: 8, background: 'var(--primary)', color: 'var(--on-primary)', border: 'none' }}
               >
-                寄送重設密碼信
+                寄送驗證碼
               </button>
             </form>
           )}
