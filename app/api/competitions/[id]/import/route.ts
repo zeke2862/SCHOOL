@@ -26,7 +26,8 @@ function cellText(v: ExcelJS.CellValue | undefined): string {
   return String(v).trim();
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   const ctx = await requireOrganizer(req, params.id, { readOnly: true });
   if ('err' in ctx) return ctx.err;
   const { data: items } = await supabaseAdmin
@@ -51,7 +52,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   });
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   const ctx = await requireOrganizer(req, params.id);
   if ('err' in ctx) return ctx.err;
   const commit = req.nextUrl.searchParams.get('commit') === '1';

@@ -16,7 +16,8 @@ const anon = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEX
   global: { fetch: (input: RequestInfo | URL, init?: RequestInit) => fetch(input, { ...init, cache: 'no-store' }) },
 });
 
-export async function GET(_req: NextRequest, { params }: { params: { token: string } }) {
+export async function GET(_req: NextRequest, { params: routeParams }: { params: Promise<{ token: string }> }) {
+  const params = await routeParams;
   if (!TOKEN_RE.test(params.token)) return NextResponse.json({ error: '找不到' }, { status: 404 });
   const { data, error } = await anon.rpc('comp_public_view', { p_token: params.token });
   if (error) return NextResponse.json({ error: '暫時無法讀取' }, { status: 503 });

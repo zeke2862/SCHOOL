@@ -7,7 +7,8 @@ import { getReportCardResult, canAccessClass, getActiveReportCardStyle } from '@
 import { getActiveTemplateBuffer, mergeReportCardDocx } from '@/lib/reportCardDocxTemplate';
 import { getActiveXlsxTemplateBuffer, fillReportCardXlsx } from '@/lib/reportCardXlsxTemplate';
 
-export async function GET(req: NextRequest, { params }: { params: { enrollmentId: string } }) {
+export async function GET(req: NextRequest, { params: routeParams }: { params: Promise<{ enrollmentId: string }> }) {
+  const params = await routeParams;
   const enrollmentId = params.enrollmentId;
 
   // ---- 1. 驗證呼叫者身份與權限（只有該班導師與教務部門可以產出成績單） ----
