@@ -603,8 +603,8 @@ export default function AdminAccountsPage() {
     if (!accessToken) return { successCount: 0, errors: ['請重新登入'] };
 
     const buf = await file.arrayBuffer();
-    const XLSX = await import('xlsx');
-    const wb = XLSX.read(buf, { type: 'array' });
+    const XLSX = await import('@/lib/xlsxLite');
+    const wb = await XLSX.read(buf, { type: 'array' });
     const sheetName = wb.SheetNames.includes(ACCOUNTS_SHEET_NAME) ? ACCOUNTS_SHEET_NAME : wb.SheetNames[0];
     const sheet = wb.Sheets[sheetName];
     const rowsRaw: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });

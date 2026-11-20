@@ -1,11 +1,11 @@
-import type * as XLSXNS from 'xlsx';
+import type * as XLSXNS from '@/lib/xlsxLite';
 
 // ⚠️ 見 excelTemplates.ts 頂端註解：'xlsx' 套件在 Node.js（建置/伺服器端渲染）環境
 // 執行到會直接丟出 `ReferenceError: self is not defined`，所以這裡也改成當下才動態載入，
 // 確保只會在瀏覽器裡執行。
 let _xlsx: typeof XLSXNS | null = null;
 async function loadXLSX(): Promise<typeof XLSXNS> {
-  if (!_xlsx) _xlsx = await import('xlsx');
+  if (!_xlsx) _xlsx = await import('@/lib/xlsxLite');
   return _xlsx;
 }
 
@@ -58,7 +58,7 @@ export function parseStudentRows(rowsRaw: any[][], startRow = 7): ParsedStudentR
 export async function readWorkbook(file: File) {
   const XLSX = await loadXLSX();
   const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: 'array' });
+  const wb = await XLSX.read(buf, { type: 'array' });
   const sheetName = wb.SheetNames.includes('成績、出缺輸入表') ? '成績、出缺輸入表' : wb.SheetNames[0];
   const sheet = wb.Sheets[sheetName];
   const rowsRaw: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
@@ -76,7 +76,7 @@ const NON_CLASS_SHEET_NAMES = new Set(['代碼說明']);
 export async function readAllClassSheets(file: File): Promise<{ sheetName: string; rowsRaw: any[][] }[]> {
   const XLSX = await loadXLSX();
   const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: 'array' });
+  const wb = await XLSX.read(buf, { type: 'array' });
   return wb.SheetNames.filter((name) => !NON_CLASS_SHEET_NAMES.has(name)).map((name) => ({
     sheetName: name,
     rowsRaw: XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: null }) as any[][],

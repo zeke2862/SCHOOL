@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useState } from 'react';
-import type * as XLSXNS from 'xlsx';
+import type * as XLSXNS from '@/lib/xlsxLite';
 import ExcelUploadButton from '@/components/ExcelUploadButton';
 import TemplateDownloadButton from '@/components/TemplateDownloadButton';
 import {
@@ -51,17 +51,17 @@ const CATEGORIES: { key: PanelTab; label: string }[] = [
 ];
 
 async function downloadSheet(sheet: { name: string; aoa: any[][] }) {
-  const XLSX = await import('xlsx');
+  const XLSX = await import('@/lib/xlsxLite');
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(sheet.aoa);
   XLSX.utils.book_append_sheet(wb, ws, sheet.name.slice(0, 31));
-  XLSX.writeFile(wb, `${sheet.name}.xlsx`);
+  await XLSX.writeFile(wb, `${sheet.name}.xlsx`);
 }
 
 async function readFirstSheetRows(file: File): Promise<any[][]> {
-  const XLSX = await import('xlsx');
+  const XLSX = await import('@/lib/xlsxLite');
   const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: 'array' });
+  const wb = await XLSX.read(buf, { type: 'array' });
   const sheet = wb.Sheets[wb.SheetNames[0]];
   return XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null }) as any[][];
 }

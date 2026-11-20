@@ -4,6 +4,9 @@ import assert from 'node:assert/strict';
 import { compareStudentNo, compareForSeat, genderFromStudentNo, genderRank } from '../../lib/studentNoSort.ts';
 import { sha1Upper, countInRange } from '../../lib/pwnedPassword.ts';
 import { CHEST_FOOD, chestOpened, openChest } from '../../lib/gameChest.ts';
+import ExcelJS from 'exceljs';
+import * as X from '../../lib/xlsxLite.ts';
+import { clientIp } from '../../lib/clientIp.ts';
 import { cached, invalidateCache } from '../../lib/queryCacheCore.ts';
 import { departmentForGrade, SPECIFIC_GRADE_LEVELS, ATTENDANCE_CODE_MAP } from '../../lib/gradeMapping.ts';
 
@@ -119,6 +122,58 @@ t('RPG 寶箱：開出飼料、一天只能開一次、不動星星與經驗值'
   assert.equal(chestOpened(o), true);
   assert.equal(openChest(o), o, '已開過：原封不動，不會重複領飼料');
   assert.equal(p.extras.food, 5, '不會改到原本的資料');
+});
+
+t('來源 IP：取 x-forwarded-for 第一段，沒有就用 x-real-ip，再沒有是 unknown', () => {
+  const h = (o) => ({ get: (k) => o[k] ?? null });
+  assert.equal(clientIp(h({ 'x-forwarded-for': '1.2.3.4, 10.0.0.1' })), '1.2.3.4');
+  assert.equal(clientIp(h({ 'x-forwarded-for': ' 5.6.7.8 ' })), '5.6.7.8');
+  assert.equal(clientIp(h({ 'x-real-ip': '9.9.9.9' })), '9.9.9.9');
+  assert.equal(clientIp(h({})), 'unknown');
+  assert.equal(clientIp(h({ 'x-forwarded-for': 'x'.repeat(200) })).length, 64, '過長的值會被截斷');
+});
+
+t('Excel 讀寫（取代 xlsx 套件）：寫出再讀回、欄寬、合併、多個分頁順序', async () => {
+  const wb = X.utils.book_new();
+  const ws = X.utils.aoa_to_sheet([['標題', null, null], [1, 'b', true], ['', 3.5, undefined]]);
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }];
+  ws['!cols'] = [{ wch: 20 }];
+  X.utils.book_append_sheet(wb, ws, '資料');
+  wb.SheetNames.unshift('前面');
+  wb.Sheets['前面'] = X.utils.aoa_to_sheet([['最前']]);
+  const buf = await X.write(wb, { bookType: 'xlsx', type: 'array' });
+  assert.ok(buf instanceof ArrayBuffer);
+  const back = await X.read(buf, { type: 'array' });
+  assert.deepEqual(back.SheetNames, ['前面', '資料']);
+  assert.deepEqual(X.utils.sheet_to_json(back.Sheets['資料'], { header: 1, defval: null }), [['標題', null, null], [1, 'b', true], ['', 3.5, null]]);
+  assert.throws(() => X.utils.book_append_sheet(wb, ws, '資料'), /重複/, '工作表名稱重複要報錯');
+});
+t('Excel 讀取：日期是序號、公式取計算結果（含 0）、合併格只有左上角有值、略過空白列', async () => {
+  const w = new ExcelJS.Workbook();
+  const s = w.addWorksheet('測');
+  s.getCell('A1').value = new Date(Date.UTC(2026, 10, 20, 13, 45, 30));
+  s.getCell('B1').value = { formula: 'A1*0', result: 0 };
+  s.getCell('C1').value = { richText: [{ text: '富' }, { text: '文字' }] };
+  s.getCell('A3').value = '合併';
+  s.mergeCells('A3:C3');
+  s.getCell('A5').value = '最後';
+  const back = await X.read(new Uint8Array(await w.xlsx.writeBuffer()));
+  const rows = X.utils.sheet_to_json(back.Sheets['測'], { header: 1, defval: null });
+  assert.equal(typeof rows[0][0], 'number');
+  const p = X.SSF.parse_date_code(rows[0][0]);
+  assert.deepEqual([p.y, p.m, p.d, p.H, p.M, p.S], [2026, 11, 20, 13, 45, 30]);
+  assert.equal(rows[0][1], 0, '公式結果 0 不能變成空白');
+  assert.equal(rows[0][2], '富文字');
+  assert.deepEqual(rows[2], ['合併', null, null], '合併格的其餘格要是空的');
+  assert.equal(X.utils.sheet_to_json(back.Sheets['測'], { header: 1, blankrows: false }).length, 3, '略過空白列');
+});
+t('Excel 日期碼：幾個已知日期與 23:59:59 不進位', () => {
+  const f = (v) => { const p = X.SSF.parse_date_code(v); return [p.y, p.m, p.d, p.H, p.M, p.S].join('-'); };
+  assert.equal(f(1), '1900-1-1-0-0-0');
+  assert.equal(f(25569), '1970-1-1-0-0-0');
+  assert.equal(f(45000), '2023-3-15-0-0-0');
+  assert.equal(f(46346.99999999), '2026-11-20-23-59-59');
+  assert.equal(X.SSF.parse_date_code(-1), null);
 });
 
 // 依序執行；任何一項失敗就讓整個程序以非 0 結束（CI 才會擋下）

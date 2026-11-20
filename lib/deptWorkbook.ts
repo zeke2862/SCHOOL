@@ -180,7 +180,7 @@ function colWidths(header: string[], sampleRows: any[][]) {
 
 /** 下載一個部門的 Excel。lookups 可以共用（一次下載四個部門時只查一次）。 */
 export async function exportDepartment(dept: DeptKey, opts: ExportOptions, lookupsIn?: Lookups): Promise<DeptExportResult> {
-  const XLSX = await import('xlsx');
+  const XLSX = await import('@/lib/xlsxLite');
   const { token, onProgress } = opts;
   const defs = defsOfDept(dept);
   const lookups = lookupsIn ?? (await api<Lookups>(token, { action: 'lookups' }));
@@ -239,7 +239,7 @@ export async function exportDepartment(dept: DeptKey, opts: ExportOptions, looku
   wb.Sheets['說明'] = infoSheet;
   wb.Sheets['欄位說明'] = colSheet;
 
-  const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer;
+  const out = await XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer;
   return { dept, fileName: `school-data_${DEPT_FILE_TAG[dept]}_${stamp()}.xlsx`, data: new Uint8Array(out), summary };
 }
 
@@ -282,7 +282,7 @@ function buildColumnGuideAoa(defs: TableDef[]): any[][] {
  * 上傳時整個 ZIP 直接丟進去就可以（和四部門的 Excel 一樣會被認出來）。
  */
 export async function exportAttendanceFull(opts: ExportOptions, lookupsIn?: Lookups): Promise<DeptExportResult[]> {
-  const XLSX = await import('xlsx');
+  const XLSX = await import('@/lib/xlsxLite');
   const { token, onProgress } = opts;
   const def = DEF_BY_TABLE.get('attendance')!;
   const lookups = lookupsIn ?? (await api<Lookups>(token, { action: 'lookups' }));
@@ -292,14 +292,14 @@ export async function exportAttendanceFull(opts: ExportOptions, lookupsIn?: Look
   const header = [...def.cols.map((c) => c.name), ...specs.map((s) => s.header)];
   const results: DeptExportResult[] = [];
 
-  const flush = (rows: any[], part: number) => {
+  const flush = async (rows: any[], part: number) => {
     const body = rows.map((r) => [...def.cols.map((c) => cellOf(c, r[c.name])), ...specs.map((s) => s.make(r, lookups))]);
     const ws = XLSX.utils.aoa_to_sheet([header, ...body]);
     ws['!cols'] = colWidths(header, body);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[`校務行政系統資料 Excel — 訓導／完整出缺勤（含出席）第 ${part} 份`], [`匯出時間：${niceTime()}`], ['這份只有 attendance 一個分頁，可以和其他部門的 Excel 一起（或打包成 ZIP）上傳。']]), '說明');
     XLSX.utils.book_append_sheet(wb, ws, def.sheet);
-    const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer;
+    const out = await XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer;
     results.push({
       dept: 'discipline',
       fileName: `school-data_3-discipline_attendance-full_part${pad2(part)}.xlsx`,
@@ -319,10 +319,10 @@ export async function exportAttendanceFull(opts: ExportOptions, lookupsIn?: Look
     onProgress?.(`完整出缺勤讀取中… ${offset}/${total}`);
     while (buf.length >= ROWS_PER_SHEET) {
       onProgress?.(`完整出缺勤：產生第 ${part} 份 Excel…`);
-      flush(buf.splice(0, ROWS_PER_SHEET), part++);
+      await flush(buf.splice(0, ROWS_PER_SHEET), part++);
     }
   }
-  if (buf.length) flush(buf, part);
+  if (buf.length) await flush(buf, part);
   return results;
 }
 
@@ -388,7 +388,7 @@ function isBlank(v: any) {
 type Coerced = { ok: true; value: any; omit?: boolean } | { ok: false; msg: string };
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function coerce(XLSX: typeof import('xlsx'), col: ColDef, v: any): Coerced {
+function coerce(XLSX: typeof import('@/lib/xlsxLite'), col: ColDef, v: any): Coerced {
   if (isBlank(v)) {
     if (!col.notNull) return { ok: true, value: null };
     if (col.hasDefault) return { ok: true, value: undefined, omit: true };
@@ -497,14 +497,14 @@ async function readFileBuffers(files: File[]): Promise<{ name: string; buf: Arra
 
 /** 讀取一個或多個 .xlsx（或包含 .xlsx 的 .zip），逐列檢查，但「不寫入」。 */
 export async function parseWorkbookFiles(files: File[], onProgress?: (msg: string) => void): Promise<ImportPlan> {
-  const XLSX = await import('xlsx');
+  const XLSX = await import('@/lib/xlsxLite');
   const inputs = await readFileBuffers(files);
   const byTable = new Map<string, ParsedSheet>();
   const ignored: ImportPlan['ignored'] = [];
 
   for (const input of inputs) {
     onProgress?.(`讀取 ${input.name}…`);
-    const wb = XLSX.read(input.buf, { type: 'array' });
+    const wb = await XLSX.read(input.buf, { type: 'array' });
     for (const sheetName of wb.SheetNames) {
       if (SKIP_SHEETS.has(sheetName)) continue;
       const def = findDefBySheetName(sheetName);

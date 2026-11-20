@@ -271,10 +271,10 @@ export default function ImportStudentPage() {
         await downloadStudentsImportTemplate();
         return;
       }
-      const XLSX = await import('xlsx');
+      const XLSX = await import('@/lib/xlsxLite');
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheet.aoa), sheet.name);
-      XLSX.writeFile(wb, `既有學生名冊_${downloadYear}_${downloadTerm}.xlsx`);
+      await XLSX.writeFile(wb, `既有學生名冊_${downloadYear}_${downloadTerm}.xlsx`);
     } finally {
       setDownloading(false);
     }
@@ -290,8 +290,8 @@ export default function ImportStudentPage() {
   // 出缺勤次數/操行等彙總欄位不會匯入（跟granular的出缺勤紀錄格式不同，只用來建立學籍名冊本身）。
   async function handleUploadFile(file: File) {
     const buf = await file.arrayBuffer();
-    const XLSX = await import('xlsx');
-    const wb = XLSX.read(buf, { type: 'array' });
+    const XLSX = await import('@/lib/xlsxLite');
+    const wb = await XLSX.read(buf, { type: 'array' });
     const sheetName = wb.SheetNames.includes('既有學生快速建檔（精簡版）') ? '既有學生快速建檔（精簡版）' : wb.SheetNames[0];
     const sheet = wb.Sheets[sheetName];
     const rowsRaw: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });

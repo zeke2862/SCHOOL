@@ -129,8 +129,8 @@ export default function GradingRulesAdminPage() {
   // A2:C3 = 期中考/期末考/平時 三個整體佔比；E欄「項目/分數」= 曠課/遲到/...等預設參考值
   async function handleUploadFile(file: File) {
     const buf = await file.arrayBuffer();
-    const XLSX = await import('xlsx');
-    const wb = XLSX.read(buf, { type: 'array' });
+    const XLSX = await import('@/lib/xlsxLite');
+    const wb = await XLSX.read(buf, { type: 'array' });
     const sheetName = wb.SheetNames.includes('整體佔比與加扣分規則') ? '整體佔比與加扣分規則' : wb.SheetNames[0];
     const sheet = wb.Sheets[sheetName];
     const rowsRaw: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });

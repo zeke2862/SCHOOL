@@ -1,8 +1,8 @@
-import type * as XLSXNS from 'xlsx';
+import type * as XLSXNS from '@/lib/xlsxLite';
 import { SPECIFIC_GRADE_LEVELS } from './gradeMapping';
 import { STATUS_TO_ATTENDANCE_CODE } from './scoreAttendanceSheetParser';
 
-// ⚠️ 這裡刻意不在檔案最上層直接 `import * as XLSX from 'xlsx'`。
+// ⚠️ 這裡刻意不在檔案最上層直接 `import * as XLSX from '@/lib/xlsxLite'`。
 // 'xlsx' 這個套件在 Node.js 環境（Next.js 產生靜態頁面/伺服器端渲染時）執行到它的模組載入程式碼
 // 會直接丟出 `ReferenceError: self is not defined`，這是瀏覽器專用套件常見的問題。
 // 只有在使用者實際按下「下載範本」按鈕時才需要用到這個套件，所以改成當下才動態 import，
@@ -11,7 +11,7 @@ let _xlsx: typeof XLSXNS | null = null;
 async function loadXLSX(): Promise<typeof XLSXNS> {
   if (_xlsx) return _xlsx;
   try {
-    _xlsx = await import('xlsx');
+    _xlsx = await import('@/lib/xlsxLite');
     return _xlsx;
   } catch (err: any) {
     // ChunkLoadError：瀏覽器要載入 'xlsx' 這個套件對應的 JS 檔案（webpack chunk）
@@ -37,8 +37,8 @@ function aoa(XLSX: typeof XLSXNS, rows: any[][]): XLSXNS.WorkSheet {
   return XLSX.utils.aoa_to_sheet(rows);
 }
 
-function download(XLSX: typeof XLSXNS, wb: XLSXNS.WorkBook, filename: string) {
-  XLSX.writeFile(wb, filename);
+async function download(XLSX: typeof XLSXNS, wb: XLSXNS.WorkBook, filename: string) {
+  await XLSX.writeFile(wb, filename);
 }
 
 /* ------------------------------------------------------------------ */
@@ -65,7 +65,7 @@ export async function downloadClassesTemplate() {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildClassesSheet(), CLASSES_SHEET_NAME);
-  download(XLSX, wb, '班級與導師設定_範本.xlsx');
+  await download(XLSX, wb, '班級與導師設定_範本.xlsx');
 }
 
 /* ------------------------------------------------------------------ */
@@ -92,7 +92,7 @@ export async function downloadCurriculumTemplate() {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildCurriculumSheet(), CURRICULUM_SHEET_NAME);
-  download(XLSX, wb, '科目與比重設定_範本.xlsx');
+  await download(XLSX, wb, '科目與比重設定_範本.xlsx');
 }
 
 /* ------------------------------------------------------------------ */
@@ -116,7 +116,7 @@ export async function downloadGradingRulesTemplate() {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildGradingRulesSheet(), GRADING_RULES_SHEET_NAME);
-  download(XLSX, wb, '整體佔比與加扣分規則_範本.xlsx');
+  await download(XLSX, wb, '整體佔比與加扣分規則_範本.xlsx');
 }
 
 /* ------------------------------------------------------------------ */
@@ -138,7 +138,7 @@ export async function downloadStudentsImportTemplate() {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildStudentsImportSheet(), STUDENTS_IMPORT_SHEET_NAME);
-  download(XLSX, wb, '既有學生快速建檔_範本.xlsx');
+  await download(XLSX, wb, '既有學生快速建檔_範本.xlsx');
 }
 
 /* ------------------------------------------------------------------ */
@@ -160,7 +160,7 @@ export async function downloadTeacherAssignmentsTemplate() {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildTeacherAssignmentsSheet(), TEACHER_ASSIGNMENTS_SHEET_NAME);
-  download(XLSX, wb, '任課教師設定_範本.xlsx');
+  await download(XLSX, wb, '任課教師設定_範本.xlsx');
 }
 
 /* ------------------------------------------------------------------ */
@@ -182,7 +182,7 @@ export async function downloadSchoolTimetableTemplate() {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildSchoolTimetableSheet(), SCHOOL_TIMETABLE_SHEET_NAME);
-  download(XLSX, wb, '學校課表_範本.xlsx');
+  await download(XLSX, wb, '學校課表_範本.xlsx');
 }
 
 /* ------------------------------------------------------------------ */
@@ -209,7 +209,7 @@ export async function downloadAccountsTemplate() {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildAccountsSheet(), ACCOUNTS_SHEET_NAME);
-  download(XLSX, wb, '帳號名單_範本.xlsx');
+  await download(XLSX, wb, '帳號名單_範本.xlsx');
 }
 
 // 「下載目前帳號名單」：改成跟批次上傳範本同樣的 4 欄格式（姓名/電子郵件/角色/初始密碼），
@@ -228,7 +228,7 @@ export async function downloadAccountsList(users: { name: string; email: string 
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, aoa(XLSX, rows), ACCOUNTS_SHEET_NAME);
-  download(XLSX, wb, '目前帳號名單.xlsx');
+  await download(XLSX, wb, '目前帳號名單.xlsx');
 }
 
 /* ------------------------------------------------------------------ */
@@ -257,7 +257,7 @@ export async function downloadPeriodConfigTemplate() {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildPeriodConfigSheet(), PERIOD_CONFIG_SHEET_NAME);
-  download(XLSX, wb, '節次設定_範本.xlsx');
+  await download(XLSX, wb, '節次設定_範本.xlsx');
 }
 
 /* ------------------------------------------------------------------ */
@@ -360,7 +360,7 @@ export async function downloadScoreAttendanceTemplate() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildScoreAttendanceSheet(), SCORE_ATTENDANCE_SHEET_NAME);
   XLSX.utils.book_append_sheet(wb, await buildScoreAttendanceLegendSheet(), '代碼說明');
-  download(XLSX, wb, '成績出缺輸入表_範本.xlsx');
+  await download(XLSX, wb, '成績出缺輸入表_範本.xlsx');
 }
 
 /* ------------------------------------------------------------------ */
@@ -529,7 +529,7 @@ export async function downloadScoreAttendanceTemplateForClass(params: {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildScoreAttendanceSheetForClass(params), SCORE_ATTENDANCE_SHEET_NAME);
   XLSX.utils.book_append_sheet(wb, await buildScoreAttendanceLegendSheet(), '代碼說明');
-  download(XLSX, wb, `成績出缺輸入表_${params.gradeLevel}${params.className}.xlsx`);
+  await download(XLSX, wb, `成績出缺輸入表_${params.gradeLevel}${params.className}.xlsx`);
 }
 
 // 【本輪新增】反映事項「系統管理員能一次上傳全校整學期出缺狀態（目前一次只能用
@@ -567,7 +567,7 @@ export async function downloadScoreAttendanceTemplateForClasses(
     XLSX.utils.book_append_sheet(wb, await buildScoreAttendanceSheetForClass(params), sheetName);
   }
   XLSX.utils.book_append_sheet(wb, await buildScoreAttendanceLegendSheet(), '代碼說明');
-  download(XLSX, wb, `成績出缺輸入表_全校.xlsx`);
+  await download(XLSX, wb, `成績出缺輸入表_全校.xlsx`);
 }
 
 /* ------------------------------------------------------------------ */
@@ -580,7 +580,7 @@ export async function downloadAllSetupTemplate() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildGradingRulesSheet(), GRADING_RULES_SHEET_NAME);
   XLSX.utils.book_append_sheet(wb, await buildStudentsImportSheet(), STUDENTS_IMPORT_SHEET_NAME);
-  download(XLSX, wb, '新學期開學設定_整批範本.xlsx');
+  await download(XLSX, wb, '新學期開學設定_整批範本.xlsx');
 }
 
 /* ------------------------------------------------------------------ */
@@ -669,7 +669,7 @@ export async function downloadDeveloperAllTemplate() {
   const wb = XLSX.utils.book_new();
   const sheets = await buildDeveloperSetupSheets();
   sheets.forEach(({ name, ws }) => XLSX.utils.book_append_sheet(wb, ws, name));
-  download(XLSX, wb, '開發人員區_全部表格_範本.xlsx');
+  await download(XLSX, wb, '開發人員區_全部表格_範本.xlsx');
 }
 
 /* ------------------------------------------------------------------ */
@@ -783,7 +783,7 @@ export async function downloadClassScoreExcel(p: ClassScoreExcelParams) {
   const wb = XLSX.utils.book_new();
   const sheetLabel = p.viewMode === 'all' ? '全部' : EXAM_TYPE_SHORT[p.viewMode as '期中考' | '期末考' | '平時分'];
   XLSX.utils.book_append_sheet(wb, ws, '成績總表');
-  download(XLSX, wb, `${p.className}_${p.academicYear}${p.term}_${sheetLabel}成績.xlsx`);
+  await download(XLSX, wb, `${p.className}_${p.academicYear}${p.term}_${sheetLabel}成績.xlsx`);
 }
 
 /* ------------------------------------------------------------------ */
@@ -869,6 +869,6 @@ export async function downloadMultiClassScoreExcel(classes: (ClassScoreExcelPara
   }
 
   const label = classes.length === 1 ? classes[0].sheetName : `${classes.length}個班級`;
-  download(XLSX, wb, `批次成績_${label}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  await download(XLSX, wb, `批次成績_${label}_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 

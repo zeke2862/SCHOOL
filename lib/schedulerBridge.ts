@@ -649,9 +649,9 @@ export async function importTeacherAssignmentsFromProjectData(
 }
 
 export async function importScheduleExcel(file: File, academicYear: number, term: string): Promise<ScheduleImportResult> {
-  const XLSX = await import('xlsx');
+  const XLSX = await import('@/lib/xlsxLite');
   const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: 'array' });
+  const wb = await XLSX.read(buf, { type: 'array' });
 
   const gridSheet = wb.Sheets['全校總課表(輸入)'];
   if (!gridSheet) {

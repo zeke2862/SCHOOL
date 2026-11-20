@@ -149,7 +149,7 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
   });
 
   async function exportExcel() {
-    const XLSX = await import('xlsx');
+    const XLSX = await import('@/lib/xlsxLite');
     const wb = XLSX.utils.book_new();
     if (isRange) {
       const sum = [['機號', '姓名', '應到', '正常', '遲到', '早退', '漏打卡', '缺勤', '請假', '公出', '遲到分鐘', '在校分鐘']];
@@ -162,7 +162,7 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
           if (!(d.status === '非排班日' && d.punches.length === 0))
             detail.push([r.emp.device_code, r.label, d.date, d.shiftLabel, d.inTime ?? '', d.outTime ?? '', d.status, d.punches.join(' '), d.note] as any);
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detail), `${periodLabel} 明細`);
-      XLSX.writeFile(wb, `教職員打卡_${periodLabel}.xlsx`);
+      await XLSX.writeFile(wb, `教職員打卡_${periodLabel}.xlsx`);
     } else {
       const sheet = [['機號', '姓名', '班別', '上班', '下班', '狀態', '全部打卡', '備註']];
       for (const r of visibleRows) {
@@ -170,7 +170,7 @@ export default function ClockOverviewTab({ employees, teacherNames, shifts }: Pr
         if (d) sheet.push([r.emp.device_code, r.label, d.shiftLabel, d.inTime ?? '', d.outTime ?? '', d.status, d.punches.join(' '), d.note] as any);
       }
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheet), date);
-      XLSX.writeFile(wb, `教職員打卡_${date}.xlsx`);
+      await XLSX.writeFile(wb, `教職員打卡_${date}.xlsx`);
     }
   }
 

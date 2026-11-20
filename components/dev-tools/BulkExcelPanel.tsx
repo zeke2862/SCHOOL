@@ -161,7 +161,7 @@ export default function BulkExcelPanel({ myRole }: { myRole: string | undefined 
 
     setSnapshotBusy(true);
     try {
-      const XLSX = await import('xlsx');
+      const XLSX = await import('@/lib/xlsxLite');
       const wb = XLSX.utils.book_new();
 
       // 帳號名單要附上信箱，信箱存在 Supabase Auth 不在 app_users，需要帶登入憑證
@@ -243,7 +243,7 @@ export default function BulkExcelPanel({ myRole }: { myRole: string | undefined 
 
       const ts = new Date();
       const pad = (n: number) => (n < 10 ? '0' : '') + n;
-      XLSX.writeFile(wb, `校務系統完整資料快照_${ts.getFullYear()}${pad(ts.getMonth() + 1)}${pad(ts.getDate())}.xlsx`);
+      await XLSX.writeFile(wb, `校務系統完整資料快照_${ts.getFullYear()}${pad(ts.getMonth() + 1)}${pad(ts.getDate())}.xlsx`);
     } finally {
       setSnapshotBusy(false);
     }
@@ -259,8 +259,8 @@ export default function BulkExcelPanel({ myRole }: { myRole: string | undefined 
 
     try {
       const buf = await file.arrayBuffer();
-      const XLSX = await import('xlsx');
-      const wb = XLSX.read(buf, { type: 'array' });
+      const XLSX = await import('@/lib/xlsxLite');
+      const wb = await XLSX.read(buf, { type: 'array' });
       const sheetNames = new Set(wb.SheetNames);
 
       // 先看看這份檔案裡有沒有「跟排課系統存檔重疊」的工作表，有的話先提醒一次

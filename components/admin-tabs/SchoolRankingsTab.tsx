@@ -153,7 +153,7 @@ export default function SchoolRankingsPage() {
   );
 
   async function downloadExcel() {
-    const XLSX = await import('xlsx');
+    const XLSX = await import('@/lib/xlsxLite');
     const classSheet: (string | number)[][] = [['班級', '名次', '姓名', '座號', '總分']];
     sortedClassGroups.forEach(([classId, rows]) => {
       [...rows].sort((a, b) => a.class_rank - b.class_rank || a.seat_no - b.seat_no).forEach((r) => {
@@ -171,7 +171,7 @@ export default function SchoolRankingsPage() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(classSheet), '各班前三名');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(gradeSheet), '各年級前三名');
-    XLSX.writeFile(wb, `全校排行榜_${academicYear}_${term}.xlsx`);
+    await XLSX.writeFile(wb, `全校排行榜_${academicYear}_${term}.xlsx`);
   }
 
   return (

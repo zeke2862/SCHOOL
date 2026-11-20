@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { flushOutbox } from '@/lib/outbox';
 import { canonicalPhone, normalizeLoginCode, toAsciiDigits } from '@/lib/portalPhone';
+import { clientIp, rateLimitWait, rateLimitHit, waitMessage } from '@/lib/rateLimit';
+
+// 防止被灌申請／用錯誤訊息猜學號：同一個來源 IP 15 分鐘內「失敗」（查無學號、格式錯誤等）20 次就先擋住；
+// 另外「成功送出」的申請，同一個來源 IP 每小時最多 30 筆（每筆都會寄信通知導師）。
+const FAIL_WINDOW_SECS = 15 * 60;
+const FAIL_MAX_PER_IP = 20;
+const OK_WINDOW_SECS = 60 * 60;
+const OK_MAX_PER_IP = 30;
 
 // 家長／學生「第一次申請帳號」：輸入登入代碼（HY＋學號；學生本人 HYS＋學號）與手機號碼，
 // 系統不直接放行，而是建立一筆「待審核」的申請，通知那個班的導師；導師對照手上的資料表，
@@ -10,6 +18,16 @@ import { canonicalPhone, normalizeLoginCode, toAsciiDigits } from '@/lib/portalP
 // （登入驗證仍然是 app/api/portal/request-login）。
 
 export async function POST(req: NextRequest) {
+  const ip = clientIp(req.headers);
+  const failKey = `register:fail:${ip}`;
+  const okKey = `register:ok:${ip}`;
+  const wait = await rateLimitWait([
+    { key: failKey, max: FAIL_MAX_PER_IP, windowSecs: FAIL_WINDOW_SECS },
+    { key: okKey, max: OK_MAX_PER_IP, windowSecs: OK_WINDOW_SECS },
+  ]);
+  if (wait > 0) {
+    return NextResponse.json({ error: waitMessage(wait) }, { status: 429, headers: { 'Retry-After': String(wait) } });
+  }
   const { loginCode, phone } = (await req.json().catch(() => ({}))) as { loginCode?: string; phone?: string };
   if (!loginCode || !phone) return NextResponse.json({ error: '請輸入登入代碼與手機號碼' }, { status: 400 });
 
@@ -29,7 +47,10 @@ export async function POST(req: NextRequest) {
   if (canonicalPhone(phone).length < 8) return NextResponse.json({ error: '手機號碼格式不正確，請重新輸入' }, { status: 400 });
 
   const { data: student } = await supabaseAdmin.from('students').select('student_no, name, phone').ilike('student_no', rawStudentNo).maybeSingle();
-  if (!student) return NextResponse.json({ error: '查無這個學號，請確認登入代碼是否輸入正確' }, { status: 404 });
+  if (!student) {
+    await rateLimitHit([failKey], FAIL_WINDOW_SECS);
+    return NextResponse.json({ error: '查無這個學號，請確認登入代碼是否輸入正確' }, { status: 404 });
+  }
 
   const { data: enroll } = await supabaseAdmin
     .from('enrollments')
@@ -78,6 +99,8 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ error: '送出申請失敗：' + error.message }, { status: 500 });
   }
+
+  await rateLimitHit([okKey], OK_WINDOW_SECS);
 
   // 資料庫已經替班導師排好通知信，這裡立刻寄出（沒設定寄信或失敗都不影響申請送出）
   await flushOutbox(10).catch(() => {});

@@ -280,7 +280,7 @@ export default function SalesInventoryPage({
   // Excel，逐列呼叫，方便總務一次把整批新商品（例如開學前新進的一批校服/簿本）建檔上架，
   // 不用每個品項各自手動填一次表單。
   async function handleDownloadUploadTemplate() {
-    const XLSX = await import('xlsx');
+    const XLSX = await import('@/lib/xlsxLite');
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet([
       [`${itemLabel}名稱`, '單價', '初始庫存', '警戒值', '備註'],
@@ -288,14 +288,14 @@ export default function SalesInventoryPage({
       [`範例${itemLabel}`, 100, 20, 3, ''],
     ]);
     XLSX.utils.book_append_sheet(wb, ws, `${itemLabel}一鍵上傳`);
-    XLSX.writeFile(wb, `${itemLabel}一鍵上傳_範本.xlsx`);
+    await XLSX.writeFile(wb, `${itemLabel}一鍵上傳_範本.xlsx`);
   }
 
   async function handleBulkUploadFile(file: File): Promise<{ successCount: number; errors: string[] }> {
     if (!perms.userId) return { successCount: 0, errors: ['請重新登入'] };
-    const XLSX = await import('xlsx');
+    const XLSX = await import('@/lib/xlsxLite');
     const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: 'array' });
+    const wb = await XLSX.read(buf, { type: 'array' });
     const sheet = wb.Sheets[wb.SheetNames[0]];
     const rowsRaw: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
 
@@ -411,10 +411,10 @@ export default function SalesInventoryPage({
         .sort((a, b) => Number(a[0]) - Number(b[0]))
         .map(([price, names]) => [Number(price), names.map((n) => `${n} __`).join('  '), '', '', '']),
     ];
-    const XLSX = await import('xlsx');
+    const XLSX = await import('@/lib/xlsxLite');
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), `${itemLabel}販賣登記表`);
-    XLSX.writeFile(wb, `${title}_${formatDate(new Date())}.xlsx`);
+    await XLSX.writeFile(wb, `${title}_${formatDate(new Date())}.xlsx`);
   }
 
   const priceGroups = useMemo(() => {

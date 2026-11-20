@@ -443,7 +443,7 @@ function ExamSessionEditor({
     try {
       const seatsByRoom = await Promise.all(rooms.map((r) => listRoomSeats(r.id)));
       const exportData = rooms.map((r, i) => buildRoomExportData(r, seatsByRoom[i], classLabelMap));
-      const XLSX = await import('xlsx');
+      const XLSX = await import('@/lib/xlsxLite');
       const wb = XLSX.utils.book_new();
       const usedNames = new Set<string>();
       function uniqueSheetName(base: string): string {
@@ -473,7 +473,7 @@ function ExamSessionEditor({
         seatWs['!cols'] = Array.from({ length: data.gridSize }, () => ({ wch: 16 }));
         XLSX.utils.book_append_sheet(wb, seatWs, uniqueSheetName(`${data.roomName}座位表`));
       }
-      XLSX.writeFile(wb, `${session.name}_考場簽到表座位表.xlsx`);
+      await XLSX.writeFile(wb, `${session.name}_考場簽到表座位表.xlsx`);
     } catch (e: any) {
       setError('匯出 Excel 失敗：' + (e?.message ?? String(e)));
     } finally {

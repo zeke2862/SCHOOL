@@ -85,9 +85,9 @@ export default function SchoolTimetableAdminPage() {
     setUploading(true);
     setUploadResult(null);
     try {
-      const XLSX = await import('xlsx');
+      const XLSX = await import('@/lib/xlsxLite');
       const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: 'array' });
+      const wb = await XLSX.read(buf, { type: 'array' });
       const sheetName = wb.SheetNames.find((n) => n === SCHOOL_TIMETABLE_SHEET_NAME || n === '學校課表(現況)') ?? wb.SheetNames[0];
       const ws = wb.Sheets[sheetName];
       const aoa: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true });

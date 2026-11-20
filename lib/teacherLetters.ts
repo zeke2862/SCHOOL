@@ -1,17 +1,17 @@
-import type * as XLSXNS from 'xlsx';
+import type * as XLSXNS from '@/lib/xlsxLite';
 import { supabase } from './supabaseClient';
 
 // ⚠️ 同 excelTemplates.ts 頂端註解：'xlsx' 套件只能在瀏覽器執行，改成用到才動態載入。
 let _xlsx: typeof XLSXNS | null = null;
 async function loadXLSX(): Promise<typeof XLSXNS> {
-  if (!_xlsx) _xlsx = await import('xlsx');
+  if (!_xlsx) _xlsx = await import('@/lib/xlsxLite');
   return _xlsx;
 }
 function aoa(XLSX: typeof XLSXNS, rows: any[][]): XLSXNS.WorkSheet {
   return XLSX.utils.aoa_to_sheet(rows);
 }
-function download(XLSX: typeof XLSXNS, wb: XLSXNS.WorkBook, filename: string) {
-  XLSX.writeFile(wb, filename);
+async function download(XLSX: typeof XLSXNS, wb: XLSXNS.WorkBook, filename: string) {
+  await XLSX.writeFile(wb, filename);
 }
 
 export type UploadResult = { successCount: number; errors: string[]; updatedCount?: number };
@@ -149,7 +149,7 @@ export async function downloadServiceCertTemplate() {
   const XLSX = await loadXLSX();
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, await buildServiceCertTemplate(), SERVICE_CERT_SHEET_NAME);
-  download(XLSX, wb, '歷年教師資料_範本.xlsx');
+  await download(XLSX, wb, '歷年教師資料_範本.xlsx');
 }
 
 export type RenewalStatus = '待定' | '已發聘' | '不續聘';
@@ -349,7 +349,7 @@ export async function downloadAppointmentLetterTemplate(category: LetterCategory
   const wb = XLSX.utils.book_new();
   const sheetName = category === '自聘教師聘書' ? SELF_HIRED_LETTER_SHEET_NAME : ANNUAL_LETTER_SHEET_NAME;
   XLSX.utils.book_append_sheet(wb, await buildAppointmentLetterTemplate(category), sheetName);
-  download(XLSX, wb, `${sheetName}_範本.xlsx`);
+  await download(XLSX, wb, `${sheetName}_範本.xlsx`);
 }
 
 /** 聘書專屬欄位（存在 teacher_appointment_letters，用 category+姓名 對應到歷年教師資料的哪一筆） */

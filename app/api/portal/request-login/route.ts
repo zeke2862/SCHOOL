@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { canonicalPhone, phonesMatch, normalizeLoginCode } from '@/lib/portalPhone';
+import { clientIp, rateLimitWait, rateLimitHit, rateLimitClear, waitMessage } from '@/lib/rateLimit';
+
+// 防止暴力猜測：只算「失敗」的次數。同一個登入代碼 15 分鐘內失敗 10 次、同一個來源 IP 15 分鐘內失敗 40 次就先擋住。
+// 登入代碼是「HY＋學號」（容易猜），所以最重要的是「每個代碼」的上限，這樣就算攻擊者換很多 IP 也試不了幾次。
+const LOGIN_WINDOW_SECS = 15 * 60;
+const LOGIN_MAX_PER_CODE = 10;
+const LOGIN_MAX_PER_IP = 40;
 
 // ⚠️ 這裡故意「不」直接對 lib/supabaseAdmin.ts 匯出的那個共用 supabaseAdmin 呼叫
 // auth.verifyOtp()：那個 client 是整個伺服器行程共用的單一個 instance（module-level
@@ -53,7 +60,7 @@ function buildPortalShadowEmail(loginCode: string): string {
 // 被誤判成同一支——這是會讓不該登入的人核對成功的安全問題，所以改成只拿掉
 // 「國碼」「開頭的0」這兩種明確、有意義的格式差異，其餘數字必須完全一致才算對。
 export async function POST(req: NextRequest) {
-  const { loginCode, phone } = (await req.json()) as { loginCode: string; phone: string };
+  const { loginCode, phone } = ((await req.json().catch(() => ({}))) as { loginCode?: string; phone?: string });
   if (!loginCode || !phone) return NextResponse.json({ error: '請輸入登入代碼與手機號碼' }, { status: 400 });
 
   const code = normalizeLoginCode(loginCode);
@@ -70,6 +77,16 @@ export async function POST(req: NextRequest) {
   }
   if (!rawStudentNo) {
     return NextResponse.json({ error: '登入代碼格式不正確，請確認學校提供的代碼（例如 HY0123 或 HYS0123）' }, { status: 400 });
+  }
+
+  const codeKey = `login:code:${code}`;
+  const ipKey = `login:ip:${clientIp(req.headers)}`;
+  const wait = await rateLimitWait([
+    { key: codeKey, max: LOGIN_MAX_PER_CODE, windowSecs: LOGIN_WINDOW_SECS },
+    { key: ipKey, max: LOGIN_MAX_PER_IP, windowSecs: LOGIN_WINDOW_SECS },
+  ]);
+  if (wait > 0) {
+    return NextResponse.json({ error: waitMessage(wait) }, { status: 429, headers: { 'Retry-After': String(wait) } });
   }
 
   // 學號比對要用「不分大小寫」：登入代碼在上面被整段轉成大寫（方便使用者不用在意
@@ -99,6 +116,7 @@ export async function POST(req: NextRequest) {
   // 一律回覆同一句籠統的訊息，不細分原因——避免有心人士靠著錯誤訊息的差異，反過來
   // 猜出「這個學號存不存在」之類的資訊。
   if (!phoneMatched) {
+    await rateLimitHit([codeKey, ipKey], LOGIN_WINDOW_SECS);
     // 絕大多數「不相符」是因為：學籍資料裡本來就沒有這支手機（第一次使用還沒申請、或申請還在等導師核准），
     // 不是手機格式（泰國 06／08／09 開頭、有無 +66 都可以）。如果這個代碼＋這支手機有申請紀錄，直接告訴申請人
     // 目前的進度（這是他自己送出的資料，不洩漏任何別人的資訊）；沒有紀錄時給通用的引導，不透露學號是否存在。
@@ -208,6 +226,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '綁定失敗：' + upsertErr.message }, { status: 500 });
   }
 
+  await rateLimitClear(codeKey);
   return NextResponse.json({
     session: {
       access_token: verifyData.session.access_token,
