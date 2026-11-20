@@ -11,6 +11,7 @@ import { getEffectivePeriodCount, WEEKDAY_LABELS } from '@/lib/periodConfig';
 import { resolveCurrentTerm } from '@/lib/academicTerm';
 import { fetchAllPaged } from '@/lib/schoolWideDataQueries';
 import { fetchAttendanceForStudents } from '@/lib/attendanceQueries';
+import { fetchAbsenceCounts } from '@/lib/absenceCounts';
 import {
   readWorkbook,
   readAllClassSheets,
@@ -701,15 +702,22 @@ function WeeklyAttendancePageInner() {
     return false;
   }
 
-  async function checkAndPromptNotify(student_no: string) {
+  // 一次查完所有受影響學生的缺課節數（以前是每位學生各查一次，見 sql/159 的說明）
+  async function checkAndPromptNotify(studentNos: string[]) {
     // 只有導師（非管理員、非任課教師）需要在達門檻時被詢問是否寄送通知信
     if (isAdmin || !isHomeroom || alertThreshold === null) return;
-    const { data } = await supabase.from('student_absence_counts').select('absence_periods').eq('student_no', student_no).maybeSingle();
-    const count = data?.absence_periods ?? 0;
-    if (count >= alertThreshold) {
-      const student = students.find((s) => s.student_no === student_no);
-      setNotifyQueue((prev) => (prev.some((p) => p.student_no === student_no) ? prev : [...prev, { student_no, name: student?.name ?? student_no, count }]));
-    }
+    const counts = await fetchAbsenceCounts(supabase, studentNos);
+    const reached = studentNos.filter((no) => (counts.get(no) ?? 0) >= alertThreshold);
+    if (reached.length === 0) return;
+    setNotifyQueue((prev) => {
+      const next = [...prev];
+      for (const student_no of reached) {
+        if (next.some((p) => p.student_no === student_no)) continue;
+        const student = students.find((s) => s.student_no === student_no);
+        next.push({ student_no, name: student?.name ?? student_no, count: counts.get(student_no) ?? 0 });
+      }
+      return next;
+    });
   }
 
   async function handleDecideNotify(decision: '已寄送' | '不寄送') {
@@ -900,7 +908,7 @@ function WeeklyAttendancePageInner() {
     });
     const affectedStudents = new Set(payload.map((p) => p.student_no));
     setPendingChanges({});
-    affectedStudents.forEach((studentNo) => checkAndPromptNotify(studentNo));
+    void checkAndPromptNotify(Array.from(affectedStudents));
   }
 
   async function handleSubmitCorrectionRequest() {
@@ -1060,7 +1068,7 @@ function WeeklyAttendancePageInner() {
     if (notes.length > 0) {
       alert(`已套用，但有${notes.join('；')}。`);
     }
-    Array.from(selectedStudents).forEach((studentNo) => checkAndPromptNotify(studentNo));
+    void checkAndPromptNotify(Array.from(selectedStudents));
     // 【本輪新增】反映事項「使用套用功能，按下套用後要自動回到未勾選狀態」——
     // 避免套用完上面勾選的學生／日期還留著，使用者沒注意到就按了第二次套用，
     // 誤把同一批人再套用一次（甚至套成不同的狀態）。套用成功後自動清空勾選。

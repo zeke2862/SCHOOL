@@ -7,6 +7,7 @@ import { CHEST_FOOD, chestOpened, openChest } from '../../lib/gameChest.ts';
 import ExcelJS from 'exceljs';
 import * as X from '../../lib/xlsxLite.ts';
 import { clientIp } from '../../lib/clientIp.ts';
+import { fetchAbsenceCounts } from '../../lib/absenceCounts.ts';
 import { cached, invalidateCache } from '../../lib/queryCacheCore.ts';
 import { departmentForGrade, SPECIFIC_GRADE_LEVELS, ATTENDANCE_CODE_MAP } from '../../lib/gradeMapping.ts';
 
@@ -174,6 +175,26 @@ t('Excel 日期碼：幾個已知日期與 23:59:59 不進位', () => {
   assert.equal(f(45000), '2023-3-15-0-0-0');
   assert.equal(f(46346.99999999), '2026-11-20-23-59-59');
   assert.equal(X.SSF.parse_date_code(-1), null);
+});
+
+t('缺課節數批次查詢：只呼叫一次 RPC、去重、字串數字轉成數字、查不到視為 0', async () => {
+  const calls = [];
+  const fake = { rpc: async (name, args) => { calls.push([name, args]); return { data: [{ student_no: 'A', absence_periods: '7' }, { student_no: 'B', absence_periods: 0 }], error: null }; } };
+  const m = await fetchAbsenceCounts(fake, ['A', 'B', 'A', 'C', '']);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][0], 'student_absence_periods');
+  assert.deepEqual(calls[0][1], { p_student_nos: ['A', 'B', 'C'] });
+  assert.equal(m.get('A'), 7);
+  assert.equal(m.get('B'), 0);
+  assert.equal(m.get('C') ?? 0, 0);
+});
+t('缺課節數批次查詢：沒有學生就不查；出錯時回空結果而不是丟例外', async () => {
+  let called = 0;
+  const empty = await fetchAbsenceCounts({ rpc: async () => { called++; return { data: [], error: null }; } }, []);
+  assert.equal(empty.size, 0);
+  assert.equal(called, 0);
+  const failed = await fetchAbsenceCounts({ rpc: async () => ({ data: null, error: { message: 'x' } }) }, ['A']);
+  assert.equal(failed.size, 0);
 });
 
 // 依序執行；任何一項失敗就讓整個程序以非 0 結束（CI 才會擋下）

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase, getCurrentAppUser, isAdminInCurrentView } from '@/lib/supabaseClient';
 import { getHiddenStudentNos } from '@/lib/hiddenStudents';
+import { fetchAbsenceCounts } from '@/lib/absenceCounts';
 import { getSiteContentMap } from '@/lib/siteContent';
 import { departmentForGrade } from '@/lib/gradeMapping';
 import { getEffectivePeriodCount } from '@/lib/periodConfig';
@@ -478,16 +479,21 @@ export default function MobileAttendancePage() {
     })();
   }, []);
 
-  async function checkAndPromptNotify(studentNo: string) {
+  // 一次查完所有受影響學生的缺課節數（以前是每位學生各查一次，見 sql/159 的說明）
+  async function checkAndPromptNotify(studentNos: string[]) {
     if (isAdmin || !isHomeroom || alertThreshold === null) return;
-    const { data } = await supabase.from('student_absence_counts').select('absence_periods').eq('student_no', studentNo).maybeSingle();
-    const count = data?.absence_periods ?? 0;
-    if (count >= alertThreshold) {
-      const student = students.find((s) => s.student_no === studentNo);
-      setNotifyQueue((prev) =>
-        prev.some((p) => p.student_no === studentNo) ? prev : [...prev, { student_no: studentNo, name: student?.name ?? studentNo, count }]
-      );
-    }
+    const counts = await fetchAbsenceCounts(supabase, studentNos);
+    const reached = studentNos.filter((no) => (counts.get(no) ?? 0) >= alertThreshold);
+    if (reached.length === 0) return;
+    setNotifyQueue((prev) => {
+      const next = [...prev];
+      for (const studentNo of reached) {
+        if (next.some((p) => p.student_no === studentNo)) continue;
+        const student = students.find((s) => s.student_no === studentNo);
+        next.push({ student_no: studentNo, name: student?.name ?? studentNo, count: counts.get(studentNo) ?? 0 });
+      }
+      return next;
+    });
   }
 
   async function handleDecideNotify(decision: '已寄送' | '不寄送') {
@@ -538,7 +544,7 @@ export default function MobileAttendancePage() {
     } else {
       alert('已儲存');
       setSavedStatusMap(statusMap);
-      rows.forEach((r) => checkAndPromptNotify(r.student_no));
+      void checkAndPromptNotify(rows.map((r) => r.student_no));
     }
   }
 
