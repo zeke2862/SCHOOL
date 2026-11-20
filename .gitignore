@@ -20,3 +20,6 @@ test_report_round3.docx
 tools/clock-sync/config.json
 tools/clock-sync/sync.log*
 tools/clock-sync/.sync-state.json
+
+# 內含學生個資的名單（放在專案根目錄時也不要被誤提交）
+/*.xlsx

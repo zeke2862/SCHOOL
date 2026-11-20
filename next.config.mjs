@@ -3,14 +3,13 @@ const nextConfig = {
   // 1. 保留你本来的局域网与本地开发配置
   allowedDevOrigins: ['192.168.1.11', 'localhost:3000'],
 
-  // 2. 💡 核心：强行让 Vercel 打包成功，直接无视所有 TypeScript 错误
+  // 型別錯誤與 ESLint 問題會讓建置失敗，避免有問題的版本被部署上線
+  //（2026-11 起：本機 tsc 已無錯誤，所以不再略過；CI 也會跑同樣的檢查）
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
-  
-  // 3. 💡 顺便把 ESLint 检查也跳过，双重保险彻底防止卡死
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
 
   // 排課工具是放在 public/ 的靜態 HTML，瀏覽器會自己快取；更新後使用者可能還在跑舊版。

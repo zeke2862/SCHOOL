@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { cached } from './queryCache';
 
 export type CurrentTerm = { academic_year: number; term: string };
 
@@ -19,7 +20,12 @@ export type CurrentTerm = { academic_year: number; term: string };
  * 這樣即使還沒有人手動設定「目前生效」，頁面也能先用最合理的猜測正常運作，
  * 不會整頁打不開；之後有人到「學年學期設定」頁正式設定，就會改用那一筆。
  */
-export async function resolveCurrentTerm(): Promise<CurrentTerm | null> {
+export function resolveCurrentTerm(): Promise<CurrentTerm | null> {
+  // 全站約 25 個頁面都會問「現在是哪一學期」，這個值一學期才變一次：30 秒內共用同一份結果（修改學年學期後會立刻清掉）
+  return cached('term:current', fetchCurrentTerm, 30_000);
+}
+
+async function fetchCurrentTerm(): Promise<CurrentTerm | null> {
   const { data: termData } = await supabase.rpc('current_academic_term');
   const t = Array.isArray(termData) ? termData[0] : termData;
   if (t && t.academic_year != null && t.term) {

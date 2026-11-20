@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { resolveTeacherByName } from './bulkHandlers';
+import { invalidateCache } from './queryCache';
 
 export type UploadResult = { successCount: number; errors: string[]; updatedCount?: number };
 
@@ -232,6 +233,7 @@ export async function uploadAcademicTermsSheet(rowsRaw: any[][], createdBy?: str
         { onConflict: 'academic_year,term' }
       );
       if (error) throw new Error(error.message);
+      invalidateCache('term:'); // 學年學期有異動，清掉「目前學期」快取
       successCount++;
     } catch (err: any) {
       errors.push(`第${i + 1}列（${academic_year}學年度${term}）：${err.message}`);

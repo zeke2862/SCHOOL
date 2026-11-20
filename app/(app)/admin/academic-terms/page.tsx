@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase, getCurrentAppUser } from '@/lib/supabaseClient';
+import { invalidateCache } from '@/lib/queryCache';
 import RolloverPanel, { TermRef, fetchRolloverPreview, isSupportedRollover, previousTermOf } from '@/components/rollover/RolloverPanel';
 
 // 學年學期中央管理主檔：目前系統其他表格（classes / class_schedule /
@@ -47,6 +48,7 @@ export default function AcademicTermsPage() {
   const [rollover, setRollover] = useState<{ src: TermRef; tgt: TermRef } | null>(null);
 
   async function load() {
+    invalidateCache('term:'); // 學年學期有異動後都會重新載入，順便讓其他頁面也拿到新的
     const appUser = await getCurrentAppUser();
     // 過渡期：舊角色 admin_a/system_admin_s 也先放行，避免部門名單還沒整理完成前這頁被鎖死。
     // app_user_departments 是否有 'dev' 這筆，交給 RLS 政策本身判斷即可，這裡前端只做粗略判斷

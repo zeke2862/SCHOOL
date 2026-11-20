@@ -1,0 +1,30 @@
+name: CI
+
+# 每次推到 main 或開 PR 都自動檢查：型別、單元測試、完整建置。
+# 沒通過就不該部署（Vercel 的建置也會跑同樣的型別檢查）。
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: 型別檢查
+        run: npm run typecheck
+      - name: 單元測試
+        run: npm test
+      - name: 建置
+        run: npm run build
+        env:
+          # 建置只需要「有值」，不會真的連線；實際金鑰只放在 Vercel，不放進 CI
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key

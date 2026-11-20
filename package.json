@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types tools/unit-tests/core.test.mjs && node --experimental-strip-types tools/competition-sql-test/scoring.test.mjs && node --experimental-strip-types tools/competition-sql-test/judge.test.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^3.4.4",
