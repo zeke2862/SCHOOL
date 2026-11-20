@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { GameMode } from '@/lib/gameMode';
 import PetCard from '@/components/game/PetCard';
 import GardenCard from '@/components/game/GardenCard';
+import { CHEST_FOOD, chestOpened, openChest } from '@/lib/gameChest';
 import {
   BUILDINGS, IDLE_CAP_HOURS, Profile, Quest, EMPTY_PROFILE,
   claim, levelOf, levelRange, loadProfile, loadQuests, pending, perHour, rewardText, saveProfile, saveQuestSummary, titleOf, upgradeCost,
@@ -120,7 +121,7 @@ export default function GameHome({ teacherId, mode }: { teacherId: string; mode:
   if (mode === 'rpg') {
     const newNotices = todo.filter((q) => q.kind === 'notice');
     const allDone = quests.length > 0 && done === quests.length;
-    const chestOpened = profile.claimed.includes('chest');
+    const opened = chestOpened(profile);
     return (
       <section style={{ ...card, marginBottom: 20, background: 'var(--primary-soft)' }}>
         {header}
@@ -154,18 +155,17 @@ export default function GameHome({ teacherId, mode }: { teacherId: string; mode:
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
           <button
-            style={allDone && !chestOpened ? btn : { ...btnGhost, opacity: 0.7 }}
+            style={allDone && !opened ? btn : { ...btnGhost, opacity: 0.7 }}
             onClick={() => {
-              if (!allDone) return setToast(`還有 ${quests.length - done} 個任務沒完成，完成後就能開寶箱`);
-              if (chestOpened) return setToast('今天的寶箱已經開過了');
-              const p = { ...profRef.current, stars: profRef.current.stars + 10, claimed: [...profRef.current.claimed, 'chest'] };
-              commit(p);
-              setToast(`寶箱：${CHEST_MSGS[Math.floor(Math.random() * CHEST_MSGS.length)]}（+10 星星）`);
+              if (!allDone) return setToast(`還有 ${quests.length - done} 個任務沒完成，完成後就能開寶箱領飼料`);
+              if (opened) return setToast('今天的寶箱已經開過了');
+              commit(openChest(profRef.current));
+              setToast(`寶箱：${CHEST_MSGS[Math.floor(Math.random() * CHEST_MSGS.length)]}（🍖 飼料 +${CHEST_FOOD}，拿去餵寵物吧）`);
             }}
           >
-            🎁 開寶箱
+            🎁 開寶箱領飼料
           </button>
-          <span style={{ fontSize: 12, color: 'var(--sub)' }}>完成當天所有任務就能開啟</span>
+          <span style={{ fontSize: 12, color: 'var(--sub)' }}>完成當天所有任務就能開啟，獎勵 🍖 飼料 +{CHEST_FOOD}</span>
         </div>
         {footer}
       </section>

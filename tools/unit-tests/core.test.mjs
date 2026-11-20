@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { compareStudentNo, compareForSeat, genderFromStudentNo, genderRank } from '../../lib/studentNoSort.ts';
 import { sha1Upper, countInRange } from '../../lib/pwnedPassword.ts';
+import { CHEST_FOOD, chestOpened, openChest } from '../../lib/gameChest.ts';
 import { cached, invalidateCache } from '../../lib/queryCacheCore.ts';
 import { departmentForGrade, SPECIFIC_GRADE_LEVELS, ATTENDANCE_CODE_MAP } from '../../lib/gradeMapping.ts';
 
@@ -105,6 +106,19 @@ t('外洩密碼檢查：SHA-1 與 range 回應解析', () => {
   assert.equal(countInRange(body, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'), 0, 'padding 假資料次數 0');
   assert.equal(countInRange(body, 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'), 0, '沒出現');
   assert.equal(countInRange('', 'ABC'), 0);
+});
+
+t('RPG 寶箱：開出飼料、一天只能開一次、不動星星與經驗值', () => {
+  const p = { xp: 100, stars: 50, streak: 2, last_day: '2026-11-20', claimed_day: '2026-11-20', claimed: ['rc:a:1'], buildings: {}, extras: { food: 5, water: 3, fert: 1, active: null, pets: {}, plots: [null, null], dex: [] } };
+  assert.equal(chestOpened(p), false);
+  const o = openChest(p);
+  assert.equal(o.extras.food, 5 + CHEST_FOOD);
+  assert.equal(o.stars, 50);
+  assert.equal(o.xp, 100);
+  assert.ok(o.claimed.includes('chest') && o.claimed.includes('rc:a:1'));
+  assert.equal(chestOpened(o), true);
+  assert.equal(openChest(o), o, '已開過：原封不動，不會重複領飼料');
+  assert.equal(p.extras.food, 5, '不會改到原本的資料');
 });
 
 // 依序執行；任何一項失敗就讓整個程序以非 0 結束（CI 才會擋下）
