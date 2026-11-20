@@ -18,7 +18,8 @@ async function itemsOfEvent(eventId: string, itemIds: unknown): Promise<string[]
   return itemIds;
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   const ctx = await requireOrganizer(req, params.id, { readOnly: true });
   if ('err' in ctx) return ctx.err;
   const { data: rows, error } = await supabaseAdmin
@@ -44,7 +45,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ items: out });
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   const ctx = await requireOrganizer(req, params.id);
   if ('err' in ctx) return ctx.err;
   try {
@@ -122,7 +124,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // 延長到期日 / 立即停用(expiresOn='now') / 重新指定負責項目(itemIds：整批取代)
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   const ctx = await requireOrganizer(req, params.id);
   if ('err' in ctx) return ctx.err;
   const body = (await req.json()) as { userId?: string; expiresOn?: string; itemIds?: unknown };
@@ -160,7 +163,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // 從這場賽事移除訪客；如果他不屬於任何其他賽事，帳號一併停用
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   const ctx = await requireOrganizer(req, params.id);
   if ('err' in ctx) return ctx.err;
   const userId = req.nextUrl.searchParams.get('userId');

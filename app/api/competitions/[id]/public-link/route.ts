@@ -12,7 +12,8 @@ export const dynamic = 'force-dynamic';
 //  POST {action:'show_score', value:boolean}  公開頁是否顯示分數（預設只顯示名次與獎項）
 // 公開頁網址 = /results/<token>（頁面之後做），資料來自 /api/public/competition/<token>。
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   const ctx = await requireOrganizer(req, params.id, { readOnly: true });
   if ('err' in ctx) return ctx.err;
   const { data, error } = await supabaseAdmin.from('comp_events').select('public_token, public_enabled, config').eq('id', params.id).single();
@@ -23,7 +24,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   });
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   const ctx = await requireOrganizer(req, params.id);
   if ('err' in ctx) return ctx.err;
   const body = (await req.json()) as { action?: string; value?: boolean };
