@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { validateNewPassword } from '@/lib/weakPasswords';
+import MfaSettings from '@/components/MfaSettings';
 
 // 對應反映事項「請增加教師及管理者信箱更換功能」：任何已登入的教職員（不限管理員）
 // 都可以在這裡自己更換登入信箱，不用麻煩管理員代為操作。
@@ -16,6 +18,11 @@ export default function AccountSettingsPage() {
   // 通知信開關
   const [mailPref, setMailPref] = useState<boolean | null>(null);
   const [mailPrefStaff, setMailPrefStaff] = useState(false);
+  // 從登入頁被帶來設定雙重驗證（網址帶 ?mfa=setup）：把雙重驗證區塊放最上面並醒目標示
+  const [mfaSetup, setMfaSetup] = useState(false);
+  useEffect(() => {
+    setMfaSetup(new URLSearchParams(window.location.search).get('mfa') === 'setup');
+  }, []);
 
   async function authHeader() {
     const { data } = await supabase.auth.getSession();
@@ -43,7 +50,8 @@ export default function AccountSettingsPage() {
     e.preventDefault();
     setPwError(null);
     setPwOk(false);
-    if (newPw.length < 6) return setPwError('新密碼至少要6個字元');
+    const weakReason = validateNewPassword(newPw);
+    if (weakReason) return setPwError(weakReason);
     if (newPw !== newPw2) return setPwError('兩次輸入的新密碼不一致');
     setPwBusy(true);
     try {
@@ -119,6 +127,8 @@ export default function AccountSettingsPage() {
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>帳號設定</h1>
       <p style={{ fontSize: 13, color: 'var(--sub)', marginBottom: 20 }}>目前登入信箱：{currentEmail ?? '載入中…'}</p>
 
+      {mfaSetup && <MfaSettings highlight />}
+
       <h2 style={{ fontSize: 14, marginBottom: 8 }}>更換登入信箱</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <input
@@ -175,7 +185,7 @@ export default function AccountSettingsPage() {
         />
         <input
           type="password"
-          placeholder="新密碼（至少6碼）"
+          placeholder="新密碼（至少10碼）"
           value={newPw}
           onChange={(e) => setNewPw(e.target.value)}
           autoComplete="new-password"
@@ -201,6 +211,8 @@ export default function AccountSettingsPage() {
           {pwBusy ? '更改中…' : '更改密碼'}
         </button>
       </form>
+
+      {!mfaSetup && <MfaSettings />}
     </main>
   );
 }

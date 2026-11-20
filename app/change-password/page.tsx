@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import { isWeakPassword } from '@/lib/weakPasswords';
+import { validateNewPassword } from '@/lib/weakPasswords';
 
 // 對應反映事項「開發人員處增加【第一次登入強制更改密碼】功能」：開關開啟時，
 // 新建立的教職員帳號會被標記 must_change_password=true（見
@@ -49,12 +49,9 @@ export default function ChangePasswordPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (newPassword.length < 6) {
-      setError('密碼至少要6個字元');
-      return;
-    }
-    if (isWeakPassword(newPassword)) {
-      setError('這組密碼太常見，請設定其他密碼');
+    const weakReason = validateNewPassword(newPassword);
+    if (weakReason) {
+      setError(weakReason);
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -114,7 +111,7 @@ export default function ChangePasswordPage() {
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <input
           type="password"
-          placeholder="新密碼（至少6碼）"
+          placeholder="新密碼（至少10碼）"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           style={{ padding: 10, borderRadius: 8, border: '1px solid var(--line-strong)' }}

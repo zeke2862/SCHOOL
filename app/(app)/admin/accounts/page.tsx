@@ -24,7 +24,7 @@ type AppUser = { id: string; name: string; role: UserRole };
 type AuditLogRow = {
   id: string;
   target_user_id: string;
-  action: 'role_change' | 'password_reset';
+  action: 'role_change' | 'password_reset' | 'email_change' | 'password_change' | 'mfa_reset';
   old_value: string | null;
   new_value: string | null;
   changed_by: string | null;
@@ -39,6 +39,7 @@ export default function AdminAccountsPage() {
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState<UserRole>('admin_b');
   const [newPassword, setNewPassword] = useState('');
+  const [oneTimePw, setOneTimePw] = useState(false); // 建立帳號時由系統產生一次性密碼
   const [showNewPassword, setShowNewPassword] = useState(false);
   // 建帳號時如果對象是導師/任課教師，讓管理者可以直接勾選要綁定哪一筆「還沒連結帳號」的既有教師資料
   // （例如批次匯入課表時打的名字跟這裡輸入的不完全一樣，系統自動比對抓不到），
@@ -501,16 +502,22 @@ export default function AdminAccountsPage() {
         email: newEmail,
         name: newName,
         role: creatableRoles.length > 1 ? newRole : creatableRoles[0],
-        password: newPassword || undefined,
+        password: oneTimePw ? undefined : newPassword || undefined,
+        oneTimePassword: oneTimePw || undefined,
         bindTeacherId: bindTeacherId || undefined,
       }),
     });
+    const resBody = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      alert('新增失敗：' + (body.error ?? '未知錯誤'));
+      alert('新增失敗：' + (resBody.error ?? '未知錯誤'));
       return;
     }
-    alert(newPassword ? '帳號已建立，可直接用這組密碼登入' : '已寄出邀請信');
+    if (resBody.oneTimePassword) {
+      // 只顯示這一次：請當面或私訊交給本人，對方第一次登入就會被要求改密碼
+      window.prompt(`帳號已建立。一次性密碼只顯示這一次，請複製後交給對方（對方第一次登入必須自己改密碼）：`, resBody.oneTimePassword);
+    } else {
+      alert(newPassword ? '帳號已建立，可直接用這組密碼登入' : '已寄出邀請信');
+    }
     setNewEmail('');
     setNewName('');
     setNewPassword('');
@@ -551,8 +558,13 @@ export default function AdminAccountsPage() {
   }
 
   async function handleResetPassword(targetUserId: string, targetName: string) {
-    const newPw = prompt(`為「${targetName}」設定新密碼（至少6碼）：`);
-    if (!newPw) return;
+    // 建議用系統產生的一次性密碼；按「取消」才改成自己輸入（至少10碼，不能是常見或外洩過的密碼）
+    const useGenerated = window.confirm(`為「${targetName}」重設密碼。\n\n按「確定」：由系統產生一次性密碼（建議，對方登入後必須自己改）\n按「取消」：自己輸入新密碼`);
+    let newPw = '';
+    if (!useGenerated) {
+      newPw = prompt(`為「${targetName}」設定新密碼（至少10碼，不能是常見或外洩過的密碼）：`) ?? '';
+      if (!newPw) return;
+    }
     const { data: sessionData } = await supabase.auth.getSession();
     const accessToken = sessionData.session?.access_token;
     if (!accessToken) {
@@ -562,14 +574,41 @@ export default function AdminAccountsPage() {
     const res = await fetch('/api/admin/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-      body: JSON.stringify({ targetUserId, newPassword: newPw }),
+      body: JSON.stringify(useGenerated ? { targetUserId, generate: true } : { targetUserId, newPassword: newPw }),
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
       alert('重設密碼失敗：' + (body.error ?? '未知錯誤'));
       return;
     }
-    alert(body.logWarning ?? '密碼已重設，請告知對方新密碼');
+    if (body.oneTimePassword) {
+      window.prompt(`密碼已重設。一次性密碼只顯示這一次，請複製後交給「${targetName}」（對方登入後必須自己改密碼）：`, body.oneTimePassword);
+      if (body.logWarning) alert(body.logWarning);
+    } else {
+      alert(body.logWarning ?? '密碼已重設，請告知對方新密碼');
+    }
+    loadAuditLog();
+  }
+
+  async function handleResetMfa(targetUserId: string, targetName: string) {
+    if (!window.confirm(`要移除「${targetName}」已登記的雙重驗證嗎？\n對方下次登入只需要密碼，之後請他自己到「帳號設定」重新設定。`)) return;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) {
+      alert('請重新登入');
+      return;
+    }
+    const res = await fetch('/api/admin/reset-mfa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ targetUserId }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      alert('重設雙重驗證失敗：' + (body.error ?? '未知錯誤'));
+      return;
+    }
+    alert(body.logWarning ?? '已移除雙重驗證，請通知對方重新設定');
     loadAuditLog();
   }
 
@@ -860,11 +899,16 @@ export default function AdminAccountsPage() {
           <div style={{ position: 'relative', flex: 1, minWidth: 260 }}>
             <input
               type={showNewPassword ? 'text' : 'password'}
-              placeholder="初始密碼（選填，至少6碼；有填就直接建立可登入帳號、不寄信）"
-              value={newPassword}
+              placeholder={oneTimePw ? '將由系統產生一次性密碼' : '初始密碼（選填，至少10碼且不能是常見或外洩過的密碼；有填就直接建立可登入帳號、不寄信）'}
+              value={oneTimePw ? '' : newPassword}
+              disabled={oneTimePw}
               onChange={(e) => setNewPassword(e.target.value)}
               style={{ padding: 8, width: '100%', boxSizing: 'border-box', paddingRight: 56 }}
             />
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--sub)', marginTop: 6 }}>
+              <input type="checkbox" checked={oneTimePw} onChange={(e) => setOneTimePw(e.target.checked)} />
+              由系統產生一次性密碼（建議：每人不同、對方第一次登入必須自己改掉，不用再共用預設密碼）
+            </label>
             <button
               type="button"
               onClick={() => setShowNewPassword((s) => !s)}
@@ -990,9 +1034,14 @@ export default function AdminAccountsPage() {
                 </td>
                 <td style={{ padding: 6 }}>
                   {manageable ? (
-                    <button onClick={() => handleResetPassword(u.id, u.name)} style={{ fontSize: 12, padding: '2px 8px' }}>
-                      重設密碼
-                    </button>
+                    <>
+                      <button onClick={() => handleResetPassword(u.id, u.name)} style={{ fontSize: 12, padding: '2px 8px' }}>
+                        重設密碼
+                      </button>{' '}
+                      <button onClick={() => handleResetMfa(u.id, u.name)} style={{ fontSize: 12, padding: '2px 8px' }} title="對方手機遺失或換手機時使用">
+                        重設雙重驗證
+                      </button>
+                    </>
                   ) : (
                     <span style={{ color: '#ccc' }}>—</span>
                   )}
@@ -1165,7 +1214,9 @@ export default function AdminAccountsPage() {
                   <tr key={log.id} style={{ borderTop: '1px solid var(--line)' }}>
                     <td style={{ padding: 6 }}>{new Date(log.changed_at).toLocaleString()}</td>
                     <td style={{ padding: 6 }}>{target?.name ?? log.target_user_id}</td>
-                    <td style={{ padding: 6 }}>{log.action === 'role_change' ? '角色變更' : '密碼重設'}</td>
+                    <td style={{ padding: 6 }}>
+                      {{ role_change: '角色變更', password_reset: '密碼重設', email_change: '信箱變更', password_change: '自行改密碼', mfa_reset: '雙重驗證重設' }[log.action] ?? log.action}
+                    </td>
                     <td style={{ padding: 6 }}>
                       {log.action === 'role_change'
                         ? `${ROLE_LABEL[log.old_value as UserRole] ?? log.old_value} → ${ROLE_LABEL[log.new_value as UserRole] ?? log.new_value}`

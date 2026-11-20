@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { withEffectiveRole } from '@/lib/effectiveRole';
 import { namesLikelySamePerson } from '@/lib/periodConfig';
+import { generateOneTimePassword, validateNewPassword } from '@/lib/weakPasswords';
+import { pwnedCount, PWNED_MESSAGE } from '@/lib/pwnedPassword';
 
 type UserRole = 'system_admin_s' | 'admin_a' | 'admin_b' | 'homeroom_teacher' | 'subject_teacher';
 
@@ -21,13 +23,19 @@ const TEACHER_ROLES: UserRole[] = ['homeroom_teacher', 'subject_teacher'];
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, name, role, password, bindTeacherId } = (await req.json()) as {
+    const body = (await req.json()) as {
       email: string;
       name: string;
       role: UserRole;
       password?: string;
       bindTeacherId?: string;
+      oneTimePassword?: boolean;
     };
+    const { email, name, role, bindTeacherId } = body;
+    // oneTimePassword=true：由系統產生隨機的一次性密碼（不再共用預設密碼），對方第一次登入一定要自己改掉。
+    // 密碼會回傳給管理者一次，請當面或私訊交給本人。手動指定的 password 仍可用，但要通過強度與外洩檢查。
+    const oneTime = body.oneTimePassword === true;
+    const password = oneTime ? generateOneTimePassword() : body.password;
 
     if (!email || !name || !role) {
       return NextResponse.json({ error: '缺少必要欄位' }, { status: 400 });
@@ -67,8 +75,14 @@ export async function POST(req: NextRequest) {
     // 沒填密碼：走原本的「寄邀請信」流程，對方點信件連結後自行設定密碼。
     let userId: string;
     if (password) {
-      if (password.length < 6) {
-        return NextResponse.json({ error: '密碼至少要6個字元' }, { status: 400 });
+      if (!oneTime) {
+        const weakReason = validateNewPassword(password);
+        if (weakReason) {
+          return NextResponse.json({ error: weakReason }, { status: 400 });
+        }
+        if ((await pwnedCount(password)) > 0) {
+          return NextResponse.json({ error: PWNED_MESSAGE }, { status: 400 });
+        }
       }
       const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
         email,
@@ -107,8 +121,8 @@ export async function POST(req: NextRequest) {
     // 用「寄邀請信」建立的帳號，對方本來就是自己在信件連結裡設定第一組密碼，不用再
     // 強制多改一次。查不到設定（例如還沒執行過對應的 SQL migration）就當作關閉，
     // 不影響原本「建完帳號直接可登入」的行為。
-    let mustChangePassword = false;
-    if (password) {
+    let mustChangePassword = oneTime; // 一次性密碼一定要強制第一次登入就改，不看開發人員區的開關
+    if (password && !oneTime) {
       const { data: pwPolicy } = await supabaseAdmin.from('password_policy_settings').select('force_change_on_first_login').eq('id', true).maybeSingle();
       mustChangePassword = !!pwPolicy?.force_change_on_first_login;
     }
@@ -176,7 +190,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(oneTime ? { success: true, oneTimePassword: password } : { success: true });
   } catch (e: any) {
     return NextResponse.json({ error: e.message ?? '未知錯誤' }, { status: 500 });
   }

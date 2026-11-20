@@ -7,7 +7,7 @@ import { getGameMode } from '@/lib/gameMode';
 
 // 未讀通知提醒：有新的通知（例如家長／學生帳號申請、考場名冊、審核）時，在畫面上跳出
 // 「您有 N 則未讀通知」，一鍵前往處理；上方導覽列的「通知（N）」數字也會即時更新。
-// 每 60 秒、或切回這個分頁時查一次；同一則通知每個瀏覽階段只跳出一次。
+// 分頁顯示中每 120 秒、或切回這個分頁時查一次（背景分頁不查）；同一則通知每個瀏覽階段只跳出一次。
 
 const TARGET_BY_CATEGORY: Record<string, { href: string; label: string }> = {
   審核通知: { href: '/review?tab=portal-requests', label: '家長／學生帳號申請' },
@@ -66,9 +66,20 @@ export default function UnreadNotifier() {
   }
 
   useEffect(() => {
-    check();
-    const t = setInterval(check, 60_000);
-    const onFocus = () => document.visibilityState === 'visible' && check();
+    // 資安與效能檢測報告 #12：分頁在背景（隱藏）時完全不查；顯示中每 120 秒查一次；
+    // 切回分頁時立刻查，但 20 秒內剛查過就不重複查（來回切換分頁不會連續打資料庫）。
+    let last = 0;
+    const run = () => {
+      last = Date.now();
+      check();
+    };
+    run();
+    const t = setInterval(() => {
+      if (document.visibilityState === 'visible') run();
+    }, 120_000);
+    const onFocus = () => {
+      if (document.visibilityState === 'visible' && Date.now() - last > 20_000) run();
+    };
     document.addEventListener('visibilitychange', onFocus);
     return () => {
       clearInterval(t);

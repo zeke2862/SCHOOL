@@ -1,4 +1,4 @@
-import { isWeakPassword } from '@/lib/weakPasswords';
+import { validateNewPassword } from '@/lib/weakPasswords';
 import { pwnedCount, PWNED_MESSAGE } from '@/lib/pwnedPassword';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
@@ -12,8 +12,9 @@ export async function POST(req: NextRequest) {
     if (!currentPassword || !newPassword) {
       return NextResponse.json({ error: '請輸入目前密碼與新密碼' }, { status: 400 });
     }
-    if (newPassword.length < 6) {
-      return NextResponse.json({ error: '新密碼至少要6個字元' }, { status: 400 });
+    const weakReason = validateNewPassword(newPassword);
+    if (weakReason) {
+      return NextResponse.json({ error: weakReason }, { status: 400 });
     }
     if (newPassword === currentPassword) {
       return NextResponse.json({ error: '新密碼不能和目前密碼相同' }, { status: 400 });
@@ -25,10 +26,6 @@ export async function POST(req: NextRequest) {
     const { data: callerAuth, error: callerErr } = await supabaseAdmin.auth.getUser(token);
     if (callerErr || !callerAuth.user || !callerAuth.user.email) {
       return NextResponse.json({ error: '登入憑證無效' }, { status: 401 });
-    }
-
-    if (isWeakPassword(newPassword)) {
-      return NextResponse.json({ error: '這組密碼太常見，請設定其他密碼' }, { status: 400 });
     }
 
     // 新密碼不能是已經外洩過的（查不到或服務連不上就放行）

@@ -8,6 +8,8 @@ import ExcelJS from 'exceljs';
 import * as X from '../../lib/xlsxLite.ts';
 import { clientIp } from '../../lib/clientIp.ts';
 import { fetchAbsenceCounts } from '../../lib/absenceCounts.ts';
+import { shouldBlockForMfa } from '../../lib/mfaGate.ts';
+import { validateNewPassword, generateOneTimePassword, isWeakPassword, MIN_PASSWORD_LENGTH } from '../../lib/weakPasswords.ts';
 import { cached, invalidateCache } from '../../lib/queryCacheCore.ts';
 import { departmentForGrade, SPECIFIC_GRADE_LEVELS, ATTENDANCE_CODE_MAP } from '../../lib/gradeMapping.ts';
 
@@ -195,6 +197,76 @@ t('缺課節數批次查詢：沒有學生就不查；出錯時回空結果而�
   assert.equal(called, 0);
   const failed = await fetchAbsenceCounts({ rpc: async () => ({ data: null, error: { message: 'x' } }) }, ['A']);
   assert.equal(failed.size, 0);
+});
+
+t('新密碼強度：太短、已公開預設密碼、常見／重複／連續字元都擋下，正常密碼通過', () => {
+  assert.equal(MIN_PASSWORD_LENGTH, 10);
+  assert.ok(validateNewPassword('Abc12345'));            // 8 碼，太短
+  assert.ok(validateNewPassword('hy2026168'));           // 已公開的預設密碼（也太短）
+  assert.ok(validateNewPassword('1234567890'));          // 連續數字
+  assert.ok(validateNewPassword('aaaaaaaaaaaa'));        // 同一字元
+  assert.ok(validateNewPassword('abababababab'));        // 短片段重複
+  assert.ok(validateNewPassword('Password123'));         // 常見密碼（不分大小寫）
+  assert.ok(validateNewPassword('x'.repeat(73)));        // 太長
+  assert.equal(validateNewPassword('Blue-Tiger-42-lamp'), null);
+  assert.equal(validateNewPassword('7391846205'), null); // 10 碼數字但不是常見／連續，放行（外洩檢查另做）
+  assert.ok(isWeakPassword('HY2026168'));
+});
+t('一次性密碼：16 碼、含大小寫與數字、不含易混淆字元、每次不同、自己能通過強度檢查', () => {
+  const seen = new Set();
+  for (let i = 0; i < 200; i++) {
+    const p = generateOneTimePassword();
+    assert.equal(p.length, 16);
+    assert.match(p, /[a-z]/);
+    assert.match(p, /[A-Z]/);
+    assert.match(p, /[0-9]/);
+    assert.doesNotMatch(p, /[0O1lI]/);
+    assert.equal(validateNewPassword(p), null);
+    seen.add(p);
+  }
+  assert.equal(seen.size, 200);
+});
+
+// ---- /api/admin/* 雙重驗證 middleware：用假的 Supabase Auth 回應測各種情況 ----
+function jwt(aal) {
+  const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+  return `${b64({ alg: 'HS256' })}.${b64({ aal })}.sig`;
+}
+async function runMiddleware(headers, authUser) {
+  const realFetch = globalThis.fetch;
+  let authCalls = 0;
+  globalThis.fetch = async () => {
+    authCalls++;
+    if (authUser === 'down') throw new Error('network');
+    return new Response(JSON.stringify(authUser), { status: authUser ? 200 : 401 });
+  };
+  try {
+    const blocked = await shouldBlockForMfa(headers.authorization ?? null, 'https://example.supabase.co', 'anon');
+    return { blocked, authCalls };
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+}
+t('雙重驗證 middleware：沒帶憑證放行（由 API 回 401）、不打 Auth', async () => {
+  const r = await runMiddleware({}, { factors: [{ status: 'verified' }] });
+  assert.deepEqual(r, { blocked: false, authCalls: 0 });
+});
+t('雙重驗證 middleware：已通過第二步（aal2）放行、不打 Auth', async () => {
+  const r = await runMiddleware({ authorization: `Bearer ${jwt('aal2')}` }, { factors: [{ status: 'verified' }] });
+  assert.deepEqual(r, { blocked: false, authCalls: 0 });
+});
+t('雙重驗證 middleware：只通過密碼（aal1）但帳號有已驗證的驗證器 → 擋下 403', async () => {
+  const r = await runMiddleware({ authorization: `Bearer ${jwt('aal1')}` }, { factors: [{ status: 'verified' }] });
+  assert.deepEqual(r, { blocked: true, authCalls: 1 });
+});
+t('雙重驗證 middleware：aal1 且沒有驗證器／驗證器未完成登記 → 放行（一般教師不受影響）', async () => {
+  assert.equal((await runMiddleware({ authorization: `Bearer ${jwt('aal1')}` }, { factors: [] })).blocked, false);
+  assert.equal((await runMiddleware({ authorization: `Bearer ${jwt('aal1')}` }, { factors: [{ status: 'unverified' }] })).blocked, false);
+  assert.equal((await runMiddleware({ authorization: `Bearer ${jwt('aal1')}` }, {})).blocked, false);
+});
+t('雙重驗證 middleware：憑證亂填、Auth 回 401 或連不上 → 放行（由各 API 自己驗證憑證）', async () => {
+  assert.equal((await runMiddleware({ authorization: 'Bearer garbage' }, null)).blocked, false);
+  assert.equal((await runMiddleware({ authorization: `Bearer ${jwt('aal1')}` }, 'down')).blocked, false);
 });
 
 // 依序執行；任何一項失敗就讓整個程序以非 0 結束（CI 才會擋下）

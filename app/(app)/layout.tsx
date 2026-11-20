@@ -8,6 +8,7 @@ import SideNav from '@/components/SideNav';
 import ClickSoundListener from '@/components/ClickSoundListener';
 import GameLayer from '@/components/game/GameLayer';
 import { supabase } from '@/lib/supabaseClient';
+import { MFA_ROLES, getMfaStatusLocal } from '@/lib/mfa';
 import GuestNav from '@/components/competition/GuestNav';
 
 // 這個路由群組（管理後台、出缺勤、通知…等所有教職員頁面）統一在這裡檔一次「有沒有登入」，
@@ -31,6 +32,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         router.replace('/');
         return;
       }
+      // 雙重驗證：帳號登記過驗證器、但這個登入只通過密碼（沒做第二步）→ 一律踢回登入頁重新登入。
+      // 這是為了擋「只拿到密碼就直接用網址或舊的登入狀態進來」的情況（資安檢測報告 #8）。
+      const mfa = await getMfaStatusLocal();
+      if (!active) return;
+      if (mfa.needsChallenge) {
+        await supabase.auth.signOut();
+        router.replace('/');
+        return;
+      }
       // 反映事項「開發人員區增加【第一次登入強制更改密碼】功能」：教職員（app_users）
       // 帳號如果還沒完成「第一次登入強制改密碼」，這裡整層擋下來、導去 /change-password，
       // 不管想打開哪個頁面都一樣先擋在這裡（不是只在登入當下判斷一次），避免直接輸入
@@ -40,6 +50,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       if (!active) return;
       if (profile?.must_change_password) {
         router.replace('/change-password');
+        return;
+      }
+      // 嚴格模式（環境變數 NEXT_PUBLIC_MFA_REQUIRED=1）：系統管理員 S／A 沒登記驗證器就只能待在帳號設定頁。預設關閉，只在登入時提醒設定。
+      if (
+        process.env.NEXT_PUBLIC_MFA_REQUIRED === '1' &&
+        profile?.role &&
+        MFA_ROLES.includes(profile.role as string) &&
+        !mfa.hasFactor &&
+        !pathname.startsWith('/account')
+      ) {
+        router.replace('/account?mfa=setup');
         return;
       }
       if (profile?.role === 'competition_guest') {

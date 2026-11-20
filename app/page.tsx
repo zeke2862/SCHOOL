@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isWeakPassword } from '@/lib/weakPasswords';
+import { isWeakPassword, validateNewPassword } from '@/lib/weakPasswords';
 import { supabase, getCurrentAppUser, getMyIdentity, resetIdentityCache } from '@/lib/supabaseClient';
 import { BulletinPost, getPublishedPosts } from '@/lib/bulletin';
 import ThemeSwitch from '@/components/ThemeSwitch';
 import { canUseTeacherView } from '@/lib/permissions';
 import { getGameMode } from '@/lib/gameMode';
+import { MFA_ROLES, getMfaStatus, verifyMfaCode } from '@/lib/mfa';
+import TurnstileWidget, { TURNSTILE_SITE_KEY, type TurnstileHandle } from '@/components/TurnstileWidget';
 
 type CardKey = 'staff' | 'parent';
 
@@ -100,6 +102,13 @@ export default function LoginPage() {
   const [resendAt, setResendAt] = useState(0);
   // 用驗證碼改密碼時，登入套件也會發出「密碼重設」事件；這時不要被下面的 useEffect 帶去另一頁
   const codeFlow = useRef(false);
+  // 雙重驗證第二步：密碼通過後，帳號有登記驗證器就停在這裡要 6 位數字碼
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaWeak, setMfaWeak] = useState(false); // 這次是不是用已公開的預設密碼登入（驗證通過後才標記要改密碼）
+  // 人機驗證（有設定 Turnstile 才會用到）
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileHandle>(null);
   const router = useRouter();
 
   // 忘記密碼：使用者點了信裡的連結回到這裡 → 直接帶去「設定新密碼」頁，不用再登入一次。
@@ -155,9 +164,15 @@ export default function LoginPage() {
     }
     // 點信裡的連結後直接到「設定新密碼」頁；若該網址沒有列在登入服務的允許清單，
     // 會退回系統首頁，首頁（上面的 useEffect）一樣會把人帶去設定新密碼。
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      setError('請先完成下方的人機驗證');
+      return;
+    }
     const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/change-password?recovery=1`,
+      captchaToken: captchaToken ?? undefined,
     });
+    turnstileRef.current?.reset(); // 驗證結果只能用一次
     if (resetErr) {
       setError('寄送重設密碼信失敗：' + resetErr.message);
       return;
@@ -175,8 +190,8 @@ export default function LoginPage() {
     setError(null);
     const token = code.replace(/\D/g, '');
     if (token.length < 6) return setError('請輸入信裡的驗證碼（6 位數字）');
-    if (newPassword.length < 6) return setError('密碼至少要6個字元');
-    if (isWeakPassword(newPassword)) return setError('這組密碼太常見，請設定其他密碼');
+    const weakReason = validateNewPassword(newPassword);
+    if (weakReason) return setError(weakReason);
     if (newPassword !== confirmPassword) return setError('兩次輸入的密碼不一致');
     setBusy(true);
     codeFlow.current = true;
@@ -198,7 +213,7 @@ export default function LoginPage() {
         setTimeout(() => router.replace('/change-password?recovery=1'), 1800);
         return;
       }
-      await enterSystem();
+      await finishSignIn(false);
     } finally {
       setBusy(false);
     }
@@ -207,22 +222,73 @@ export default function LoginPage() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-    if (signInError) {
-      setError('帳號或密碼錯誤');
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      setError('請先完成下方的人機驗證');
       return;
     }
 
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: captchaToken ? { captchaToken } : undefined,
+    });
+    turnstileRef.current?.reset(); // 驗證結果只能用一次，失敗要重新驗證
+    if (signInError) {
+      setError(/captcha/i.test(signInError.message) ? '人機驗證未通過，請重新驗證後再登入' : '帳號或密碼錯誤');
+      return;
+    }
+
+    await finishSignIn(isWeakPassword(password));
+  }
+
+  // 密碼（或驗證碼改密碼）通過之後：帳號有登記雙重驗證就先停在第二步，沒有就直接進系統
+  async function finishSignIn(weakLogin: boolean) {
+    const st = await getMfaStatus();
+    if (st.needsChallenge && st.factorId) {
+      setMfaFactorId(st.factorId);
+      setMfaWeak(weakLogin);
+      setMfaCode('');
+      return;
+    }
+    await completeLogin(weakLogin);
+  }
+
+  async function handleMfaSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!mfaFactorId) return;
+    setBusy(true);
+    try {
+      const err = await verifyMfaCode(mfaFactorId, mfaCode);
+      if (err) {
+        setError(err);
+        setMfaCode('');
+        return;
+      }
+      setMfaFactorId(null);
+      await completeLogin(mfaWeak);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function cancelMfa() {
+    await supabase.auth.signOut();
+    setMfaFactorId(null);
+    setMfaCode('');
+    setPassword('');
+    setError(null);
+  }
+
+  async function completeLogin(weakLogin: boolean) {
     // 用已公開的預設密碼登入的教職員：標記成下次一定要改密碼（layout 會擋在 /change-password）
-    if (isWeakPassword(password)) {
+    if (weakLogin) {
       const { data: sess } = await supabase.auth.getSession();
       const accessToken = sess.session?.access_token;
       if (accessToken) {
         await fetch('/api/account/flag-weak-password', { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` } }).catch(() => {});
       }
     }
-
     await enterSystem();
   }
 
@@ -245,6 +311,14 @@ export default function LoginPage() {
       setError('此帳號已到期，請聯絡教務處');
       await supabase.auth.signOut();
       return;
+    }
+    // 系統管理員 S／A 還沒登記雙重驗證：帶去帳號設定頁設定（不強制；要強制請設 NEXT_PUBLIC_MFA_REQUIRED=1，見 (app)/layout）
+    if (MFA_ROLES.includes(appUser.role as string)) {
+      const st = await getMfaStatus();
+      if (!st.factorId) {
+        router.push('/account?mfa=setup');
+        return;
+      }
     }
     // 賽事訪客（外聘評審/裁判）→ 直接進競賽活動，不經過校務系統首頁
     if ((appUser.role as string) === 'competition_guest') {
@@ -309,6 +383,48 @@ export default function LoginPage() {
   // ---------- 第二步：教職員卡片 → 帳號密碼登入 ----------
   const cardInfo = CARDS.find((c) => c.key === card)!;
 
+  // ---------- 雙重驗證第二步 ----------
+  if (mfaFactorId) {
+    return (
+      <main style={{ maxWidth: 360, margin: '80px auto', padding: 24 }}>
+        <h1 style={{ fontSize: 20, marginBottom: 8 }}>🔐 雙重驗證</h1>
+        <p style={{ fontSize: 13, color: '#666', lineHeight: 1.7, marginBottom: 16 }}>
+          請打開手機上的驗證器 App（Google Authenticator、Microsoft Authenticator 等），輸入「校務行政系統」目前顯示的 6 位數字。
+        </p>
+        <form onSubmit={handleMfaSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <input
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            autoFocus
+            placeholder="6 位數字"
+            value={mfaCode}
+            onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc', fontSize: 22, letterSpacing: '0.4em', textAlign: 'center' }}
+            required
+          />
+          {error && <p style={{ color: '#A32D2D', fontSize: 13, margin: 0 }}>{error}</p>}
+          <button
+            type="submit"
+            disabled={busy || mfaCode.length !== 6}
+            style={{ padding: 10, borderRadius: 8, background: busy || mfaCode.length !== 6 ? '#999' : 'var(--primary)', color: 'var(--on-primary)', border: 'none' }}
+          >
+            {busy ? '驗證中…' : '驗證並登入'}
+          </button>
+        </form>
+        <p style={{ fontSize: 12, color: '#666', lineHeight: 1.7, marginTop: 14 }}>
+          手機遺失或無法使用驗證器：請聯絡系統管理員協助重設雙重驗證（系統管理員 S 自己無法登入時，需由學校的 Supabase 後台管理者處理）。
+        </p>
+        <button
+          onClick={cancelMfa}
+          style={{ marginTop: 8, background: 'none', border: 'none', color: '#666', fontSize: 13, textDecoration: 'underline', cursor: 'pointer', padding: 0 }}
+        >
+          取消並登出
+        </button>
+      </main>
+    );
+  }
+
   return (
     <main style={{ maxWidth: 360, margin: '80px auto', padding: 24 }}>
       <button
@@ -320,6 +436,12 @@ export default function LoginPage() {
       <h1 style={{ fontSize: 20, marginBottom: 24 }}>
         {cardInfo.emoji} {cardInfo.title}登入
       </h1>
+
+      {!(forgotMode && forgotSent) && (
+        <div style={{ marginBottom: 12 }}>
+          <TurnstileWidget ref={turnstileRef} onToken={setCaptchaToken} />
+        </div>
+      )}
 
       {!forgotMode ? (
         <>
@@ -398,7 +520,7 @@ export default function LoginPage() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
-                placeholder="新密碼（至少6碼）"
+                placeholder="新密碼（至少10碼）"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 style={{ padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
