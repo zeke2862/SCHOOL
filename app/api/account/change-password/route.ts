@@ -1,4 +1,5 @@
 import { isWeakPassword } from '@/lib/weakPasswords';
+import { pwnedCount, PWNED_MESSAGE } from '@/lib/pwnedPassword';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
@@ -28,6 +29,11 @@ export async function POST(req: NextRequest) {
 
     if (isWeakPassword(newPassword)) {
       return NextResponse.json({ error: '這組密碼太常見，請設定其他密碼' }, { status: 400 });
+    }
+
+    // 新密碼不能是已經外洩過的（查不到或服務連不上就放行）
+    if ((await pwnedCount(newPassword)) > 0) {
+      return NextResponse.json({ error: PWNED_MESSAGE }, { status: 400 });
     }
 
     const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/token?grant_type=password`, {

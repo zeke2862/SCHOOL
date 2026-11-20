@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { isWeakPassword } from '@/lib/weakPasswords';
+import { pwnedCount, PWNED_MESSAGE } from '@/lib/pwnedPassword';
 
 // 對應「第一次登入強制更改密碼」流程的最後一步：驗證呼叫者身分、更新自己的密碼，
 // 並把 app_users.must_change_password 清成 false（往後就不會再被
@@ -24,6 +25,11 @@ export async function POST(req: NextRequest) {
 
     const { data: callerAuth, error: callerErr } = await supabaseAdmin.auth.getUser(token);
     if (callerErr || !callerAuth.user) return NextResponse.json({ error: '登入憑證無效' }, { status: 401 });
+
+    // 新密碼不能是已經外洩過的（登入驗證通過後才查，避免被當成匿名查詢入口；查不到或服務連不上就放行）
+    if ((await pwnedCount(newPassword)) > 0) {
+      return NextResponse.json({ error: PWNED_MESSAGE }, { status: 400 });
+    }
 
     const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(callerAuth.user.id, { password: newPassword });
     if (updateErr) {

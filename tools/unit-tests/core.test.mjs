@@ -2,6 +2,7 @@
 // 這幾條規則一改錯，座號、部別、出缺勤代碼就會全校一起錯，所以先鎖住現在的正確行為。
 import assert from 'node:assert/strict';
 import { compareStudentNo, compareForSeat, genderFromStudentNo, genderRank } from '../../lib/studentNoSort.ts';
+import { sha1Upper, countInRange } from '../../lib/pwnedPassword.ts';
 import { cached, invalidateCache } from '../../lib/queryCacheCore.ts';
 import { departmentForGrade, SPECIFIC_GRADE_LEVELS, ATTENDANCE_CODE_MAP } from '../../lib/gradeMapping.ts';
 
@@ -95,6 +96,15 @@ t('快取：失敗不會被記住，下次會重新查', async () => {
   const v = await cached('e', async () => { calls++; return 'ok'; }, 1000);
   assert.equal(v, 'ok');
   assert.equal(calls, 2);
+});
+
+t('外洩密碼檢查：SHA-1 與 range 回應解析', () => {
+  assert.equal(sha1Upper('password'), '5BAA61E4C9B93F3F0682250B6CF8331B7EE68FD8');
+  const body = ['0018A45C4D1DEF81644B54AB7F969B88D65:1', '1E4C9B93F3F0682250B6CF8331B7EE68FD8:3861493', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:0', ''].join(String.fromCharCode(13, 10));
+  assert.equal(countInRange(body, '1E4C9B93F3F0682250B6CF8331B7EE68FD8'), 3861493);
+  assert.equal(countInRange(body, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'), 0, 'padding 假資料次數 0');
+  assert.equal(countInRange(body, 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'), 0, '沒出現');
+  assert.equal(countInRange('', 'ABC'), 0);
 });
 
 // 依序執行；任何一項失敗就讓整個程序以非 0 結束（CI 才會擋下）
