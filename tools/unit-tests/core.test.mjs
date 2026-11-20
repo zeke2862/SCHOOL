@@ -8,6 +8,9 @@ import ExcelJS from 'exceljs';
 import * as X from '../../lib/xlsxLite.ts';
 import { clientIp } from '../../lib/clientIp.ts';
 import { fetchAbsenceCounts } from '../../lib/absenceCounts.ts';
+import { planRetention, jobIdOf } from '../../lib/backupRetention.ts';
+import { verifyBackup, checkReferences } from '../../lib/backupVerify.ts';
+import { evaluateHealth, DEFAULT_LIMITS } from '../../lib/healthEval.ts';
 import { shouldBlockForMfa } from '../../lib/mfaGate.ts';
 import { validateNewPassword, generateOneTimePassword, isWeakPassword, MIN_PASSWORD_LENGTH } from '../../lib/weakPasswords.ts';
 import { cached, invalidateCache } from '../../lib/queryCacheCore.ts';
@@ -267,6 +270,205 @@ t('雙重驗證 middleware：aal1 且沒有驗證器／驗證器未完成登記 
 t('雙重驗證 middleware：憑證亂填、Auth 回 401 或連不上 → 放行（由各 API 自己驗證憑證）', async () => {
   assert.equal((await runMiddleware({ authorization: 'Bearer garbage' }, null)).blocked, false);
   assert.equal((await runMiddleware({ authorization: `Bearer ${jwt('aal1')}` }, 'down')).blocked, false);
+});
+
+// ---- 備份保留規則、備份驗證、健康評估 ----
+const DAY = 86400000;
+function dailyBackups(n, endIso = '2026-11-19T18:13:00Z') {
+  const end = new Date(endIso).getTime();
+  return Array.from({ length: n }, (_, i) => ({ id: `b${i}`, kind: '自動', created_at: new Date(end - i * DAY).toISOString(), storage_path: `jobs/job${i}/manifest.json` }));
+}
+t('備份保留：最近 10 天每份都留、較舊的每週只留最新一份，最新 3 份一律保留', () => {
+  const now = new Date('2026-11-20T16:16:00Z').getTime();
+  const rows = dailyBackups(25); // 11/19 往前 25 天（到 10/26）
+  const plan = planRetention(rows, now);
+  assert.equal(plan.keep.length + plan.remove.length, 25);
+  for (let i = 0; i < 10; i++) assert.ok(plan.keep.includes(`b${i}`), `最近第 ${i} 份要保留`);
+  assert.ok(plan.remove.length >= 8 && plan.remove.length <= 14, `應刪 8～14 份，實際 ${plan.remove.length}`);
+  assert.ok(plan.keep.includes('b0') && plan.keep.includes('b1') && plan.keep.includes('b2'));
+  // 保留的舊備份（超過 10 天的）數量有限，每週只留一份
+  const old = plan.keep.map((id) => rows.find((r) => r.id === id)).filter((r) => (now - new Date(r.created_at).getTime()) / DAY >= 10);
+  assert.ok(old.length >= 2 && old.length <= 6);
+});
+t('備份保留：只有 1～10 份、或沒有備份時一份都不刪；手動備份 60 天內保留', () => {
+  const now = new Date('2026-11-20T16:16:00Z').getTime();
+  assert.equal(planRetention(dailyBackups(3), now).remove.length, 0);
+  assert.equal(planRetention(dailyBackups(10), now).remove.length, 0);
+  assert.equal(planRetention([], now).remove.length, 0);
+  const rows = [
+    ...dailyBackups(3),
+    { id: 'm1', kind: '手動', created_at: new Date(now - 40 * DAY).toISOString(), storage_path: 'jobs/m1/manifest.json' },
+    { id: 'm2', kind: '手動', created_at: new Date(now - 41 * DAY).toISOString(), storage_path: 'jobs/m2/manifest.json' },
+  ];
+  const plan = planRetention(rows, now);
+  assert.ok(plan.keep.includes('m1') && plan.keep.includes('m2'));
+});
+t('備份保留：很久以前的每月留一份，更久的刪除', () => {
+  const now = new Date('2026-11-20T16:16:00Z').getTime();
+  const rows = [
+    ...dailyBackups(3),
+    { id: 'jul', kind: '自動', created_at: '2026-07-15T18:00:00Z', storage_path: 'jobs/jul/manifest.json' },
+    { id: 'sep', kind: '自動', created_at: '2026-09-15T18:00:00Z', storage_path: 'jobs/sep/manifest.json' },
+    { id: 'sep2', kind: '自動', created_at: '2026-09-10T18:00:00Z', storage_path: 'jobs/sep2/manifest.json' },
+  ];
+  const plan = planRetention(rows, now);
+  assert.ok(plan.keep.includes('sep'), '9 月最新一份保留');
+  assert.ok(plan.remove.includes('sep2'), '9 月較舊的刪除');
+  assert.ok(plan.remove.includes('jul'), '超過 4 個月的刪除');
+});
+t('備份保留：只認得標準路徑的備份才允許自動刪除', () => {
+  assert.equal(jobIdOf('jobs/2026-11-19-1795111854930-hodwh0/manifest.json'), '2026-11-19-1795111854930-hodwh0');
+  assert.equal(jobIdOf('jobs/../etc/manifest.json'), null);
+  assert.equal(jobIdOf('jobs/a/b/manifest.json'), null);
+  assert.equal(jobIdOf(null), null);
+});
+
+function fakeAdmin(files, row) {
+  const q = { limit: async () => ({ data: row ? [row] : [], error: null }) };
+  return {
+    from: () => ({ select: () => ({ order: () => q, eq: () => q }) }),
+    storage: {
+      from: () => ({
+        download: async (p) =>
+          files[p] === undefined
+            ? { data: null, error: { message: 'not found' } }
+            : { data: { text: async () => (typeof files[p] === 'string' ? files[p] : JSON.stringify(files[p])) }, error: null },
+      }),
+    },
+  };
+}
+function goodBackup() {
+  const files = {
+    'jobs/j/manifest.json': {
+      format: 'parts',
+      parts: {
+        students: ['jobs/j/students.0.json'],
+        classes: ['jobs/j/classes.0.json'],
+        teachers: ['jobs/j/teachers.0.json'],
+        enrollments: ['jobs/j/enrollments.0.json'],
+        scores: ['jobs/j/scores.0.json'],
+        class_schedule: ['jobs/j/class_schedule.0.json'],
+        guardians: null,
+      },
+    },
+    'jobs/j/students.0.json': [{ student_no: 'A1' }, { student_no: 'A2' }],
+    'jobs/j/classes.0.json': [{ id: 'c1' }],
+    'jobs/j/teachers.0.json': [{ id: 't1' }],
+    'jobs/j/enrollments.0.json': [{ id: 'e1', student_no: 'A1', class_id: 'c1' }, { id: 'e2', student_no: 'A2', class_id: 'c1' }],
+    'jobs/j/scores.0.json': [{ enrollment_id: 'e1' }, { enrollment_id: 'e2' }],
+    'jobs/j/class_schedule.0.json': [{ teacher_id: 't1', class_id: 'c1' }],
+  };
+  const row = {
+    id: 'bk1',
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+    storage_path: 'jobs/j/manifest.json',
+    table_counts: { students: 2, classes: 1, teachers: 1, enrollments: 2, scores: 2, class_schedule: 1, guardians: null },
+  };
+  return { files, row };
+}
+t('備份驗證：完整正確的備份通過', async () => {
+  const { files, row } = goodBackup();
+  const r = await verifyBackup(fakeAdmin(files, row));
+  assert.equal(r.ok, true, JSON.stringify(r.problems));
+  assert.equal(r.tablesChecked, 6);
+  assert.equal(r.totalRows, 9);
+  assert.ok(r.ageHours >= 0.9 && r.ageHours <= 1.2);
+});
+t('備份驗證：分段檔遺失、列數不符、檔案損毀、孤兒資料、空表都會被抓出來', async () => {
+  let { files, row } = goodBackup();
+  delete files['jobs/j/scores.0.json'];
+  assert.ok((await verifyBackup(fakeAdmin(files, row))).problems.some((p) => p.includes('scores') && p.includes('遺失')));
+
+  ({ files, row } = goodBackup());
+  row.table_counts.students = 3; // 備份紀錄說 3 列，檔案只有 2 列
+  assert.ok((await verifyBackup(fakeAdmin(files, row))).problems.some((p) => p.includes('students') && p.includes('截斷')));
+
+  ({ files, row } = goodBackup());
+  files['jobs/j/classes.0.json'] = '{壞掉的檔案';
+  assert.ok((await verifyBackup(fakeAdmin(files, row))).problems.some((p) => p.includes('classes') && p.includes('損毀')));
+
+  ({ files, row } = goodBackup());
+  files['jobs/j/enrollments.0.json'] = [{ id: 'e1', student_no: 'ZZ', class_id: 'c1' }, { id: 'e2', student_no: 'A2', class_id: 'c1' }];
+  assert.ok((await verifyBackup(fakeAdmin(files, row))).problems.some((p) => p.includes('選課的學生不存在')));
+
+  ({ files, row } = goodBackup());
+  files['jobs/j/students.0.json'] = [];
+  row.table_counts.students = 0;
+  assert.ok((await verifyBackup(fakeAdmin(files, row))).problems.some((p) => p.includes('students') && p.includes('空的')));
+
+  assert.equal((await verifyBackup(fakeAdmin({}, null))).ok, false); // 沒有任何備份
+  ({ files, row } = goodBackup());
+  delete files['jobs/j/manifest.json'];
+  assert.equal((await verifyBackup(fakeAdmin(files, row))).ok, false); // 備份清單遺失
+});
+t('備份驗證：孤兒比例很低只列提醒、不算失敗', () => {
+  const ids = Array.from({ length: 300 }, (_, i) => `e${i}`);
+  const k = { students: new Set(['A']), classes: new Set(['c']), teachers: new Set(['t']), enrollments: new Set(ids), enrollmentRefs: [], scoreEnrollmentIds: [...ids, 'ghost'], scheduleRefs: [] };
+  const c = checkReferences(k).find((x) => x.label.includes('成績'));
+  assert.equal(c.orphans, 1);
+  assert.ok(c.orphans / c.total < 0.01);
+});
+
+const baseHealth = () => ({
+  snapshot: { db_bytes: 62e6, conns: 7, max_conns: 60, storage_bytes: 519e6, backup_storage_bytes: 519e6, longest_query_seconds: 0, cache_hit_ratio: 100, slow_queries: [] },
+  pingMs: 120,
+  latestBackup: { ageHours: 1, totalRows: 87000 },
+  previousBackupTotalRows: 86800,
+  verify: { ok: true, problems: [], warnings: [] },
+  liveVsBackup: [{ table: 'students', backup: 1337, live: 1337 }],
+  limits: DEFAULT_LIMITS,
+});
+t('健康評估：一切正常時沒有任何警告', () => {
+  assert.deepEqual(evaluateHealth(baseHealth()), { status: 'ok', alerts: [] });
+});
+t('健康評估：儲存空間 70% 警告、90% 嚴重；資料庫與連線數同樣分級', () => {
+  const h = baseHealth();
+  h.snapshot.storage_bytes = 760e6;
+  assert.equal(evaluateHealth(h).status, 'warning');
+  h.snapshot.storage_bytes = 980e6;
+  const r = evaluateHealth(h);
+  assert.equal(r.status, 'critical');
+  assert.ok(r.alerts.some((a) => a.key === 'storage' && a.level === 'critical'));
+  const h2 = baseHealth();
+  h2.snapshot.conns = 55;
+  assert.ok(evaluateHealth(h2).alerts.some((a) => a.key === 'connections' && a.level === 'critical'));
+  const h3 = baseHealth();
+  h3.snapshot.db_bytes = 380e6;
+  assert.ok(evaluateHealth(h3).alerts.some((a) => a.key === 'db_size' && a.level === 'warning'));
+});
+t('健康評估：備份過舊、驗證失敗、資料量暴跌、資料庫連不上都會告警', () => {
+  const h = baseHealth();
+  h.latestBackup.ageHours = 40;
+  assert.ok(evaluateHealth(h).alerts.some((a) => a.key === 'backup_stale' && a.level === 'warning'));
+  h.latestBackup.ageHours = 60;
+  assert.equal(evaluateHealth(h).status, 'critical');
+
+  const v = baseHealth();
+  v.verify = { ok: false, problems: ['scores：遺失'], warnings: [] };
+  assert.ok(evaluateHealth(v).alerts.some((a) => a.key === 'backup_verify' && a.level === 'critical'));
+
+  const d = baseHealth();
+  d.liveVsBackup = [{ table: 'students', backup: 1337, live: 900 }];
+  assert.ok(evaluateHealth(d).alerts.some((a) => a.key === 'data_drop'));
+
+  const s = baseHealth();
+  s.latestBackup.totalRows = 50000; // 比前一份 86800 少 42%
+  assert.ok(evaluateHealth(s).alerts.some((a) => a.key === 'backup_shrunk'));
+
+  const x = baseHealth();
+  x.snapshot = null;
+  x.pingMs = null;
+  assert.ok(evaluateHealth(x).alerts.some((a) => a.key === 'db_down'));
+  const y = baseHealth();
+  y.pingMs = 2000;
+  assert.ok(evaluateHealth(y).alerts.some((a) => a.key === 'db_slow' && a.level === 'warning'));
+});
+t('健康評估：慢查詢要「平均超過 3 秒且已被呼叫很多次」才告警', () => {
+  const h = baseHealth();
+  h.snapshot.slow_queries = [{ q: 'select 1', calls: 5, mean_ms: 9000, max_ms: 9000 }, { q: 'select 2', calls: 500, mean_ms: 1200, max_ms: 4000 }];
+  assert.equal(evaluateHealth(h).alerts.length, 0);
+  h.snapshot.slow_queries = [{ q: 'select 3', calls: 100, mean_ms: 3500, max_ms: 8000 }];
+  assert.ok(evaluateHealth(h).alerts.some((a) => a.key === 'slow_queries'));
 });
 
 // 依序執行；任何一項失敗就讓整個程序以非 0 結束（CI 才會擋下）

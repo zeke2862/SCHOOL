@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getCurrentAppUser } from '@/lib/supabaseClient';
 import BackupRestorePanel from '@/components/dev-tools/BackupRestorePanel';
+import SystemHealthPanel from '@/components/dev-tools/SystemHealthPanel';
 import BulkExcelPanel from '@/components/dev-tools/BulkExcelPanel';
 import DeptWorkbookPanel from '@/components/dev-tools/DeptWorkbookPanel';
 import Link from 'next/link';
@@ -48,6 +49,7 @@ export default function DevToolsPage() {
         {[
           ['#dept-excel', '① 四部門 Excel'],
           ['#backup-restore', '② 備份檔 JSON／還原'],
+          ['#system-health', '② 之二 系統健康檢查'],
           ['#other-uploads', '③ 其他檔案上傳入口'],
           ['#legacy-excel', '④ 舊版整批工具'],
           ['#password-policy-settings', '⑤ 系統設定'],
@@ -66,6 +68,11 @@ export default function DevToolsPage() {
       <section id="backup-restore" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
         <h2 style={{ fontSize: 14, marginBottom: 12 }}>② 備份與還原（JSON 備份檔：完整、含全部出缺勤，適合災難復原）</h2>
         <BackupRestorePanel />
+      </section>
+
+      <section id="system-health" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
+        <h2 style={{ fontSize: 14, marginBottom: 12 }}>系統健康檢查與備份驗證（每日自動檢查、異常寄信通知）</h2>
+        <SystemHealthPanel />
       </section>
 
       <section id="other-uploads" style={{ marginBottom: 40, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
