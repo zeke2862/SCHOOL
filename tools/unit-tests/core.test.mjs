@@ -11,7 +11,7 @@ import { fetchAbsenceCounts } from '../../lib/absenceCounts.ts';
 import { planRetention, jobIdOf } from '../../lib/backupRetention.ts';
 import { verifyBackup, checkReferences } from '../../lib/backupVerify.ts';
 import { evaluateHealth, DEFAULT_LIMITS } from '../../lib/healthEval.ts';
-import { shouldBlockForMfa } from '../../lib/mfaGate.ts';
+import { shouldBlockForMfa, mfaFromSession } from '../../lib/mfaGate.ts';
 import { validateNewPassword, generateOneTimePassword, isWeakPassword, MIN_PASSWORD_LENGTH } from '../../lib/weakPasswords.ts';
 import { cached, invalidateCache } from '../../lib/queryCacheCore.ts';
 import { departmentForGrade, SPECIFIC_GRADE_LEVELS, ATTENDANCE_CODE_MAP } from '../../lib/gradeMapping.ts';
@@ -469,6 +469,25 @@ t('健康評估：慢查詢要「平均超過 3 秒且已被呼叫很多次」�
   assert.equal(evaluateHealth(h).alerts.length, 0);
   h.snapshot.slow_queries = [{ q: 'select 3', calls: 100, mean_ms: 3500, max_ms: 8000 }];
   assert.ok(evaluateHealth(h).alerts.some((a) => a.key === 'slow_queries'));
+});
+
+t('雙重驗證（本機判斷）：有已驗證的驗證器且只通過密碼 → 要第二步；aal2 或沒有驗證器 → 不用', () => {
+  const tok = (aal) => `h.${Buffer.from(JSON.stringify({ aal })).toString('base64url')}.s`;
+  const f = (status, type = 'totp') => ({ id: `f-${status}`, status, factor_type: type });
+  // 有已驗證驗證器、憑證只有 aal1 → 需要第二步
+  let r = mfaFromSession({ access_token: tok('aal1'), user: { factors: [f('verified')] } });
+  assert.deepEqual(r, { factorId: 'f-verified', hasFactor: true, needsChallenge: true });
+  // 已通過第二步
+  r = mfaFromSession({ access_token: tok('aal2'), user: { factors: [f('verified')] } });
+  assert.equal(r.needsChallenge, false);
+  assert.equal(r.hasFactor, true);
+  // 沒有驗證器、或只有「掃了但沒完成確認」的 → 照舊，不用第二步
+  assert.deepEqual(mfaFromSession({ access_token: tok('aal1'), user: { factors: [] } }), { factorId: null, hasFactor: false, needsChallenge: false });
+  assert.equal(mfaFromSession({ access_token: tok('aal1'), user: { factors: [f('unverified')] } }).hasFactor, false);
+  assert.equal(mfaFromSession({ access_token: tok('aal1'), user: {} }).needsChallenge, false);
+  // 沒有登入資料、憑證格式壞掉：不丟例外
+  assert.equal(mfaFromSession(null).needsChallenge, false);
+  assert.equal(mfaFromSession({ access_token: 'garbage', user: { factors: [f('verified')] } }).needsChallenge, true);
 });
 
 // 依序執行；任何一項失敗就讓整個程序以非 0 結束（CI 才會擋下）

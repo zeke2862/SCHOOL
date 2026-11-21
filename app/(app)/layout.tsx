@@ -8,7 +8,8 @@ import SideNav from '@/components/SideNav';
 import ClickSoundListener from '@/components/ClickSoundListener';
 import GameLayer from '@/components/game/GameLayer';
 import { supabase } from '@/lib/supabaseClient';
-import { MFA_ROLES, getMfaStatusLocal } from '@/lib/mfa';
+import { MFA_ROLES } from '@/lib/mfa';
+import { mfaFromSession } from '@/lib/mfaGate';
 import GuestNav from '@/components/competition/GuestNav';
 
 // 這個路由群組（管理後台、出缺勤、通知…等所有教職員頁面）統一在這裡檔一次「有沒有登入」，
@@ -34,7 +35,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
       // 雙重驗證：帳號登記過驗證器、但這個登入只通過密碼（沒做第二步）→ 一律踢回登入頁重新登入。
       // 這是為了擋「只拿到密碼就直接用網址或舊的登入狀態進來」的情況（資安檢測報告 #8）。
-      const mfa = await getMfaStatusLocal();
+      const mfa = mfaFromSession(data.session); // 只讀本機登入資料，不打網路
       if (!active) return;
       if (mfa.needsChallenge) {
         await supabase.auth.signOut();

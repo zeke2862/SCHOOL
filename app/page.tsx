@@ -8,7 +8,8 @@ import { BulletinPost, getPublishedPosts } from '@/lib/bulletin';
 import ThemeSwitch from '@/components/ThemeSwitch';
 import { canUseTeacherView } from '@/lib/permissions';
 import { getGameMode } from '@/lib/gameMode';
-import { MFA_ROLES, getMfaStatus, verifyMfaCode } from '@/lib/mfa';
+import { MFA_ROLES, verifyMfaCode } from '@/lib/mfa';
+import { mfaFromSession } from '@/lib/mfaGate';
 import TurnstileWidget, { TURNSTILE_SITE_KEY, type TurnstileHandle } from '@/components/TurnstileWidget';
 
 type CardKey = 'staff' | 'parent';
@@ -213,7 +214,7 @@ export default function LoginPage() {
         setTimeout(() => router.replace('/change-password?recovery=1'), 1800);
         return;
       }
-      await finishSignIn(false);
+      await finishSignIn(false, data.session);
     } finally {
       setBusy(false);
     }
@@ -227,7 +228,7 @@ export default function LoginPage() {
       return;
     }
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
       options: captchaToken ? { captchaToken } : undefined,
@@ -238,12 +239,12 @@ export default function LoginPage() {
       return;
     }
 
-    await finishSignIn(isWeakPassword(password));
+    await finishSignIn(isWeakPassword(password), signInData.session);
   }
 
   // 密碼（或驗證碼改密碼）通過之後：帳號有登記雙重驗證就先停在第二步，沒有就直接進系統
-  async function finishSignIn(weakLogin: boolean) {
-    const st = await getMfaStatus();
+  async function finishSignIn(weakLogin: boolean, session: Parameters<typeof mfaFromSession>[0]) {
+    const st = mfaFromSession(session); // 登入回應裡就有驗證器清單，不必再問伺服器
     if (st.needsChallenge && st.factorId) {
       setMfaFactorId(st.factorId);
       setMfaWeak(weakLogin);
@@ -314,10 +315,24 @@ export default function LoginPage() {
     }
     // 系統管理員 S／A 還沒登記雙重驗證：帶去帳號設定頁設定（不強制；要強制請設 NEXT_PUBLIC_MFA_REQUIRED=1，見 (app)/layout）
     if (MFA_ROLES.includes(appUser.role as string)) {
-      const st = await getMfaStatus();
-      if (!st.factorId) {
-        router.push('/account?mfa=setup');
-        return;
+      const { data: sd } = await supabase.auth.getSession(); // 本機資料，不打網路
+      if (!mfaFromSession(sd.session).hasFactor) {
+        // 提醒不要每次登入都把人帶離首頁（像是登入變慢、還要多點一次才到首頁）：3 天內提醒過就直接進首頁
+        let nudged = false;
+        try {
+          nudged = Date.now() - Number(localStorage.getItem('mfaNudgeAt') ?? 0) < 3 * 86400000;
+        } catch {
+          /* 讀不到就當作沒提醒過 */
+        }
+        if (!nudged) {
+          try {
+            localStorage.setItem('mfaNudgeAt', String(Date.now()));
+          } catch {
+            /* 略過 */
+          }
+          router.push('/account?mfa=setup');
+          return;
+        }
       }
     }
     // 賽事訪客（外聘評審/裁判）→ 直接進競賽活動，不經過校務系統首頁

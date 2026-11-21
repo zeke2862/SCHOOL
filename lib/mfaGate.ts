@@ -33,3 +33,18 @@ export async function shouldBlockForMfa(authorization: string | null, supabaseUr
     return false; // 連不上就放行（不能因為外部服務問題讓管理功能整個不能用），由 API 本身的驗證把關
   }
 }
+
+// ---- 用「本機已有的登入資料」判斷雙重驗證狀態（不打任何網路請求）----
+// 原本登入時呼叫 supabase.auth.mfa.listFactors()，它每次都會多打一次 Auth 伺服器（約 0.15～0.3 秒），
+// 系統管理員 S／A 登入還會再打第二次，讓登入明顯變慢。其實登入回應與本機 session 裡的 user.factors
+// 已經有驗證器清單，憑證裡的 aal 欄位也已經說明目前通過到哪一級，不需要再問伺服器。
+type SessionLike = {
+  access_token?: string;
+  user?: { factors?: { id: string; status: string; factor_type?: string }[] | null } | null;
+} | null | undefined;
+
+export function mfaFromSession(session: SessionLike): { factorId: string | null; hasFactor: boolean; needsChallenge: boolean } {
+  const verified = (session?.user?.factors ?? []).find((f) => f.status === 'verified' && (!f.factor_type || f.factor_type === 'totp'));
+  const aal = session?.access_token ? jwtAal(session.access_token) : null;
+  return { factorId: verified?.id ?? null, hasFactor: !!verified, needsChallenge: !!verified && aal !== 'aal2' };
+}
